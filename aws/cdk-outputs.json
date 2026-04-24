@@ -1,0 +1,64 @@
+{
+  "DonverShared-dev": {
+    "DeployRoleArn": "arn:aws:iam::183192606101:role/donver-deploy-role-dev",
+    "SpacePhotosBucketName": "donver-space-photos-dev-183192606101",
+    "StripeSecretParameterName": "/donver/dev/stripe-secret-key",
+    "ExportsOutputFnGetAttSpacePhotosBucket9FD3EAE1ArnA61BB112": "arn:aws:s3:::donver-space-photos-dev-183192606101",
+    "PetPhotosBucketName": "donver-pet-photos-dev-183192606101",
+    "ExportsOutputRefPetPhotosBucket146E40377706B8E9": "donver-pet-photos-dev-183192606101",
+    "ExportsOutputFnGetAttPetPhotosBucket146E4037ArnC184780F": "arn:aws:s3:::donver-pet-photos-dev-183192606101",
+    "ExportsOutputRefSpacePhotosBucket9FD3EAE15F11F63D": "donver-space-photos-dev-183192606101",
+    "GoogleOAuthClientIdParameterName": "/donver/dev/google-oauth-client-id"
+  },
+  "DonverShared-prod": {
+    "DeployRoleArn": "arn:aws:iam::183192606101:role/donver-deploy-role-prod",
+    "SpacePhotosBucketName": "donver-space-photos-prod-183192606101",
+    "StripeSecretParameterName": "/donver/prod/stripe-secret-key",
+    "ExportsOutputFnGetAttSpacePhotosBucket9FD3EAE1ArnA61BB112": "arn:aws:s3:::donver-space-photos-prod-183192606101",
+    "PetPhotosBucketName": "donver-pet-photos-prod-183192606101",
+    "ExportsOutputRefPetPhotosBucket146E40377706B8E9": "donver-pet-photos-prod-183192606101",
+    "ExportsOutputFnGetAttPetPhotosBucket146E4037ArnC184780F": "arn:aws:s3:::donver-pet-photos-prod-183192606101",
+    "ExportsOutputRefSpacePhotosBucket9FD3EAE15F11F63D": "donver-space-photos-prod-183192606101",
+    "GoogleOAuthClientIdParameterName": "/donver/prod/google-oauth-client-id"
+  },
+  "DonverAuth-dev": {
+    "UserPoolClientId": "2hj97gi9t0rjvi2mathp2it2er",
+    "UserPoolId": "us-east-1_edtYjSMhu",
+    "ExportsOutputRefDonverUserPool69F4E0B32DDB3652": "us-east-1_edtYjSMhu",
+    "ExportsOutputRefDonverUserPoolDonverWebClient55387986BD58B7AB": "2hj97gi9t0rjvi2mathp2it2er"
+  },
+  "DonverData-dev": {
+    "MainTableArn": "arn:aws:dynamodb:us-east-1:183192606101:table/donver-main-dev",
+    "CoreTableName": "donver-core-dev",
+    "MessagingTableName": "donver-messaging-dev",
+    "BookingsTableName": "donver-bookings-dev",
+    "MessagingTableArn": "arn:aws:dynamodb:us-east-1:183192606101:table/donver-messaging-dev",
+    "CoreTableArn": "arn:aws:dynamodb:us-east-1:183192606101:table/donver-core-dev",
+    "BookingsTableArn": "arn:aws:dynamodb:us-east-1:183192606101:table/donver-bookings-dev",
+    "MainTableName": "donver-main-dev"
+  },
+  "DonverAuth-prod": {
+    "UserPoolClientId": "14l3u25upu3n4677o53gpimdnb",
+    "UserPoolId": "us-east-1_muhgEC2Qi",
+    "ExportsOutputRefDonverUserPool69F4E0B32DDB3652": "us-east-1_muhgEC2Qi",
+    "ExportsOutputRefDonverUserPoolDonverWebClient55387986BD58B7AB": "14l3u25upu3n4677o53gpimdnb"
+  },
+  "DonverData-prod": {
+    "MainTableArn": "arn:aws:dynamodb:us-east-1:183192606101:table/donver-main-prod",
+    "CoreTableName": "donver-core-prod",
+    "MessagingTableName": "donver-messaging-prod",
+    "BookingsTableName": "donver-bookings-prod",
+    "MessagingTableArn": "arn:aws:dynamodb:us-east-1:183192606101:table/donver-messaging-prod",
+    "CoreTableArn": "arn:aws:dynamodb:us-east-1:183192606101:table/donver-core-prod",
+    "BookingsTableArn": "arn:aws:dynamodb:us-east-1:183192606101:table/donver-bookings-prod",
+    "MainTableName": "donver-main-prod"
+  },
+  "DonverApi-dev": {
+    "ApiBaseUrl": "https://58e5dyxsol.execute-api.us-east-1.amazonaws.com/",
+    "WebSocketUrl": "wss://3aiof4e11e.execute-api.us-east-1.amazonaws.com/dev"
+  },
+  "DonverApi-prod": {
+    "ApiBaseUrl": "https://mgtc3h1wrj.execute-api.us-east-1.amazonaws.com/",
+    "WebSocketUrl": "wss://s7jg4t8998.execute-api.us-east-1.amazonaws.com/prod"
+  }
+}

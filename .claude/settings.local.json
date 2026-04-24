@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/julio/.mcp-servers/aws-mcp/**)",
+      "Bash(pip install *)",
+      "Bash(npm run *)",
+      "Bash(npm install *)"
+    ]
+  }
+}

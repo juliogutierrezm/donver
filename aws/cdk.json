@@ -1,0 +1,6 @@
+{
+  "app": "npx tsx bin/donver.ts",
+  "context": {
+    "@aws-cdk/core:bootstrapQualifier": "donver"
+  }
+}

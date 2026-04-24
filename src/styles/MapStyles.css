@@ -1,0 +1,85 @@
+/* Leaflet map customization */
+
+.leaflet-container {
+  font-family: inherit;
+  background-color: hsl(var(--background));
+}
+
+.leaflet-control-zoom {
+  border: 1px solid hsl(var(--border)) !important;
+  border-radius: 0.5rem !important;
+  background-color: hsl(var(--card)) !important;
+  box-shadow: var(--shadow-soft) !important;
+}
+
+.leaflet-control-zoom-in,
+.leaflet-control-zoom-out {
+  background-color: hsl(var(--card)) !important;
+  color: hsl(var(--foreground)) !important;
+  border: none !important;
+  border-bottom: 1px solid hsl(var(--border)) !important;
+  font-size: 18px !important;
+}
+
+.leaflet-control-zoom-out {
+  border-bottom: none !important;
+}
+
+.leaflet-control-zoom-in:hover,
+.leaflet-control-zoom-out:hover {
+  background-color: hsl(var(--accent)) !important;
+}
+
+/* Popup customization */
+.leaflet-popup-content-wrapper {
+  background-color: hsl(var(--card)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  border-radius: 0.75rem !important;
+  box-shadow: var(--shadow-soft) !important;
+  padding: 0 !important;
+}
+
+.leaflet-popup-content {
+  margin: 0 !important;
+  padding: 16px !important;
+  color: hsl(var(--foreground)) !important;
+  line-height: 1.5;
+}
+
+.leaflet-popup-tip {
+  background-color: hsl(var(--card)) !important;
+  border-color: hsl(var(--border)) !important;
+}
+
+.space-marker-popup .leaflet-popup-content {
+  padding: 12px !important;
+}
+
+/* Custom marker */
+.custom-marker {
+  background: none !important;
+  border: none !important;
+}
+
+/* Dark mode adjustments */
+.dark .leaflet-container {
+  background-color: hsl(var(--background));
+}
+
+.dark .leaflet-control-zoom {
+  background-color: hsl(var(--card)) !important;
+}
+
+.dark .leaflet-control-zoom-in,
+.dark .leaflet-control-zoom-out {
+  background-color: hsl(var(--card)) !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+.dark .leaflet-popup-content-wrapper {
+  background-color: hsl(var(--card)) !important;
+}
+
+.dark .leaflet-popup-content {
+  color: hsl(var(--foreground)) !important;
+}
