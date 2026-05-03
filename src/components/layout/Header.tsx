@@ -1,30 +1,16 @@
-import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import {
-  Menu,
-  X,
-  PawPrint,
-  MessageSquare,
-  User,
-} from "lucide-react";
+import { Menu, MessageSquare, User, X } from "lucide-react";
+import { useState } from "react";
+import DonverLogo from "@/assets/Donver-logo.png";
 import { Button } from "@/components/ui/button";
 import { NavLink } from "@/components/NavLink";
 import { cn } from "@/lib/utils";
-import { isAuthenticated, subscribeAuthSession } from "@/services/api";
+import { useAuthSessionUser } from "@/hooks/useAuthSessionUser";
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [authenticated, setAuthenticated] = useState(() => isAuthenticated());
+  const { authenticated, experienceMode } = useAuthSessionUser();
   const unreadCount = authenticated ? 1 : 0;
-
-  useEffect(() => {
-    const syncAuthState = () => {
-      setAuthenticated(isAuthenticated());
-    };
-
-    syncAuthState();
-    return subscribeAuthSession(syncAuthState);
-  }, []);
 
   const navLinks = [
     { label: "Inicio", to: "/" },
@@ -33,17 +19,27 @@ export function Header() {
     { label: "Ayuda", to: "/help" },
   ];
 
+  const caregiverCta =
+    experienceMode === "caregiver_pending"
+      ? { label: "Continuar registro", to: "/become-caregiver" }
+      : experienceMode === "caregiver"
+        ? { label: "Dashboard cuidador", to: "/caregiver/dashboard" }
+        : { label: "Ser cuidador", to: "/become-caregiver" };
+
   return (
-    <header className="sticky top-0 z-50 bg-card border-b border-border shadow-soft">
-      <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-        {/* Logo */}
+    <header className="sticky top-0 z-50 border-b border-border bg-card shadow-soft">
+      <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <Link to="/" className="flex items-center gap-2 font-heading text-xl font-bold text-primary hover-lift">
-          <PawPrint className="w-6 h-6" />
-          <span>Donver</span>
+          <img
+            src={DonverLogo}
+            alt="Donver logo"
+            className="h-10 w-auto"
+            style={{ maxHeight: 40 }}
+          />
+          <span className="sr-only">Donver</span>
         </Link>
 
-        {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center gap-8">
+        <div className="hidden items-center gap-8 md:flex">
           {navLinks.map((link) => (
             <NavLink key={link.to} to={link.to}>
               {link.label}
@@ -51,23 +47,27 @@ export function Header() {
           ))}
         </div>
 
-        {/* Auth Actions */}
-        <div className="hidden md:flex items-center gap-4">
+        <div className="hidden items-center gap-4 md:flex">
           {authenticated ? (
             <>
+              <Link to={caregiverCta.to}>
+                <Button variant={experienceMode === "owner" ? "outline" : "default"}>
+                  {caregiverCta.label}
+                </Button>
+              </Link>
               <Link to="/messages" className="relative">
                 <Button variant="ghost" size="icon">
-                  <MessageSquare className="w-5 h-5" />
+                  <MessageSquare className="h-5 w-5" />
                 </Button>
                 {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-destructive rounded-full">
+                  <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-xs font-bold text-white">
                     {unreadCount}
                   </span>
                 )}
               </Link>
               <Link to="/profile">
                 <Button variant="ghost" size="icon">
-                  <User className="w-5 h-5" />
+                  <User className="h-5 w-5" />
                 </Button>
               </Link>
             </>
@@ -83,44 +83,44 @@ export function Header() {
           )}
         </div>
 
-        {/* Mobile Menu Button */}
         <button
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className="md:hidden p-2 hover:bg-accent rounded-lg transition-colors"
+          onClick={() => setIsMenuOpen((current) => !current)}
+          className="rounded-lg p-2 transition-colors hover:bg-accent md:hidden"
         >
-          {isMenuOpen ? (
-            <X className="w-6 h-6" />
-          ) : (
-            <Menu className="w-6 h-6" />
-          )}
+          {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
       </nav>
 
-      {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="md:hidden border-t border-border bg-card animate-in">
-          <div className="px-4 py-4 space-y-3">
+        <div className="animate-in border-t border-border bg-card md:hidden">
+          <div className="space-y-3 px-4 py-4">
             {navLinks.map((link) => (
               <NavLink
                 key={link.to}
                 to={link.to}
                 className="block py-2"
+                onClick={() => setIsMenuOpen(false)}
               >
                 {link.label}
               </NavLink>
             ))}
-            <div className={cn(
-              "pt-3 border-t border-border space-y-2",
-              authenticated && "flex flex-col gap-2"
-            )}>
+            <div
+              className={cn(
+                "space-y-2 border-t border-border pt-3",
+                authenticated && "flex flex-col gap-2",
+              )}
+            >
               {authenticated ? (
                 <>
+                  <Link to={caregiverCta.to} onClick={() => setIsMenuOpen(false)}>
+                    <Button className="w-full">{caregiverCta.label}</Button>
+                  </Link>
                   <Link to="/messages" onClick={() => setIsMenuOpen(false)}>
                     <Button variant="outline" className="w-full justify-start gap-2">
-                      <MessageSquare className="w-4 h-4" />
+                      <MessageSquare className="h-4 w-4" />
                       Mensajes
                       {unreadCount > 0 && (
-                        <span className="ml-auto text-xs font-bold bg-destructive text-white px-2 py-0.5 rounded">
+                        <span className="ml-auto rounded bg-destructive px-2 py-0.5 text-xs font-bold text-white">
                           {unreadCount}
                         </span>
                       )}
@@ -128,7 +128,7 @@ export function Header() {
                   </Link>
                   <Link to="/profile" onClick={() => setIsMenuOpen(false)}>
                     <Button variant="outline" className="w-full justify-start gap-2">
-                      <User className="w-4 h-4" />
+                      <User className="h-4 w-4" />
                       Mi perfil
                     </Button>
                   </Link>

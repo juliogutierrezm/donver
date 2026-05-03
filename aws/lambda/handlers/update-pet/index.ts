@@ -19,7 +19,7 @@ export async function handler(event: APIGatewayProxyEventV2WithJWTAuthorizer) {
 
     const body = JSON.parse(event.body ?? '{}') as Record<string, unknown>;
     const now = new Date().toISOString();
-    const allowed = ['name','species','breed','age','weight','photos','medical_notes'];
+    const allowed = ['name','species','breed','age','weight','size','description','photos','medical_notes'];
 
     const exprParts: string[] = ['updated_at = :now'];
     const names: Record<string, string> = {};

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
@@ -7,10 +7,11 @@ import { UserInfoCard } from "@/components/profile/UserInfoCard";
 import { BookingsTab } from "@/components/profile/BookingsTab";
 import { PetsTab } from "@/components/profile/PetsTab";
 import { FavoritesTab } from "@/components/profile/FavoritesTab";
+import { CaregiverStatusBanner } from "@/components/profile/CaregiverStatusBanner";
 import { getMockFavoriteSpaces } from "@/data/mockProfileData";
-import { authApi, bookingsApi, petsApi } from "@/services/api";
+import { authApi, bookingsApi, getUserExperienceMode, petsApi, spacesApi } from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
-import type { Pet, Booking, User } from "@/types";
+import type { Booking, Pet, Space, User } from "@/types";
 
 export default function ProfilePage() {
   const navigate = useNavigate();
@@ -18,6 +19,8 @@ export default function ProfilePage() {
   const [user, setUser] = useState<User | null>(null);
   const [pets, setPets] = useState<Pet[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [caregiverBookings, setCaregiverBookings] = useState<Booking[]>([]);
+  const [caregiverSpaces, setCaregiverSpaces] = useState<Space[]>([]);
   const favoriteSpaces = getMockFavoriteSpaces();
 
   useEffect(() => {
@@ -25,17 +28,34 @@ export default function ProfilePage() {
 
     async function load() {
       try {
-        const [currentUser, currentPets, currentBookings] = await Promise.all([
-          authApi.getCurrentUser(),
+        const currentUser = await authApi.getCurrentUser();
+        if (cancelled) return;
+
+        const ownerRequests = Promise.all([
           petsApi.listMine(),
           bookingsApi.listMine(),
         ]);
+        const caregiverRequests = currentUser.roles.includes("caregiver")
+          ? Promise.all([spacesApi.getMine(), bookingsApi.listCaregiver()])
+          : Promise.resolve([[], []] as [Space[], Booking[]]);
+
+        const [[currentPets, currentBookings], [mySpaces, receivedBookings]] = await Promise.all([
+          ownerRequests,
+          caregiverRequests,
+        ]);
         if (cancelled) return;
+
         setUser(currentUser);
         setPets(currentPets);
         setBookings(currentBookings);
+        setCaregiverSpaces(mySpaces);
+        setCaregiverBookings(receivedBookings);
       } catch (error) {
         if (cancelled) return;
+        if (error instanceof Error && error.message.includes("sesion")) {
+          navigate("/login?next=%2Fprofile");
+          return;
+        }
         toast({
           title: "No se pudo cargar el perfil",
           description:
@@ -49,7 +69,7 @@ export default function ProfilePage() {
     return () => {
       cancelled = true;
     };
-  }, [toast]);
+  }, [navigate, toast]);
 
   const handlePetAdded = async (pet: Pet) => {
     const { id: _id, ...petInput } = pet;
@@ -72,11 +92,29 @@ export default function ProfilePage() {
     navigate("/login");
   };
 
+  const handleSetActiveRole = async (role: User["activeRole"]) => {
+    if (!user || !role) return;
+    const updated = await authApi.updateProfile({
+      activeRole: role,
+    });
+    setUser(updated);
+  };
+
+  const activeView = useMemo(() => {
+    if (!user) return "owner";
+    const experienceMode = getUserExperienceMode(user);
+    if (experienceMode === "caregiver_pending") return "pending";
+    if (user.roles.includes("caregiver") && (user.activeRole === "caregiver" || !user.roles.includes("owner"))) {
+      return "caregiver";
+    }
+    return "owner";
+  }, [user]);
+
   if (!user) {
     return (
       <>
         <Header />
-        <main className="min-h-screen bg-background flex items-center justify-center">
+        <main className="flex min-h-screen items-center justify-center bg-background">
           <p className="text-muted-foreground">Cargando perfil...</p>
         </main>
         <Footer />
@@ -84,50 +122,155 @@ export default function ProfilePage() {
     );
   }
 
+  const experienceMode = getUserExperienceMode(user);
+  const showRoleTabs = user.roles.includes("caregiver") && user.roles.includes("owner");
+
   return (
     <>
       <Header />
       <main className="min-h-screen bg-background">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
           <div className="mb-12">
-            <h1 className="text-4xl font-heading font-bold text-foreground">
-              Mi Perfil
-            </h1>
-            <p className="text-muted-foreground mt-2">
-              Gestiona tu información, mascotas y reservaciones
+            <h1 className="text-4xl font-heading font-bold text-foreground">Mi Perfil</h1>
+            <p className="mt-2 text-muted-foreground">
+              Gestiona tu cuenta, tus mascotas y tu experiencia dentro de Donver.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
             <div className="lg:col-span-1">
-              <UserInfoCard user={user} onLogout={() => void handleLogout()} />
+              <UserInfoCard
+                user={user}
+                onLogout={() => void handleLogout()}
+                onSetActiveRole={(role) => void handleSetActiveRole(role)}
+              />
             </div>
 
-            <div className="lg:col-span-3">
-              <Tabs defaultValue="bookings" className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="bookings">Reservaciones</TabsTrigger>
-                  <TabsTrigger value="pets">Mascotas</TabsTrigger>
-                  <TabsTrigger value="favorites">Favoritos</TabsTrigger>
-                </TabsList>
+            <div className="space-y-6 lg:col-span-3">
+              <CaregiverStatusBanner user={user} />
 
-                <TabsContent value="bookings" className="space-y-6 mt-6">
-                  <BookingsTab bookings={bookings} />
-                </TabsContent>
+              {showRoleTabs ? (
+                <Tabs
+                  value={activeView}
+                  onValueChange={(value) => {
+                    if (value === "owner" || value === "caregiver") {
+                      void handleSetActiveRole(value);
+                    }
+                  }}
+                  className="w-full"
+                >
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="owner">Como dueño</TabsTrigger>
+                    <TabsTrigger value="caregiver">Como cuidador</TabsTrigger>
+                  </TabsList>
 
-                <TabsContent value="pets" className="space-y-6 mt-6">
-                  <PetsTab
-                    pets={pets}
-                    onPetAdded={(pet) => void handlePetAdded(pet)}
-                    onPetUpdated={(pet) => void handlePetUpdated(pet)}
-                    onPetDeleted={(petId) => void handlePetDeleted(petId)}
-                  />
-                </TabsContent>
+                  <TabsContent value="owner" className="mt-6">
+                    <Tabs defaultValue="bookings" className="w-full">
+                      <TabsList className="grid w-full grid-cols-3">
+                        <TabsTrigger value="bookings">Reservaciones</TabsTrigger>
+                        <TabsTrigger value="pets">Mascotas</TabsTrigger>
+                        <TabsTrigger value="favorites">Favoritos</TabsTrigger>
+                      </TabsList>
 
-                <TabsContent value="favorites" className="space-y-6 mt-6">
-                  <FavoritesTab favorites={favoriteSpaces} />
-                </TabsContent>
-              </Tabs>
+                      <TabsContent value="bookings" className="mt-6 space-y-6">
+                        <BookingsTab bookings={bookings} />
+                      </TabsContent>
+
+                      <TabsContent value="pets" className="mt-6 space-y-6">
+                        <PetsTab
+                          pets={pets}
+                          onPetAdded={(pet) => void handlePetAdded(pet)}
+                          onPetUpdated={(pet) => void handlePetUpdated(pet)}
+                          onPetDeleted={(petId) => void handlePetDeleted(petId)}
+                        />
+                      </TabsContent>
+
+                      <TabsContent value="favorites" className="mt-6 space-y-6">
+                        <FavoritesTab favorites={favoriteSpaces} />
+                      </TabsContent>
+                    </Tabs>
+                  </TabsContent>
+
+                  <TabsContent value="caregiver" className="mt-6 space-y-6">
+                    <div className="rounded-xl border border-border bg-card p-6">
+                      <h2 className="text-xl font-bold text-foreground">Como cuidador</h2>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {experienceMode === "caregiver_pending"
+                          ? "Completa tu onboarding para activar estas herramientas."
+                          : "Gestiona tus espacios y revisa tus reservas recibidas."}
+                      </p>
+                    </div>
+
+                    <div className="rounded-xl border border-border bg-card p-6">
+                      <h3 className="mb-4 text-lg font-semibold text-foreground">Espacios publicados o en borrador</h3>
+                      {caregiverSpaces.length === 0 ? (
+                        <p className="text-sm text-muted-foreground">Aún no has creado espacios.</p>
+                      ) : (
+                        <div className="space-y-3">
+                          {caregiverSpaces.map((space) => (
+                            <div key={space.id} className="rounded-lg border border-border p-4">
+                              <div className="flex items-center justify-between gap-4">
+                                <div>
+                                  <p className="font-semibold text-foreground">{space.title}</p>
+                                  <p className="text-sm text-muted-foreground">
+                                    {space.canton}, {space.province}
+                                  </p>
+                                </div>
+                                <span className={space.isActive ? "text-primary" : "text-muted-foreground"}>
+                                  {space.isActive ? "Publicado" : "Borrador"}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="rounded-xl border border-border bg-card p-6">
+                      <h3 className="mb-4 text-lg font-semibold text-foreground">Reservas recibidas</h3>
+                      {caregiverBookings.length === 0 ? (
+                        <p className="text-sm text-muted-foreground">Aún no has recibido reservas.</p>
+                      ) : (
+                        <div className="space-y-3">
+                          {caregiverBookings.map((booking) => (
+                            <div key={booking.id} className="rounded-lg border border-border p-4">
+                              <p className="font-semibold text-foreground">Reserva {booking.id}</p>
+                              <p className="text-sm text-muted-foreground">
+                                {booking.status} • ₡{booking.totalPrice.toLocaleString("es-CR")}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </TabsContent>
+                </Tabs>
+              ) : (
+                <Tabs defaultValue="bookings" className="w-full">
+                  <TabsList className="grid w-full grid-cols-3">
+                    <TabsTrigger value="bookings">Reservaciones</TabsTrigger>
+                    <TabsTrigger value="pets">Mascotas</TabsTrigger>
+                    <TabsTrigger value="favorites">Favoritos</TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="bookings" className="mt-6 space-y-6">
+                    <BookingsTab bookings={bookings} />
+                  </TabsContent>
+
+                  <TabsContent value="pets" className="mt-6 space-y-6">
+                    <PetsTab
+                      pets={pets}
+                      onPetAdded={(pet) => void handlePetAdded(pet)}
+                      onPetUpdated={(pet) => void handlePetUpdated(pet)}
+                      onPetDeleted={(petId) => void handlePetDeleted(petId)}
+                    />
+                  </TabsContent>
+
+                  <TabsContent value="favorites" className="mt-6 space-y-6">
+                    <FavoritesTab favorites={favoriteSpaces} />
+                  </TabsContent>
+                </Tabs>
+              )}
             </div>
           </div>
         </div>

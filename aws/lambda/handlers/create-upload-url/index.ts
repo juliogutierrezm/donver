@@ -22,7 +22,8 @@ export async function handler(event: APIGatewayProxyEventV2WithJWTAuthorizer) {
     const key = `${sub}/${randomUUID()}.${contentType.split('/')[1]}`;
     const command = new PutObjectCommand({ Bucket: bucket, Key: key, ContentType: contentType });
     const url = await getSignedUrl(s3, command, { expiresIn: 300 });
-    const publicUrl = `https://${bucket}.s3.amazonaws.com/${key}`;
+    const region = process.env['AWS_REGION'] ?? process.env['AWS_DEFAULT_REGION'] ?? 'us-east-1';
+    const publicUrl = `https://${bucket}.s3.${region}.amazonaws.com/${key}`;
     return ok({ url, key, publicUrl });
   } catch (err) {
     return serverError(err);

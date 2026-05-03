@@ -34,6 +34,10 @@ export function BookingCard({
     space.acceptedPetTypes[0] || "dog"
   );
   const [petCount, setPetCount] = useState(1);
+  const matchingPets = useMemo(
+    () => pets.filter((pet) => pet.type === selectedPetType),
+    [pets, selectedPetType]
+  );
 
   const blockedDateStrings = useMemo(
     () => {
@@ -111,6 +115,15 @@ export function BookingCard({
       return;
     }
 
+    if (matchingPets.length < petCount) {
+      toast({
+        title: "Mascotas insuficientes",
+        description: `Solo tienes ${matchingPets.length} mascota(s) registradas de este tipo.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Create booking object
     const booking = {
       spaceId: space.id,
@@ -123,7 +136,7 @@ export function BookingCard({
       startTime: bookingType === "hourly" ? startTime : undefined,
       endTime: bookingType === "hourly" ? endTime : undefined,
       hours: bookingType === "hourly" ? hours : undefined,
-      petIds: Array(petCount).fill(selectedPetType), // Mock pet IDs
+      petIds: matchingPets.slice(0, petCount).map((pet) => pet.id),
       subtotal: priceBreakdown.subtotal,
       serviceFee: priceBreakdown.serviceFee,
       totalPrice: priceBreakdown.total,
@@ -294,13 +307,21 @@ export function BookingCard({
             <input
               type="number"
               value={petCount}
-              onChange={(e) => setPetCount(Math.min(space.maxPets, Number(e.target.value)))}
+              onChange={(e) =>
+                setPetCount(
+                  Math.max(1, Math.min(space.maxPets, Number(e.target.value)))
+                )
+              }
               min={1}
               max={space.maxPets}
               className="w-full px-3 py-2 border border-input rounded-lg bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
         </div>
+        <p className="text-sm text-muted-foreground">
+          {matchingPets.length} mascota(s) registradas de este tipo disponibles
+          para esta reserva.
+        </p>
       </div>
 
       {/* Price Breakdown */}

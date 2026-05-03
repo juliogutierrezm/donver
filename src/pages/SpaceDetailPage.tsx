@@ -14,7 +14,15 @@ import { SpaceAmenities } from "@/components/SpaceAmenities";
 import { SpaceReviews } from "@/components/SpaceReviews";
 import { BookingCard } from "@/components/BookingCard";
 import { BookingSummary } from "@/components/BookingSummary";
-import { availabilityApi, bookingsApi, petsApi, reviewsApi, spacesApi, getCurrentUserId } from "@/services/api";
+import {
+  availabilityApi,
+  bookingsApi,
+  getAuthSession,
+  getCurrentUserId,
+  petsApi,
+  reviewsApi,
+  spacesApi,
+} from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
 import type { BlockedDate, Booking, Pet, Review, Space } from "@/types";
 
@@ -36,11 +44,12 @@ export default function SpaceDetailPage() {
 
     async function load() {
       try {
+        const session = getAuthSession();
         const [spaceData, blockedData, reviewData, petData] = await Promise.all([
           spacesApi.getById(spaceId),
           availabilityApi.list(spaceId),
           reviewsApi.listForSpace(spaceId),
-          petsApi.listMine(),
+          session ? petsApi.listMine() : Promise.resolve([]),
         ]);
         if (cancelled) return;
         setSpace(spaceData);

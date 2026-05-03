@@ -232,9 +232,9 @@ Define la infraestructura base en `AWS us-east-1` con `CDK + TypeScript` y dos a
 4. **Lambda functions**:
    - Runtime Node.js + TypeScript.
    - Una función por dominio o caso de uso, no una sola Lambda monolítica.
-5. **RDS PostgreSQL + RDS Proxy**:
-   - Base de datos relacional principal.
-   - Conexión desde Lambdas vía `RDS Proxy`.
+5. **DynamoDB**:
+   - Base de datos NoSQL principal para perfiles, espacios, bookings, mascotas, mensajes, etc.
+   - Tablas separadas por dominio (core, bookings, messaging).
 6. **S3 buckets**:
    - `donver-space-photos-{env}`
    - `donver-pet-photos-{env}`
@@ -253,7 +253,7 @@ Define la infraestructura base en `AWS us-east-1` con `CDK + TypeScript` y dos a
 **Stacks sugeridos**:
 - `DonverSharedStack`: VPC, buckets, secretos, roles base.
 - `DonverAuthStack`: Cognito.
-- `DonverDataStack`: PostgreSQL y RDS Proxy.
+- `DonverDataStack`: DynamoDB (tablas core, bookings, messaging).
 - `DonverApiStack`: Lambdas, API HTTP y WebSocket.
 
 **Criterio de aceptación**:
@@ -264,30 +264,25 @@ Define la infraestructura base en `AWS us-east-1` con `CDK + TypeScript` y dos a
 
 ## Fase 14 — Modelo de datos y backend de aplicación
 
-> Mensaje a enviar: **"Implementa el backend de Donver sobre AWS usando PostgreSQL, Lambdas y API Gateway"**.
+> Mensaje a enviar: **"Implementa el backend de Donver sobre AWS usando DynamoDB, Lambdas y API Gateway"**.
 
-Crea las migraciones SQL para PostgreSQL y el código de las Lambdas.
+Crea las tablas de DynamoDB necesarias y el código de las Lambdas.
 
-### Esquema de base de datos
+### Esquema de base de datos (DynamoDB)
 
-1. **`profiles`**: `id (uuid PK)`, `user_id (uuid unique)`, `email`, `name`, `phone`, `avatar_url`, `province`, `canton`, `created_at`, `updated_at`.
-2. **Tabla de roles separada**:
-   - `CREATE TYPE app_role AS ENUM ('owner','caregiver','both','admin')`
-   - `user_roles (id, user_id, role)` con `unique(user_id, role)`.
-3. **`spaces`**: todos los campos del tipo `Space` + `latitude` + `longitude` + `updated_at`.
-4. **`pets`**: campos del tipo `Pet` + `updated_at`.
-5. **`bookings`**: campos del tipo `Booking` + `service_fee`, `subtotal`, `updated_at`.
-6. **`blocked_dates`**: `id`, `space_id`, `date`, `reason`, `created_at`.
-7. **`reviews`**: `id`, `booking_id`, `space_id`, `owner_id`, `rating`, `comment`, `created_at`.
-8. **`favorites`**: `id`, `owner_id`, `space_id`, `created_at`, `unique(owner_id, space_id)`.
-9. **`conversations`**: `id`, `space_id`, `created_at`, `updated_at`.
-10. **`conversation_participants`**: `id`, `conversation_id`, `user_id`, `created_at`, `unique(conversation_id, user_id)`.
-11. **`messages`**: `id`, `conversation_id`, `sender_id`, `body`, `read_at`, `created_at`.
+Tablas principales:
+
+1. **core**: perfiles de usuario, espacios, mascotas, reviews, favoritos, etc. (usando PK/SK y GSIs para acceso eficiente)
+2. **bookings**: reservas, fechas bloqueadas, historial de bookings
+3. **messaging**: conversaciones, participantes, mensajes
+
+Cada entidad se modela con claves compuestas (PK/SK) y GSIs según los patrones de acceso.
+
 
 ### Reglas de negocio en backend
 
 - Crear o sincronizar `profiles` al primer login exitoso en Cognito.
-- No depender solo del token para roles; consultar `user_roles`.
+- No depender solo del token para roles; almacenar roles en el perfil del usuario.
 - `spaces` públicos solo cuando `is_active = true`.
 - `bookings` deben validar conflictos con `blocked_dates` y overlaps existentes.
 - `reviews` solo pueden crearse si el owner tiene una booking `completed` para ese espacio.

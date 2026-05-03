@@ -9,7 +9,7 @@ export async function handler(event: APIGatewayProxyEventV2WithJWTAuthorizer) {
     const { sub } = getAuthClaims(event);
     const body = JSON.parse(event.body ?? '{}') as {
       name?: string; species?: string; breed?: string; age?: number;
-      weight?: number; photos?: string[]; medical_notes?: string;
+      weight?: number; size?: string; description?: string; photos?: string[]; medical_notes?: string;
     };
     if (!body.name || !body.species) return badRequest('name and species required');
 
@@ -26,6 +26,8 @@ export async function handler(event: APIGatewayProxyEventV2WithJWTAuthorizer) {
       breed: body.breed ?? '',
       age: body.age ?? 0,
       weight: body.weight ?? 0,
+      size: body.size ?? 'medium',
+      description: body.description ?? '',
       photos: body.photos ?? [],
       medical_notes: body.medical_notes ?? '',
       created_at: now,

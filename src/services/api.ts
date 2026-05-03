@@ -83,6 +83,9 @@ export interface AuthCredentials {
 export interface RegisterInput extends AuthCredentials {
   name: string;
   phone?: string;
+  province: Province;
+  canton: string;
+  signupIntent?: "caregiver" | null;
 }
 
 export interface AuthSession {
@@ -91,6 +94,7 @@ export interface AuthSession {
   refreshToken: string;
   idToken?: string;
   expiresAt?: string;
+  activeRole?: UserRole;
 }
 
 export interface SpaceFilters {
@@ -145,7 +149,16 @@ function cloneDate(value: Date) {
 }
 
 function cloneUser(user: User): User {
-  return { ...user, createdAt: cloneDate(user.createdAt) };
+  return {
+    ...user,
+    createdAt: cloneDate(user.createdAt),
+    caregiverStatus: user.caregiverStatus
+      ? {
+          ...user.caregiverStatus,
+          missingProfileFields: [...user.caregiverStatus.missingProfileFields],
+        }
+      : undefined,
+  };
 }
 
 function clonePet(pet: Pet): Pet {
@@ -209,6 +222,30 @@ function cloneSession(session: AuthSession): AuthSession {
   return { ...session, user: cloneUser(session.user) };
 }
 
+function normalizeRoles(value: unknown): UserRole[] {
+  const roles =
+    typeof value === "string"
+      ? [value]
+      : Array.isArray(value)
+        ? value
+        : [];
+  const normalized: UserRole[] = roles.flatMap((role) => {
+    const value = String(role);
+    if (value === "both") return ["owner", "caregiver"] as UserRole[];
+    return value === "owner" || value === "caregiver" ? [value] : [];
+  });
+
+  return Array.from(new Set(normalized));
+}
+
+function deriveActiveRole(roles: UserRole[], activeRole?: unknown): UserRole {
+  const candidate = typeof activeRole === "string" ? activeRole : "";
+  if (candidate === "owner" || candidate === "caregiver") {
+    return candidate;
+  }
+  return roles[0] ?? "owner";
+}
+
 function requireEntity<T>(entity: T | undefined, message: string): T {
   if (!entity) {
     throw new Error(message);
@@ -263,6 +300,45 @@ function isBrowserEnvironment() {
   return typeof window !== "undefined";
 }
 
+function decodeJwtPayload(token?: string) {
+  if (!token || !isBrowserEnvironment()) return null;
+
+  const [, payload = ""] = token.split(".");
+  if (!payload) return null;
+
+  try {
+    const normalized = payload.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, "=");
+    return safeJsonParse<Record<string, unknown>>(window.atob(padded));
+  } catch {
+    return null;
+  }
+}
+
+function getSessionExpiryMs(session?: AuthSession | null) {
+  if (!session) return null;
+
+  if (session.expiresAt) {
+    const timestamp = Date.parse(session.expiresAt);
+    if (Number.isFinite(timestamp)) {
+      return timestamp;
+    }
+  }
+
+  const payload = decodeJwtPayload(session.idToken ?? session.accessToken);
+  const exp = typeof payload?.exp === "number" ? payload.exp : undefined;
+  return exp ? exp * 1000 : null;
+}
+
+function isSessionExpired(session?: AuthSession | null, skewMs = 60_000) {
+  if (!session?.accessToken) return true;
+  if (!IS_API_CONFIGURED || !COGNITO_CLIENT_ID) return false;
+
+  const expiryMs = getSessionExpiryMs(session);
+  if (!expiryMs) return false;
+  return expiryMs <= Date.now() + skewMs;
+}
+
 function notifyAuthSessionChanged() {
   if (!isBrowserEnvironment()) return;
   window.dispatchEvent(new Event(AUTH_SESSION_EVENT));
@@ -279,6 +355,7 @@ function readSessionFromStorage(): AuthSession | null {
 }
 
 let authSessionStore = readSessionFromStorage();
+let refreshAuthSessionPromise: Promise<AuthSession | null> | null = null;
 
 function persistAuthSession(session: AuthSession | null) {
   authSessionStore = session ? cloneSession(session) : null;
@@ -297,12 +374,30 @@ export function getAuthSession() {
   return authSessionStore ? cloneSession(authSessionStore) : null;
 }
 
+export type UserExperienceMode = "owner" | "caregiver_pending" | "caregiver";
+
+export function getUserExperienceMode(user?: Pick<User, "roles" | "signupIntent"> | null): UserExperienceMode {
+  if (!user) return "owner";
+  if (user.roles.includes("caregiver")) return "caregiver";
+  if (user.signupIntent === "caregiver") return "caregiver_pending";
+  return "owner";
+}
+
+export function getDefaultPostAuthPath(user?: Pick<User, "roles" | "signupIntent"> | null, next?: string) {
+  if (next?.trim()) return next.trim();
+
+  const mode = getUserExperienceMode(user);
+  if (mode === "caregiver_pending") return "/become-caregiver";
+  if (mode === "caregiver") return "/caregiver/dashboard";
+  return "/profile";
+}
+
 export function getCurrentUserId() {
   return authSessionStore?.user.id ?? currentUserStore.id;
 }
 
 export function isAuthenticated() {
-  return Boolean(authSessionStore?.accessToken);
+  return Boolean(authSessionStore?.accessToken) && !isSessionExpired(authSessionStore, 0);
 }
 
 export function subscribeAuthSession(listener: () => void) {
@@ -401,14 +496,6 @@ function ensureConfigured() {
   }
 }
 
-function ensureSession() {
-  const session = getAuthSession();
-  if (!session) {
-    throw new Error("Debes iniciar sesion para continuar.");
-  }
-  return session;
-}
-
 async function parseResponse(res: Response) {
   const text = await res.text();
   const json = text ? safeJsonParse<unknown>(text) : null;
@@ -424,6 +511,85 @@ async function parseResponse(res: Response) {
   return json;
 }
 
+async function refreshStoredSession() {
+  const session = getAuthSession();
+  if (!session?.refreshToken || !COGNITO_CLIENT_ID) {
+    persistAuthSession(null);
+    return null;
+  }
+
+  try {
+    const response = await cognitoRequest<{ AuthenticationResult?: Record<string, unknown> }>(
+      "AWSCognitoIdentityProviderService.InitiateAuth",
+      {
+        AuthFlow: "REFRESH_TOKEN_AUTH",
+        ClientId: COGNITO_CLIENT_ID,
+        AuthParameters: {
+          REFRESH_TOKEN: session.refreshToken,
+        },
+      }
+    );
+
+    const authResult = response.AuthenticationResult;
+    if (!authResult) {
+      throw new Error("Cognito no devolvio tokens de sesion.");
+    }
+
+    const idToken = String(
+      authResult.IdToken ?? authResult.idToken ?? session.idToken ?? session.accessToken ?? ""
+    );
+    const expiresIn = Number(authResult.ExpiresIn ?? authResult.expiresIn ?? 3600);
+    const user = await bootstrapProfile(idToken);
+    const activeRole = user.activeRole ?? session.activeRole ?? user.roles[0] ?? "owner";
+
+    const refreshedSession: AuthSession = {
+      ...session,
+      user,
+      accessToken: idToken,
+      idToken,
+      refreshToken: session.refreshToken,
+      expiresAt: new Date(Date.now() + expiresIn * 1000).toISOString(),
+      activeRole,
+    };
+
+    currentUserStore = cloneUser(user);
+    persistAuthSession(refreshedSession);
+    return cloneSession(refreshedSession);
+  } catch {
+    persistAuthSession(null);
+    throw new Error("Tu sesion expiro. Inicia sesion nuevamente.");
+  }
+}
+
+async function getValidAuthSession(options?: { forceRefresh?: boolean }) {
+  const session = getAuthSession();
+  if (!session) return null;
+
+  if (!options?.forceRefresh && !isSessionExpired(session)) {
+    return session;
+  }
+
+  if (!refreshAuthSessionPromise) {
+    refreshAuthSessionPromise = refreshStoredSession().finally(() => {
+      refreshAuthSessionPromise = null;
+    });
+  }
+
+  return refreshAuthSessionPromise;
+}
+
+async function ensureValidSession() {
+  const session = await getValidAuthSession();
+  if (!session) {
+    throw new Error("Debes iniciar sesion para continuar.");
+  }
+  return session;
+}
+
+export async function restoreAuthSession() {
+  return getValidAuthSession();
+}
+
 async function apiRequest<T>(
   path: string,
   init?: RequestInit,
@@ -431,27 +597,44 @@ async function apiRequest<T>(
 ): Promise<T> {
   ensureConfigured();
   const auth = options?.auth ?? true;
-  const headers = new Headers(init?.headers ?? {});
-
-  if (auth) {
-    const session = ensureSession();
-    headers.set("Authorization", `Bearer ${session.accessToken}`);
-  }
-
   const isJsonBody =
     init?.body !== undefined &&
     init.body !== null &&
-    typeof init.body === "string" &&
-    !headers.has("Content-Type");
+    typeof init.body === "string";
 
-  if (isJsonBody) {
-    headers.set("Content-Type", "application/json");
+  const execute = async (session?: AuthSession | null) => {
+    const headers = new Headers(init?.headers ?? {});
+
+    if (auth) {
+      const currentSession = session ?? (await ensureValidSession());
+      headers.set("Authorization", `Bearer ${currentSession.accessToken}`);
+    }
+
+    if (isJsonBody && !headers.has("Content-Type")) {
+      headers.set("Content-Type", "application/json");
+    }
+
+    return fetch(`${API_BASE_URL.replace(/\/$/, "")}${path}`, {
+      ...init,
+      headers,
+    });
+  };
+
+  let session = auth ? await ensureValidSession() : null;
+  let res = await execute(session);
+
+  if (auth && res.status === 401) {
+    session = await getValidAuthSession({ forceRefresh: true });
+    if (!session) {
+      throw new Error("Tu sesion expiro. Inicia sesion nuevamente.");
+    }
+
+    res = await execute(session);
+    if (res.status === 401) {
+      persistAuthSession(null);
+      throw new Error("Tu sesion expiro. Inicia sesion nuevamente.");
+    }
   }
-
-  const res = await fetch(`${API_BASE_URL.replace(/\/$/, "")}${path}`, {
-    ...init,
-    headers,
-  });
 
   return (await parseResponse(res)) as T;
 }
@@ -531,16 +714,36 @@ async function cognitoRequest<T>(target: CognitoTarget, body: Record<string, unk
 }
 
 function mapBackendUser(profile: Record<string, unknown>): User {
+  const roles = normalizeRoles(profile.roles ?? profile.role ?? ["owner"]);
+  const activeRole = deriveActiveRole(roles, profile.active_role ?? profile.activeRole);
+  const caregiverStatusRaw =
+    typeof profile.caregiver_status === "object" && profile.caregiver_status
+      ? (profile.caregiver_status as Record<string, unknown>)
+      : undefined;
+
   return {
     id: String(profile.sub ?? profile.id ?? ""),
     email: String(profile.email ?? ""),
     name: String(profile.name ?? profile.email ?? "Usuario Donver"),
     phone: typeof profile.phone === "string" ? profile.phone : undefined,
-    role: (profile.role as UserRole) ?? "owner",
+    bio: typeof profile.bio === "string" ? profile.bio : undefined,
+    roles,
+    activeRole,
     avatar: typeof profile.avatar_url === "string" ? profile.avatar_url : undefined,
     createdAt: toDate((profile.created_at as string | undefined) ?? new Date()),
     province: normalizeProvince(profile.province as string | undefined),
     canton: typeof profile.canton === "string" && profile.canton ? profile.canton : "San Jose",
+    signupIntent: profile.signup_intent === "caregiver" ? "caregiver" : null,
+    caregiverStatus: caregiverStatusRaw
+      ? {
+          profileComplete: Boolean(caregiverStatusRaw.profile_complete),
+          operationalReady: Boolean(caregiverStatusRaw.operational_ready),
+          missingProfileFields: Array.isArray(caregiverStatusRaw.missing_profile_fields)
+            ? caregiverStatusRaw.missing_profile_fields.map(String)
+            : [],
+          hasPublishableSpace: Boolean(caregiverStatusRaw.has_publishable_space),
+        }
+      : undefined,
   };
 }
 
@@ -711,6 +914,7 @@ async function createSessionFromAuth(email: string, authResult: Record<string, u
   const refreshToken = String(authResult.RefreshToken ?? authResult.refreshToken ?? "");
   const expiresIn = Number(authResult.ExpiresIn ?? authResult.expiresIn ?? 3600);
   const user = await bootstrapProfile(idToken);
+  const activeRole = user.activeRole ?? user.roles[0] ?? "owner";
 
   const session: AuthSession = {
     user,
@@ -718,6 +922,7 @@ async function createSessionFromAuth(email: string, authResult: Record<string, u
     refreshToken,
     idToken,
     expiresAt: new Date(Date.now() + expiresIn * 1000).toISOString(),
+    activeRole,
   };
 
   currentUserStore = {
@@ -773,6 +978,10 @@ async function sendWebSocketMessage(conversationId: string, body: string, sender
 }
 
 export const authApi = {
+  async restoreSession() {
+    return restoreAuthSession();
+  },
+
   async getCurrentUser() {
     if (!IS_API_CONFIGURED) {
       await delay();
@@ -787,7 +996,7 @@ export const authApi = {
 
     const session = getAuthSession();
     if (session) {
-      persistAuthSession({ ...session, user });
+      persistAuthSession({ ...session, user, activeRole: user.activeRole ?? session.activeRole ?? user.roles[0] });
     }
 
     return user;
@@ -803,11 +1012,14 @@ export const authApi = {
       currentUserStore = {
         ...cloneUser(currentUserStore),
         email: credentials.email,
+        roles: currentUserStore.roles.length ? currentUserStore.roles : ["owner"],
+        activeRole: currentUserStore.activeRole ?? currentUserStore.roles[0] ?? "owner",
       };
       const session: AuthSession = {
         user: cloneUser(currentUserStore),
         accessToken: `placeholder-access-token-${Date.now()}`,
         refreshToken: `placeholder-refresh-token-${Date.now()}`,
+        activeRole: currentUserStore.activeRole ?? currentUserStore.roles[0] ?? "owner",
       };
       persistAuthSession(session);
       return { ...cloneSession(session), provider: API_BASE_URL };
@@ -835,49 +1047,46 @@ export const authApi = {
   },
 
   async register(input: RegisterInput) {
-    if (!input.name || !input.email || !input.password) {
-      throw new Error("Nombre, email y contrasena son obligatorios.");
+    if (!input.name || !input.email || !input.password || !input.province || !input.canton) {
+      throw new Error("Nombre, email, contrasena, provincia y canton son obligatorios.");
     }
 
-    if (!IS_API_CONFIGURED || !COGNITO_CLIENT_ID) {
+    if (!IS_API_CONFIGURED) {
       await delay();
       currentUserStore = {
         ...cloneUser(currentUserStore),
         name: input.name,
         email: input.email,
         phone: input.phone,
+        province: input.province,
+        canton: input.canton,
+        roles: ["owner"],
+        activeRole: "owner",
+        signupIntent: input.signupIntent ?? null,
       };
-      const session: AuthSession = {
-        user: cloneUser(currentUserStore),
-        accessToken: `placeholder-access-token-${Date.now()}`,
-        refreshToken: `placeholder-refresh-token-${Date.now()}`,
-      };
-      persistAuthSession(session);
       return { user: cloneUser(currentUserStore), confirmed: true };
     }
 
-    const response = await cognitoRequest<{ UserConfirmed?: boolean }>(
-      "AWSCognitoIdentityProviderService.SignUp",
+    const data = await apiRequest<{ confirmed?: boolean; user?: Record<string, unknown> }>(
+      "/auth/register",
       {
-        ClientId: COGNITO_CLIENT_ID,
-        Username: input.email,
-        Password: input.password,
-        UserAttributes: [
-          { Name: "email", Value: input.email },
-          { Name: "name", Value: input.name },
-        ],
-      }
+        method: "POST",
+        body: JSON.stringify({
+          name: input.name,
+          email: input.email,
+          password: input.password,
+          phone: input.phone,
+          province: toBackendProvince(input.province),
+          canton: input.canton,
+          signup_intent: input.signupIntent ?? null,
+        }),
+      },
+      { auth: false }
     );
 
     return {
-      confirmed: Boolean(response.UserConfirmed),
-      user: {
-        ...cloneUser(mockUser),
-        id: input.email,
-        email: input.email,
-        name: input.name,
-        phone: input.phone,
-      },
+      confirmed: Boolean(data.confirmed),
+      user: data.user ? mapBackendUser(data.user) : undefined,
     };
   },
 
@@ -929,16 +1138,23 @@ export const authApi = {
     bio?: string;
     phone?: string;
     avatarUrl?: string;
-    role?: UserRole;
+    province?: Province;
+    canton?: string;
+    activeRole?: UserRole;
   }) {
     if (!IS_API_CONFIGURED) {
       await delay();
       currentUserStore = {
         ...cloneUser(currentUserStore),
         ...(input.name !== undefined ? { name: input.name } : {}),
+        ...(input.bio !== undefined ? { bio: input.bio } : {}),
         ...(input.phone !== undefined ? { phone: input.phone } : {}),
-        ...(input.role !== undefined ? { role: input.role } : {}),
+        ...(input.avatarUrl !== undefined ? { avatar: input.avatarUrl } : {}),
+        ...(input.province !== undefined ? { province: input.province } : {}),
+        ...(input.canton !== undefined ? { canton: input.canton } : {}),
+        ...(input.activeRole !== undefined ? { activeRole: input.activeRole } : {}),
       };
+      currentUserStore.activeRole = currentUserStore.activeRole ?? currentUserStore.roles[0] ?? "owner";
       return cloneUser(currentUserStore);
     }
 
@@ -949,7 +1165,9 @@ export const authApi = {
         ...(input.bio !== undefined ? { bio: input.bio } : {}),
         ...(input.phone !== undefined ? { phone: input.phone } : {}),
         ...(input.avatarUrl !== undefined ? { avatar_url: input.avatarUrl } : {}),
-        ...(input.role !== undefined ? { role: input.role } : {}),
+        ...(input.province !== undefined ? { province: toBackendProvince(input.province) } : {}),
+        ...(input.canton !== undefined ? { canton: input.canton } : {}),
+        ...(input.activeRole !== undefined ? { active_role: input.activeRole } : {}),
       }),
     });
 
@@ -957,7 +1175,50 @@ export const authApi = {
     currentUserStore = cloneUser(user);
     const session = getAuthSession();
     if (session) {
-      persistAuthSession({ ...session, user });
+      persistAuthSession({ ...session, user, activeRole: user.activeRole ?? session.activeRole });
+    }
+    return user;
+  },
+
+  async completeCaregiverOnboarding(input: {
+    name: string;
+    phone: string;
+    province: Province;
+    canton: string;
+    bio: string;
+  }) {
+    if (!IS_API_CONFIGURED) {
+      await delay();
+      currentUserStore = {
+        ...cloneUser(currentUserStore),
+        name: input.name,
+        phone: input.phone,
+        province: input.province,
+        canton: input.canton,
+        bio: input.bio,
+        roles: Array.from(new Set([...currentUserStore.roles, "owner", "caregiver"])),
+        activeRole: "caregiver",
+        signupIntent: null,
+      };
+      return cloneUser(currentUserStore);
+    }
+
+    const data = await apiRequest<Record<string, unknown>>("/caregiver/onboarding", {
+      method: "POST",
+      body: JSON.stringify({
+        name: input.name,
+        phone: input.phone,
+        province: toBackendProvince(input.province),
+        canton: input.canton,
+        bio: input.bio,
+      }),
+    });
+
+    const user = mapBackendUser(data);
+    currentUserStore = cloneUser(user);
+    const session = getAuthSession();
+    if (session) {
+      persistAuthSession({ ...session, user, activeRole: user.activeRole ?? session.activeRole });
     }
     return user;
   },
@@ -1014,7 +1275,9 @@ export const spacesApi = {
     if (filters?.petType) params.set("petType", filters.petType);
 
     const data = await apiRequest<Record<string, unknown>[]>(
-      `/spaces${params.size ? `?${params.toString()}` : ""}`
+      `/spaces${params.size ? `?${params.toString()}` : ""}`,
+      undefined,
+      { auth: false }
     );
     const spaces = Array.isArray(data) ? data.map(mapBackendSpace) : [];
     spacesStore = spaces.map(cloneSpace);
@@ -1029,7 +1292,11 @@ export const spacesApi = {
       );
     }
 
-    const data = await apiRequest<{ space: Record<string, unknown> }>(`/spaces/${spaceId}`);
+    const data = await apiRequest<{ space: Record<string, unknown> }>(
+      `/spaces/${spaceId}`,
+      undefined,
+      { auth: false }
+    );
     const space = mapBackendSpace(data.space);
     spacesStore = [space, ...spacesStore.filter((item) => item.id !== space.id)];
     return space;
@@ -1058,6 +1325,7 @@ export const spacesApi = {
         createdAt: new Date(),
         rating: 0,
         reviewCount: 0,
+        isActive: input.isActive ?? false,
       };
       spacesStore = [newSpace, ...spacesStore];
       return cloneSpace(newSpace);
@@ -1071,10 +1339,16 @@ export const spacesApi = {
         province: toBackendProvince(input.province),
         canton: input.canton,
         address: input.address,
+        latitude: input.latitude,
+        longitude: input.longitude,
         accepted_pet_types: input.acceptedPetTypes,
+        accepted_pet_sizes: input.acceptedPetSizes,
         price_per_night: input.pricePerNight,
         price_per_hour: input.pricePerHour,
+        min_hours: input.minHours,
         max_pets: input.maxPets,
+        amenities: input.amenities,
+        photos: input.photos,
       }),
     });
     const space = mapBackendSpace(data);
@@ -1100,10 +1374,15 @@ export const spacesApi = {
     if (patch.province !== undefined) body.province = toBackendProvince(patch.province);
     if (patch.canton !== undefined) body.canton = patch.canton;
     if (patch.address !== undefined) body.address = patch.address;
+    if (patch.latitude !== undefined) body.latitude = patch.latitude;
+    if (patch.longitude !== undefined) body.longitude = patch.longitude;
     if (patch.acceptedPetTypes !== undefined) body.accepted_pet_types = patch.acceptedPetTypes;
+    if (patch.acceptedPetSizes !== undefined) body.accepted_pet_sizes = patch.acceptedPetSizes;
     if (patch.pricePerNight !== undefined) body.price_per_night = patch.pricePerNight;
     if (patch.pricePerHour !== undefined) body.price_per_hour = patch.pricePerHour;
+    if (patch.minHours !== undefined) body.min_hours = patch.minHours;
     if (patch.maxPets !== undefined) body.max_pets = patch.maxPets;
+    if (patch.amenities !== undefined) body.amenities = patch.amenities;
     if (patch.isActive !== undefined) body.is_active = patch.isActive;
     if (patch.photos !== undefined) body.photos = patch.photos;
 
@@ -1133,6 +1412,23 @@ export const bookingsApi = {
     }
 
     const data = await apiRequest<Record<string, unknown>[]>("/owner/bookings");
+    return Array.isArray(data) ? data.map(mapBackendBooking) : [];
+  },
+
+  async listCaregiver() {
+    if (!IS_API_CONFIGURED) {
+      await delay();
+      const caregiverSpaceIds = new Set(
+        spacesStore
+          .filter((space) => space.caregiverId === currentUserStore.id)
+          .map((space) => space.id)
+      );
+      return bookingsStore
+        .filter((booking) => caregiverSpaceIds.has(booking.spaceId))
+        .map(cloneBooking);
+    }
+
+    const data = await apiRequest<Record<string, unknown>[]>("/caregiver/bookings");
     return Array.isArray(data) ? data.map(mapBackendBooking) : [];
   },
 
@@ -1237,6 +1533,8 @@ export const petsApi = {
         species: input.type,
         breed: input.breed,
         age: input.age,
+        size: input.size,
+        description: input.description,
         photos: input.photos,
         medical_notes: input.specialNeeds,
       }),
@@ -1260,6 +1558,8 @@ export const petsApi = {
         ...(patch.type !== undefined ? { species: patch.type } : {}),
         ...(patch.breed !== undefined ? { breed: patch.breed } : {}),
         ...(patch.age !== undefined ? { age: patch.age } : {}),
+        ...(patch.size !== undefined ? { size: patch.size } : {}),
+        ...(patch.description !== undefined ? { description: patch.description } : {}),
         ...(patch.photos !== undefined ? { photos: patch.photos } : {}),
         ...(patch.specialNeeds !== undefined ? { medical_notes: patch.specialNeeds } : {}),
       }),
@@ -1289,7 +1589,11 @@ export const reviewsApi = {
         .map(cloneReview);
     }
 
-    const data = await apiRequest<Record<string, unknown>[]>(`/spaces/${spaceId}/reviews`);
+    const data = await apiRequest<Record<string, unknown>[]>(
+      `/spaces/${spaceId}/reviews`,
+      undefined,
+      { auth: false }
+    );
     return Array.isArray(data) ? data.map(mapBackendReview) : [];
   },
 
@@ -1320,7 +1624,11 @@ export const availabilityApi = {
       return blockedDatesStore.filter((blockedDate) => blockedDate.spaceId === spaceId).map(cloneBlockedDate);
     }
 
-    const data = await apiRequest<{ blockedDates?: Record<string, unknown>[] }>(`/spaces/${spaceId}`);
+    const data = await apiRequest<{ blockedDates?: Record<string, unknown>[] }>(
+      `/spaces/${spaceId}`,
+      undefined,
+      { auth: false }
+    );
     const blockedDates = Array.isArray(data.blockedDates)
       ? data.blockedDates.map((item) => mapBackendBlockedDate(item, spaceId))
       : [];

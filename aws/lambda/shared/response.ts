@@ -21,6 +21,12 @@ export const badRequest = (msg: string) => ({
   body: JSON.stringify({ error: msg }),
 });
 
+export const conflict = (msg: string) => ({
+  statusCode: 409,
+  headers: JSON_HEADERS,
+  body: JSON.stringify({ error: msg }),
+});
+
 export const forbidden = (msg = 'Forbidden') => ({
   statusCode: 403,
   headers: JSON_HEADERS,

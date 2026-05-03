@@ -1,18 +1,22 @@
 import { useEffect, useState } from "react";
-import { Edit2, Plus, Trash2, Star } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Edit2, Plus, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { SpaceFormDialog } from "@/components/caregiver/SpaceFormDialog";
 import { AvailabilityCalendar } from "@/components/caregiver/AvailabilityCalendar";
-import { authApi, availabilityApi, spacesApi } from "@/services/api";
+import { CaregiverStatusBanner } from "@/components/profile/CaregiverStatusBanner";
+import { authApi, availabilityApi, bookingsApi, spacesApi } from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
-import type { BlockedDate, Space, User } from "@/types";
+import type { BlockedDate, Booking, Space, User } from "@/types";
 
 export default function CaregiverDashboardPage() {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [spaces, setSpaces] = useState<Space[]>([]);
+  const [incomingBookings, setIncomingBookings] = useState<Booking[]>([]);
   const [blockedDates, setBlockedDates] = useState<Record<string, BlockedDate[]>>({});
   const [formOpen, setFormOpen] = useState(false);
   const [selectedSpace, setSelectedSpace] = useState<Space | undefined>();
@@ -23,22 +27,50 @@ export default function CaregiverDashboardPage() {
 
     async function load() {
       try {
-        const [currentUser, currentSpaces] = await Promise.all([
-          authApi.getCurrentUser(),
+        const currentUser = await authApi.getCurrentUser();
+        if (cancelled) return;
+
+        if (!currentUser.roles.includes("caregiver")) {
+          toast({
+            title: "Completa tu perfil de cuidador",
+            description: "Debes terminar tu onboarding antes de usar este dashboard.",
+            variant: "destructive",
+          });
+          navigate("/become-caregiver", { replace: true });
+          return;
+        }
+
+        const [currentSpaces, currentBookings] = await Promise.all([
           spacesApi.getMine(),
+          bookingsApi.listCaregiver(),
         ]);
         if (cancelled) return;
 
         setUser(currentUser);
         setSpaces(currentSpaces);
+        setIncomingBookings(currentBookings);
 
         const blockedEntries = await Promise.all(
-          currentSpaces.map(async (space) => [space.id, await availabilityApi.list(space.id)] as const)
+          currentSpaces.map(async (space) => {
+            if (!space.isActive) {
+              return [space.id, []] as const;
+            }
+
+            try {
+              return [space.id, await availabilityApi.list(space.id)] as const;
+            } catch {
+              return [space.id, []] as const;
+            }
+          })
         );
         if (cancelled) return;
         setBlockedDates(Object.fromEntries(blockedEntries));
       } catch (error) {
         if (cancelled) return;
+        if (error instanceof Error && error.message.toLowerCase().includes("sesion")) {
+          navigate("/login?next=%2Fcaregiver%2Fdashboard", { replace: true });
+          return;
+        }
         toast({
           title: "No se pudo cargar el dashboard",
           description:
@@ -52,7 +84,7 @@ export default function CaregiverDashboardPage() {
     return () => {
       cancelled = true;
     };
-  }, [toast]);
+  }, [navigate, toast]);
 
   const handleOpenAdd = () => {
     setSelectedSpace(undefined);
@@ -89,16 +121,20 @@ export default function CaregiverDashboardPage() {
           acceptedPetSizes: spaceData.acceptedPetSizes ?? [],
           maxPets: spaceData.maxPets ?? 1,
           amenities: spaceData.amenities ?? [],
-          isActive: spaceData.isActive ?? true,
+          isActive: false,
         });
         setSpaces((currentSpaces) => [created, ...currentSpaces]);
         setBlockedDates((currentBlocked) => ({ ...currentBlocked, [created.id]: [] }));
       }
 
+      setUser(await authApi.getCurrentUser());
+
       setFormOpen(false);
       toast({
-        title: selectedSpace ? "Espacio actualizado" : "Espacio creado",
-        description: "Los cambios se guardaron correctamente.",
+        title: selectedSpace ? "Espacio actualizado" : "Borrador guardado",
+        description: selectedSpace
+          ? "Los cambios se guardaron correctamente."
+          : "Tu espacio quedó guardado como borrador.",
       });
     } catch (error) {
       toast({
@@ -110,19 +146,22 @@ export default function CaregiverDashboardPage() {
     }
   };
 
-  const handleDeleteSpace = async (spaceId: string) => {
+  const handleToggleSpaceStatus = async (space: Space, nextActive: boolean) => {
     try {
-      const updated = await spacesApi.update(spaceId, { isActive: false });
+      const updated = await spacesApi.update(space.id, { isActive: nextActive });
       setSpaces((currentSpaces) =>
-        currentSpaces.map((space) => (space.id === updated.id ? updated : space))
+        currentSpaces.map((item) => (item.id === updated.id ? updated : item))
       );
+      setUser(await authApi.getCurrentUser());
       toast({
-        title: "Espacio desactivado",
-        description: "El espacio ya no aparecerá como disponible.",
+        title: nextActive ? "Espacio publicado" : "Espacio desactivado",
+        description: nextActive
+          ? "Tu espacio ya aparece en la vista pública."
+          : "El espacio ya no aparecerá como disponible.",
       });
     } catch (error) {
       toast({
-        title: "No se pudo desactivar el espacio",
+        title: nextActive ? "No se pudo publicar el espacio" : "No se pudo desactivar el espacio",
         description:
           error instanceof Error ? error.message : "Intenta nuevamente en unos minutos.",
         variant: "destructive",
@@ -182,145 +221,140 @@ export default function CaregiverDashboardPage() {
     }
   };
 
+  if (!user) {
+    return (
+      <>
+        <Header />
+        <main className="flex min-h-screen items-center justify-center bg-background">
+          <p className="text-muted-foreground">Cargando dashboard...</p>
+        </main>
+        <Footer />
+      </>
+    );
+  }
+
   return (
     <>
       <Header />
       <main className="min-h-screen bg-background">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="mb-12">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-4xl font-heading font-bold text-foreground">
-                  Dashboard de Cuidador
-                </h1>
-                <p className="text-muted-foreground mt-2">
-                  Gestiona tus espacios y disponibilidad
-                </p>
+        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+          <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
+              <h1 className="text-4xl font-heading font-bold text-foreground">
+                Dashboard de cuidador
+              </h1>
+              <p className="mt-2 text-muted-foreground">
+                Gestiona tu perfil, tus espacios y la disponibilidad.
+              </p>
+            </div>
+            <Button onClick={handleOpenAdd} className="gap-2">
+              <Plus className="h-4 w-4" />
+              Nuevo espacio
+            </Button>
+          </div>
+
+          <div className="mb-8">
+            <CaregiverStatusBanner user={user} onCreateSpace={handleOpenAdd} />
+          </div>
+
+          <div className="mb-12 rounded-xl border border-border bg-card p-6">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div className="flex items-center gap-4">
+                <img
+                  src={user.avatar || `https://api.dicebear.com/9.x/avataaars/svg?seed=${user.name}`}
+                  alt={user.name}
+                  className="h-16 w-16 rounded-full object-cover"
+                />
+                <div>
+                  <h2 className="text-xl font-bold text-foreground">{user.name}</h2>
+                  <div className="mt-1 flex items-center gap-2">
+                    <div className="flex items-center gap-1">
+                      <Star className="h-4 w-4 fill-primary text-primary" />
+                      <span className="text-sm font-semibold text-foreground">
+                        {spaces.length > 0
+                          ? (
+                              spaces.reduce((sum, space) => sum + space.rating, 0) / spaces.length
+                            ).toFixed(1)
+                          : "0.0"}
+                      </span>
+                    </div>
+                    <span className="text-sm text-muted-foreground">
+                      ({spaces.reduce((sum, space) => sum + space.reviewCount, 0)} reseñas)
+                    </span>
+                  </div>
+                  <p className="mt-1 text-sm text-muted-foreground">{user.email}</p>
+                </div>
               </div>
-              <Button onClick={handleOpenAdd} className="gap-2">
-                <Plus className="w-4 h-4" />
-                Nuevo Espacio
-              </Button>
+              <div className="rounded-full bg-primary/10 px-3 py-1 text-sm font-semibold text-primary">
+                {user.caregiverStatus?.operationalReady ? "Cuenta operativa" : "Configuración pendiente"}
+              </div>
             </div>
           </div>
 
-          {user && (
-            <div className="bg-card border border-border rounded-xl p-6 mb-12">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-4">
-                  <img
-                    src={user.avatar || `https://api.dicebear.com/9.x/avataaars/svg?seed=${user.name}`}
-                    alt={user.name}
-                    className="w-16 h-16 rounded-full object-cover"
-                  />
-                  <div>
-                    <h2 className="text-xl font-bold text-foreground">{user.name}</h2>
-                    <div className="flex items-center gap-2 mt-1">
-                      <div className="flex items-center gap-1">
-                        <Star className="w-4 h-4 fill-primary text-primary" />
-                        <span className="text-sm font-semibold text-foreground">
-                          {spaces.length > 0
-                            ? (
-                                spaces.reduce((sum, space) => sum + space.rating, 0) / spaces.length
-                              ).toFixed(1)
-                            : "0.0"}
-                        </span>
-                      </div>
-                      <span className="text-sm text-muted-foreground">
-                        ({spaces.reduce((sum, space) => sum + space.reviewCount, 0)} reseñas)
-                      </span>
-                    </div>
-                    <p className="text-sm text-muted-foreground mt-1">{user.email}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 px-3 py-1 bg-primary/10 rounded-full">
-                  <span className="text-sm font-semibold text-primary">✓ Cuenta activa</span>
-                </div>
-              </div>
+          <section className="mb-12">
+            <div className="mb-6 flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-foreground">Mis espacios</h2>
+              <p className="text-sm text-muted-foreground">
+                {spaces.filter((space) => space.isActive).length} publicados / {spaces.length} totales
+              </p>
             </div>
-          )}
 
-          <div className="mb-12">
-            <h2 className="text-2xl font-bold text-foreground mb-6">Mis Espacios</h2>
             <div className="space-y-4">
               {spaces.length === 0 ? (
-                <div className="text-center py-12 bg-card border border-border rounded-xl">
-                  <p className="text-muted-foreground mb-4">Aún no has creado ningún espacio</p>
+                <div className="rounded-xl border border-border bg-card py-12 text-center">
+                  <p className="mb-4 text-muted-foreground">Aún no has creado ningún espacio.</p>
                   <Button onClick={handleOpenAdd} className="gap-2">
-                    <Plus className="w-4 h-4" />
+                    <Plus className="h-4 w-4" />
                     Crear primer espacio
                   </Button>
                 </div>
               ) : (
                 spaces.map((space) => (
-                  <div key={space.id} className="bg-card border border-border rounded-xl overflow-hidden">
-                    <div className="p-6 border-b border-border">
-                      <div className="flex items-start justify-between">
+                  <div key={space.id} className="overflow-hidden rounded-xl border border-border bg-card">
+                    <div className="border-b border-border p-6">
+                      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                         <div className="flex-1">
                           <h3 className="text-lg font-bold text-foreground">{space.title}</h3>
-                          <p className="text-sm text-muted-foreground mt-1">
+                          <p className="mt-1 text-sm text-muted-foreground">
                             {space.canton}, {space.province}
                           </p>
-                          <div className="flex items-center gap-4 mt-3 text-sm">
+                          <div className="mt-3 flex flex-wrap gap-4 text-sm">
                             <span className="text-foreground">
-                              💰 ₡{space.pricePerNight.toLocaleString()}/noche
+                              ₡{space.pricePerNight.toLocaleString()}/noche
                             </span>
                             <span className="text-foreground">
-                              ⏱️ ₡{space.pricePerHour.toLocaleString()}/hora
+                              ₡{space.pricePerHour.toLocaleString()}/hora
                             </span>
-                            <span className="text-foreground">🐾 Máx {space.maxPets} mascotas</span>
+                            <span className="text-foreground">Máx {space.maxPets} mascotas</span>
                             <span className={space.isActive ? "text-primary" : "text-muted-foreground"}>
-                              {space.isActive ? "Activo" : "Inactivo"}
+                              {space.isActive ? "Publicado" : "Borrador"}
                             </span>
                           </div>
                         </div>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => handleOpenEdit(space)}
-                            className="p-2 hover:bg-secondary rounded-lg transition-colors text-foreground"
-                            title="Editar"
+                        <div className="flex flex-wrap gap-2">
+                          <Button variant="outline" onClick={() => handleOpenEdit(space)} className="gap-2">
+                            <Edit2 className="h-4 w-4" />
+                            Editar
+                          </Button>
+                          <Button
+                            variant={space.isActive ? "outline" : "default"}
+                            onClick={() => void handleToggleSpaceStatus(space, !space.isActive)}
                           >
-                            <Edit2 className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => void handleDeleteSpace(space.id)}
-                            className="p-2 hover:bg-destructive/10 rounded-lg transition-colors text-destructive"
-                            title="Desactivar"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                            {space.isActive ? "Desactivar" : "Publicar"}
+                          </Button>
                         </div>
                       </div>
                     </div>
 
                     {expandedSpace === space.id && (
-                      <div className="p-6 space-y-6 bg-background/50">
+                      <div className="space-y-6 bg-background/50 p-6">
                         <div>
-                          <h4 className="font-semibold text-foreground text-sm mb-2">Descripción</h4>
+                          <h4 className="mb-2 text-sm font-semibold text-foreground">Descripción</h4>
                           <p className="text-sm text-muted-foreground">{space.description}</p>
                         </div>
 
                         <div>
-                          <h4 className="font-semibold text-foreground text-sm mb-2">
-                            Tipos de mascotas aceptadas
-                          </h4>
-                          <div className="flex gap-2">
-                            {space.acceptedPetTypes.map((type) => (
-                              <span key={type} className="text-xs bg-secondary px-2 py-1 rounded text-foreground">
-                                {type === "dog"
-                                  ? "🐕 Perros"
-                                  : type === "cat"
-                                    ? "🐱 Gatos"
-                                    : type === "bird"
-                                      ? "🦜 Aves"
-                                      : "🐾 Otros"}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-
-                        <div>
-                          <h4 className="font-semibold text-foreground text-sm mb-4">Disponibilidad</h4>
+                          <h4 className="mb-2 text-sm font-semibold text-foreground">Disponibilidad</h4>
                           <AvailabilityCalendar
                             blockedDates={blockedDates[space.id] || []}
                             onBlockDatesCreate={(dates, reason) =>
@@ -334,15 +368,42 @@ export default function CaregiverDashboardPage() {
 
                     <button
                       onClick={() => setExpandedSpace(expandedSpace === space.id ? null : space.id)}
-                      className="w-full p-3 text-sm font-semibold text-primary hover:bg-secondary/50 transition-colors"
+                      className="w-full p-3 text-sm font-semibold text-primary transition-colors hover:bg-secondary/50"
                     >
-                      {expandedSpace === space.id ? "▲ Contraer" : "▼ Expandir"}
+                      {expandedSpace === space.id ? "▲ Contraer" : "▼ Ver detalles"}
                     </button>
                   </div>
                 ))
               )}
             </div>
-          </div>
+          </section>
+
+          <section>
+            <h2 className="mb-6 text-2xl font-bold text-foreground">Reservas recibidas</h2>
+            {incomingBookings.length === 0 ? (
+              <div className="rounded-xl border border-border bg-card py-10 text-center text-muted-foreground">
+                Aún no has recibido reservas.
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {incomingBookings.map((booking) => (
+                  <div key={booking.id} className="rounded-xl border border-border bg-card p-4">
+                    <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                      <div>
+                        <p className="font-semibold text-foreground">Reserva {booking.id}</p>
+                        <p className="text-sm text-muted-foreground">
+                          Espacio {booking.spaceId} • {booking.petIds.length} mascota(s)
+                        </p>
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        {booking.status} • ₡{booking.totalPrice.toLocaleString("es-CR")}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
         </div>
       </main>
 

@@ -37,7 +37,6 @@ export function BookingsTab({ bookings }: BookingsTabProps) {
     <div className="space-y-4">
       {bookings.map((booking) => {
         const space = getSpaceById(booking.spaceId);
-        if (!space) return null;
 
         return (
           <div
@@ -46,11 +45,15 @@ export function BookingsTab({ bookings }: BookingsTabProps) {
           >
             <div className="flex items-start justify-between mb-3">
               <div className="flex-1">
-                <h3 className="font-semibold text-foreground">{space.title}</h3>
-                <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
-                  <MapPin className="w-4 h-4" />
-                  {space.canton}, {space.province}
-                </p>
+                <h3 className="font-semibold text-foreground">
+                  {space?.title ?? `Espacio ${booking.spaceId}`}
+                </h3>
+                {space && (
+                  <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
+                    <MapPin className="w-4 h-4" />
+                    {space.canton}, {space.province}
+                  </p>
+                )}
               </div>
               <Badge className={statusColors[booking.status]}>
                 {statusLabels[booking.status]}

@@ -21,7 +21,7 @@ export async function handler(event: APIGatewayProxyEventV2WithJWTAuthorizer) {
       })),
     ]);
 
-    if (!spaceResult.Item) return notFound('Space not found');
+    if (!spaceResult.Item || spaceResult.Item['is_active'] !== true) return notFound('Space not found');
     return ok({ space: spaceResult.Item, blockedDates: blockedResult.Items ?? [] });
   } catch (err) {
     return serverError(err);

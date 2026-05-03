@@ -1,8 +1,17 @@
 import { Link } from "react-router-dom";
-import { PawPrint } from "lucide-react";
+import Logo from "@/assets/Logo.png";
 import { Button } from "@/components/ui/button";
+import { useAuthSessionUser } from "@/hooks/useAuthSessionUser";
 
 export function HeroSection() {
+  const { authenticated, experienceMode } = useAuthSessionUser();
+  const caregiverCta =
+    experienceMode === "caregiver_pending"
+      ? { to: "/become-caregiver", label: "Continuar registro de cuidador" }
+      : experienceMode === "caregiver"
+        ? { to: "/caregiver/dashboard", label: "Ir a mi dashboard" }
+        : { to: "/become-caregiver", label: authenticated ? "Quiero ser cuidador" : "Ofrecer mi espacio" };
+
   return (
     <section className="hero-gradient min-h-screen flex items-center">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-20">
@@ -11,7 +20,12 @@ export function HeroSection() {
           <div className="space-y-8">
             <div className="glass inline-flex items-center gap-3 rounded-full border px-4 py-2 shadow-soft w-fit">
               <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                <PawPrint className="h-5 w-5" />
+                <img
+                  src={Logo}
+                  alt="Logo Donver"
+                  className="h-8 w-8 object-contain"
+                  style={{ maxHeight: 32, maxWidth: 32 }}
+                />
               </span>
               <div>
                 <p className="font-heading text-sm font-semibold uppercase tracking-wide text-primary">
@@ -45,13 +59,13 @@ export function HeroSection() {
                   Buscar espacios
                 </Button>
               </Link>
-              <Link to="/become-caregiver">
+              <Link to={caregiverCta.to}>
                 <Button
                   size="lg"
                   variant="secondary"
                   className="hover-lift rounded-full w-full sm:w-auto"
                 >
-                  Ofrecer mi espacio
+                  {caregiverCta.label}
                 </Button>
               </Link>
             </div>
@@ -80,7 +94,12 @@ export function HeroSection() {
               </div>
               <div className="flex min-h-[480px] flex-col justify-end rounded-2xl border border-primary/20 bg-card/50 p-8">
                 <div className="mb-6 inline-flex h-24 w-24 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-soft">
-                  <PawPrint className="h-12 w-12" />
+                  <img
+                    src={Logo}
+                    alt="Logo Donver"
+                    className="h-20 w-20 object-contain"
+                    style={{ maxHeight: 80, maxWidth: 80 }}
+                  />
                 </div>
                 <h2 className="font-heading text-4xl font-bold text-card-foreground">
                   Tu mascota merece lo mejor

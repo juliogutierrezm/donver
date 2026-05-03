@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { Loader2, Upload, X } from "lucide-react";
 import { uploadApi } from "@/services/api";
 
@@ -17,6 +17,7 @@ export function PhotoUpload({
   uploadKind = "space",
   onBusyChange,
 }: PhotoUploadProps) {
+  const inputId = useId();
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -119,11 +120,11 @@ export function PhotoUpload({
           accept="image/*"
           onChange={handleFileInput}
           className="hidden"
-          id="photo-input"
+          id={inputId}
           disabled={isUploading || photos.length >= maxPhotos}
         />
         <label
-          htmlFor="photo-input"
+          htmlFor={inputId}
           className={`cursor-pointer ${isUploading || photos.length >= maxPhotos ? "pointer-events-none opacity-60" : ""}`}
         >
           <div className="flex flex-col items-center gap-2">

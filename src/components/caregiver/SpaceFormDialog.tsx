@@ -1,13 +1,14 @@
-import { useState, useEffect } from "react";
-import { PET_TYPES, AMENITIES } from "@/types";
+import { useEffect, useMemo, useState } from "react";
+import { AMENITIES, CANTONES, PET_SIZES, PET_TYPES, PROVINCES } from "@/types";
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { LocationPicker } from "@/components/LocationPicker";
 import { PhotoUpload } from "@/components/PhotoUpload";
 import type { Space } from "@/types";
 
@@ -18,6 +19,27 @@ interface SpaceFormDialogProps {
   space?: Space;
 }
 
+function createDefaultForm(space?: Space) {
+  return {
+    title: space?.title ?? "",
+    description: space?.description ?? "",
+    province: space?.province ?? "San José",
+    canton: space?.canton ?? "",
+    address: space?.address ?? "",
+    latitude: space?.latitude ?? 9.7489,
+    longitude: space?.longitude ?? -83.7534,
+    pricePerNight: space?.pricePerNight ?? 45000,
+    pricePerHour: space?.pricePerHour ?? 12000,
+    minHours: space?.minHours ?? 2,
+    maxPets: space?.maxPets ?? 3,
+    acceptedPetTypes: space?.acceptedPetTypes ?? ([] as string[]),
+    acceptedPetSizes: space?.acceptedPetSizes ?? ([] as string[]),
+    amenities: space?.amenities ?? ([] as string[]),
+    photos: space?.photos ?? ([] as string[]),
+    isActive: space?.isActive ?? false,
+  };
+}
+
 export function SpaceFormDialog({
   open,
   onOpenChange,
@@ -25,258 +47,290 @@ export function SpaceFormDialog({
   space,
 }: SpaceFormDialogProps) {
   const [isUploadingPhotos, setIsUploadingPhotos] = useState(false);
-  const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    pricePerNight: 45000,
-    pricePerHour: 12000,
-    minHours: 2,
-    maxPets: 3,
-    acceptedPetTypes: [] as string[],
-    amenities: [] as string[],
-    photos: [] as string[],
-  });
+  const [formData, setFormData] = useState(createDefaultForm(space));
 
   useEffect(() => {
-    if (space) {
-      setFormData({
-        title: space.title,
-        description: space.description,
-        pricePerNight: space.pricePerNight,
-        pricePerHour: space.pricePerHour,
-        minHours: space.minHours,
-        maxPets: space.maxPets,
-        acceptedPetTypes: space.acceptedPetTypes,
-        amenities: space.amenities,
-        photos: space.photos,
-      });
-    } else {
-      setFormData({
-        title: "",
-        description: "",
-        pricePerNight: 45000,
-        pricePerHour: 12000,
-        minHours: 2,
-        maxPets: 3,
-        acceptedPetTypes: [],
-        amenities: [],
-        photos: [],
-      });
+    if (open) {
+      setFormData(createDefaultForm(space));
+      setIsUploadingPhotos(false);
     }
-  }, [space, open]);
+  }, [open, space]);
 
-  const togglePetType = (type: string) => {
+  const availableCantons = useMemo(() => {
+    if (!formData.province) return [];
+    return CANTONES[formData.province as keyof typeof CANTONES] || [];
+  }, [formData.province]);
+
+  useEffect(() => {
+    if (formData.province && formData.canton && !availableCantons.includes(formData.canton)) {
+      setFormData((prev) => ({ ...prev, canton: "" }));
+    }
+  }, [availableCantons, formData.canton, formData.province]);
+
+  const toggleListValue = (field: "acceptedPetTypes" | "acceptedPetSizes" | "amenities", value: string) => {
     setFormData((prev) => ({
       ...prev,
-      acceptedPetTypes: prev.acceptedPetTypes.includes(type)
-        ? prev.acceptedPetTypes.filter((t) => t !== type)
-        : [...prev.acceptedPetTypes, type],
-    }));
-  };
-
-  const toggleAmenity = (amenity: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      amenities: prev.amenities.includes(amenity)
-        ? prev.amenities.filter((a) => a !== amenity)
-        : [...prev.amenities, amenity],
+      [field]: prev[field].includes(value)
+        ? prev[field].filter((item) => item !== value)
+        : [...prev[field], value],
     }));
   };
 
   const handleSave = () => {
-    if (isUploadingPhotos) {
+    if (isUploadingPhotos) return;
+    if (!formData.title.trim() || !formData.description.trim() || !formData.province || !formData.canton) {
       return;
     }
 
-    if (formData.title && formData.description) {
-      onSave({
-        ...formData,
-        acceptedPetTypes: formData.acceptedPetTypes as import("@/types").PetType[],
-      });
-      onOpenChange(false);
-    }
+    onSave({
+      title: formData.title,
+      description: formData.description,
+      province: formData.province,
+      canton: formData.canton,
+      address: formData.address,
+      latitude: formData.latitude,
+      longitude: formData.longitude,
+      pricePerNight: formData.pricePerNight,
+      pricePerHour: formData.pricePerHour,
+      minHours: formData.minHours,
+      maxPets: formData.maxPets,
+      acceptedPetTypes: formData.acceptedPetTypes as Space["acceptedPetTypes"],
+      acceptedPetSizes: formData.acceptedPetSizes as Space["acceptedPetSizes"],
+      amenities: formData.amenities,
+      photos: formData.photos,
+      isActive: formData.isActive,
+    });
+    onOpenChange(false);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>
-            {space ? "Editar Espacio" : "Nuevo Espacio"}
-          </DialogTitle>
+          <DialogTitle>{space ? "Editar espacio" : "Nuevo espacio"}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Photos */}
+          <div className="rounded-xl border border-border bg-muted/30 p-4 text-sm text-muted-foreground">
+            Los espacios nuevos se guardan como borrador. Solo podrás publicarlos cuando tu perfil de cuidador esté completo y el espacio tenga todos sus datos obligatorios.
+          </div>
+
           <div>
-            <label className="text-sm font-semibold text-foreground mb-2 block">
-              Fotos del espacio (máx. 4)
+            <label className="mb-2 block text-sm font-semibold text-foreground">
+              Fotos del espacio
             </label>
             <PhotoUpload
               photos={formData.photos}
-              onPhotosChange={(photos) =>
-                setFormData((prev) => ({ ...prev, photos: photos.slice(0, 4) }))
-              }
-              maxPhotos={4}
+              onPhotosChange={(photos) => setFormData((prev) => ({ ...prev, photos: photos.slice(0, 6) }))}
+              maxPhotos={6}
               uploadKind="space"
               onBusyChange={setIsUploadingPhotos}
             />
           </div>
 
-          {/* Title */}
           <div>
-            <label className="text-sm font-semibold text-foreground mb-1 block">
+            <label className="mb-1 block text-sm font-semibold text-foreground">
               Nombre del espacio
             </label>
             <input
               type="text"
               value={formData.title}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, title: e.target.value }))
-              }
-              placeholder="Ej: Casa con Jardín Amplio"
-              className="w-full px-4 py-2 border border-input rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              onChange={(event) => setFormData((prev) => ({ ...prev, title: event.target.value }))}
+              className="w-full rounded-lg border border-input bg-background px-4 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
 
-          {/* Description */}
           <div>
-            <label className="text-sm font-semibold text-foreground mb-1 block">
+            <label className="mb-1 block text-sm font-semibold text-foreground">
               Descripción
             </label>
             <textarea
               value={formData.description}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  description: e.target.value,
-                }))
-              }
-              placeholder="Describe tu espacio, características, amenidades..."
+              onChange={(event) => setFormData((prev) => ({ ...prev, description: event.target.value }))}
               rows={4}
-              className="w-full px-4 py-2 border border-input rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+              className="w-full resize-none rounded-lg border border-input bg-background px-4 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
 
-          {/* Pricing */}
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <div>
+              <label className="mb-1 block text-sm font-semibold text-foreground">
+                Provincia
+              </label>
+              <select
+                value={formData.province}
+                onChange={(event) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    province: event.target.value as Space["province"],
+                    canton: "",
+                  }))
+                }
+                className="w-full rounded-lg border border-input bg-background px-4 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                {PROVINCES.map((province) => (
+                  <option key={province} value={province}>
+                    {province}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-semibold text-foreground">
+                Cantón
+              </label>
+              <select
+                value={formData.canton}
+                onChange={(event) => setFormData((prev) => ({ ...prev, canton: event.target.value }))}
+                disabled={!formData.province}
+                className="w-full rounded-lg border border-input bg-background px-4 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
+              >
+                <option value="">Selecciona</option>
+                {availableCantons.map((canton) => (
+                  <option key={canton} value={canton}>
+                    {canton}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-semibold text-foreground">
+                Dirección visible
+              </label>
+              <input
+                type="text"
+                value={formData.address}
+                onChange={(event) => setFormData((prev) => ({ ...prev, address: event.target.value }))}
+                className="w-full rounded-lg border border-input bg-background px-4 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-foreground">
+              Ubicación
+            </label>
+            <LocationPicker
+              coordinates={{ lat: formData.latitude, lng: formData.longitude }}
+              onLocationChange={(coords, address) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  latitude: coords.lat,
+                  longitude: coords.lng,
+                  address: prev.address || address,
+                }))
+              }
+            />
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-sm font-semibold text-foreground mb-1 block">
-                Por noche (CRC)
+              <label className="mb-1 block text-sm font-semibold text-foreground">
+                Precio por noche (CRC)
               </label>
               <input
                 type="number"
                 value={formData.pricePerNight}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    pricePerNight: parseInt(e.target.value) || 0,
-                  }))
-                }
-                className="w-full px-4 py-2 border border-input rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                onChange={(event) => setFormData((prev) => ({ ...prev, pricePerNight: Number(event.target.value) || 0 }))}
+                className="w-full rounded-lg border border-input bg-background px-4 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
             <div>
-              <label className="text-sm font-semibold text-foreground mb-1 block">
-                Por hora (CRC)
+              <label className="mb-1 block text-sm font-semibold text-foreground">
+                Precio por hora (CRC)
               </label>
               <input
                 type="number"
                 value={formData.pricePerHour}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    pricePerHour: parseInt(e.target.value) || 0,
-                  }))
-                }
-                className="w-full px-4 py-2 border border-input rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                onChange={(event) => setFormData((prev) => ({ ...prev, pricePerHour: Number(event.target.value) || 0 }))}
+                className="w-full rounded-lg border border-input bg-background px-4 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
           </div>
 
-          {/* Min Hours & Max Pets */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-sm font-semibold text-foreground mb-1 block">
+              <label className="mb-1 block text-sm font-semibold text-foreground">
                 Mínimo de horas
               </label>
               <input
                 type="number"
                 value={formData.minHours}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    minHours: parseInt(e.target.value) || 1,
-                  }))
-                }
                 min="1"
-                className="w-full px-4 py-2 border border-input rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                onChange={(event) => setFormData((prev) => ({ ...prev, minHours: Number(event.target.value) || 1 }))}
+                className="w-full rounded-lg border border-input bg-background px-4 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
             <div>
-              <label className="text-sm font-semibold text-foreground mb-1 block">
+              <label className="mb-1 block text-sm font-semibold text-foreground">
                 Máximo de mascotas
               </label>
               <input
                 type="number"
                 value={formData.maxPets}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    maxPets: parseInt(e.target.value) || 1,
-                  }))
-                }
                 min="1"
-                className="w-full px-4 py-2 border border-input rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                onChange={(event) => setFormData((prev) => ({ ...prev, maxPets: Number(event.target.value) || 1 }))}
+                className="w-full rounded-lg border border-input bg-background px-4 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
           </div>
 
-          {/* Pet Types */}
           <div>
-            <label className="text-sm font-semibold text-foreground mb-2 block">
+            <label className="mb-2 block text-sm font-semibold text-foreground">
               Tipos de mascotas aceptadas
             </label>
-            <div className="space-y-2">
+            <div className="grid grid-cols-2 gap-2">
               {PET_TYPES.map((type) => (
-                <label key={type} className="flex items-center gap-2 cursor-pointer">
+                <label key={type} className="flex cursor-pointer items-center gap-2">
                   <input
                     type="checkbox"
                     checked={formData.acceptedPetTypes.includes(type)}
-                    onChange={() => togglePetType(type)}
-                    className="w-4 h-4 rounded border-input cursor-pointer"
+                    onChange={() => toggleListValue("acceptedPetTypes", type)}
+                    className="h-4 w-4 rounded border-input"
                   />
                   <span className="text-sm text-foreground">
-                    {type === "dog"
-                      ? "🐕 Perros"
-                      : type === "cat"
-                        ? "🐱 Gatos"
-                        : type === "bird"
-                          ? "🦜 Aves"
-                          : "🐾 Otros"}
+                    {type === "dog" ? "Perros" : type === "cat" ? "Gatos" : type === "bird" ? "Aves" : "Otros"}
                   </span>
                 </label>
               ))}
             </div>
           </div>
 
-          {/* Amenities */}
           <div>
-            <label className="text-sm font-semibold text-foreground mb-2 block">
+            <label className="mb-2 block text-sm font-semibold text-foreground">
+              Tamaños aceptados
+            </label>
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
+              {PET_SIZES.map((size) => (
+                <label key={size} className="flex cursor-pointer items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={formData.acceptedPetSizes.includes(size)}
+                    onChange={() => toggleListValue("acceptedPetSizes", size)}
+                    className="h-4 w-4 rounded border-input"
+                  />
+                  <span className="text-sm text-foreground">
+                    {size === "small" ? "Pequeño" : size === "medium" ? "Mediano" : "Grande"}
+                  </span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-foreground">
               Amenidades
             </label>
             <div className="grid grid-cols-2 gap-2">
               {AMENITIES.map((amenity) => (
-                <label key={amenity} className="flex items-center gap-2 cursor-pointer">
+                <label key={amenity} className="flex cursor-pointer items-center gap-2">
                   <input
                     type="checkbox"
                     checked={formData.amenities.includes(amenity)}
-                    onChange={() => toggleAmenity(amenity)}
-                    className="w-4 h-4 rounded border-input cursor-pointer"
+                    onChange={() => toggleListValue("amenities", amenity)}
+                    className="h-4 w-4 rounded border-input"
                   />
-                  <span className="text-xs text-foreground capitalize">
-                    {amenity.replace(/_/g, " ")}
-                  </span>
+                  <span className="text-xs text-foreground">{amenity}</span>
                 </label>
               ))}
             </div>
@@ -284,14 +338,11 @@ export function SpaceFormDialog({
         </div>
 
         <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-          >
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
           <Button onClick={handleSave} disabled={isUploadingPhotos}>
-            {space ? "Guardar cambios" : "Crear espacio"}
+            {space ? "Guardar cambios" : "Guardar borrador"}
           </Button>
         </DialogFooter>
       </DialogContent>

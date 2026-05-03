@@ -1,12 +1,16 @@
 import type { APIGatewayProxyEventV2WithJWTAuthorizer } from 'aws-lambda';
 import { QueryCommand } from '@aws-sdk/lib-dynamodb';
 import { ddb, BOOKINGS_TABLE_NAME, bookingsGsi } from '../../shared/bookings-db';
-import { getAuthClaims } from '../../shared/auth';
-import { ok, serverError } from '../../shared/response';
+import { getAuthClaims, userHasRole } from '../../shared/auth';
+import { forbidden, ok, serverError } from '../../shared/response';
 
 export async function handler(event: APIGatewayProxyEventV2WithJWTAuthorizer) {
   try {
     const { sub } = getAuthClaims(event);
+    if (!(await userHasRole(sub, 'caregiver'))) {
+      return forbidden('Caregiver role required');
+    }
+
     const result = await ddb.send(new QueryCommand({
       TableName: BOOKINGS_TABLE_NAME,
       IndexName: 'GSI2',

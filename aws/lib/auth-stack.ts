@@ -1,5 +1,6 @@
 import * as cdk from "aws-cdk-lib";
 import * as cognito from "aws-cdk-lib/aws-cognito";
+import { CfnUserPoolGroup } from "aws-cdk-lib/aws-cognito";
 import type { Construct } from "constructs";
 
 export interface DonverAuthStackProps extends cdk.StackProps {
@@ -40,6 +41,18 @@ export class DonverAuthStack extends cdk.Stack {
           mutable: true,
         },
       },
+    });
+
+    const ownerGroup = new CfnUserPoolGroup(this, "OwnerGroup", {
+      groupName: "owner",
+      userPoolId: this.userPool.userPoolId,
+      description: "Donver owner role",
+    });
+
+    const caregiverGroup = new CfnUserPoolGroup(this, "CaregiverGroup", {
+      groupName: "caregiver",
+      userPoolId: this.userPool.userPoolId,
+      description: "Donver caregiver role",
     });
 
     const googleClientId = this.node.tryGetContext("googleOAuthClientId") as string | undefined;

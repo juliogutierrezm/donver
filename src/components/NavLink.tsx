@@ -5,15 +5,17 @@ interface NavLinkProps {
   to: string;
   children: React.ReactNode;
   className?: string;
+  onClick?: () => void;
 }
 
-export function NavLink({ to, children, className }: NavLinkProps) {
+export function NavLink({ to, children, className, onClick }: NavLinkProps) {
   const location = useLocation();
   const isActive = location.pathname === to;
 
   return (
     <Link
       to={to}
+      onClick={onClick}
       className={cn(
         "transition-colors font-medium",
         isActive

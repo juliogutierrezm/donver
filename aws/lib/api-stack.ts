@@ -41,6 +41,7 @@ export class DonverApiStack extends cdk.Stack {
       MESSAGING_TABLE_NAME: messagingTableName,
       SPACE_PHOTOS_BUCKET: props.spacePhotosBucket.bucketName,
       PET_PHOTOS_BUCKET: props.petPhotosBucket.bucketName,
+      COGNITO_USER_POOL_CLIENT_ID: props.userPoolClient.userPoolClientId,
     };
 
     const createFn = (constructId: string, handlerName: string): NodejsFunction => {
@@ -95,6 +96,7 @@ export class DonverApiStack extends cdk.Stack {
       );
     };
 
+    const authRegisterFn      = createFn("AuthRegisterFn",       "auth-register");
     const authBootstrapFn     = createFn("AuthBootstrapFn",     "auth-bootstrap");
     const getMeFn             = createFn("GetMeFn",              "get-me");
     const updateProfileFn     = createFn("UpdateProfileFn",      "update-profile");
@@ -113,6 +115,7 @@ export class DonverApiStack extends cdk.Stack {
     const cancelBookingFn     = createFn("CancelBookingFn",      "cancel-booking");
     const createBlockedDateFn = createFn("CreateBlockedDateFn",  "create-blocked-date");
     const deleteBlockedDateFn = createFn("DeleteBlockedDateFn",  "delete-blocked-date");
+    const caregiverOnboardingFn = createFn("CaregiverOnboardingFn", "caregiver-onboarding");
     const listReviewsFn       = createFn("ListReviewsFn",        "list-reviews");
     const createReviewFn      = createFn("CreateReviewFn",       "create-review");
     const createUploadUrlFn   = createFn("CreateUploadUrlFn",    "create-upload-url");
@@ -123,9 +126,9 @@ export class DonverApiStack extends cdk.Stack {
     const wsSendMessageFn     = createFn("WsSendMessageFn",      "ws-send-message");
 
     const coreFunctions = [
-      authBootstrapFn, getMeFn, updateProfileFn, listSpacesFn, getSpaceDetailFn,
-      listMySpacesFn, createSpaceFn, updateSpaceFn, listPetsFn, createPetFn,
-      updatePetFn, deletePetFn, listReviewsFn, createReviewFn,
+      authRegisterFn, authBootstrapFn, getMeFn, updateProfileFn, caregiverOnboardingFn, listSpacesFn, getSpaceDetailFn,
+      listMySpacesFn, listCgBookingsFn, createSpaceFn, updateSpaceFn, listPetsFn, createPetFn,
+      updatePetFn, deletePetFn, listReviewsFn, createReviewFn, createBookingFn,
     ];
     coreFunctions.forEach((fn) => grantDomainTableAccess(fn, coreTableName));
 
@@ -160,7 +163,13 @@ export class DonverApiStack extends cdk.Stack {
           apigwv2.CorsHttpMethod.DELETE,
           apigwv2.CorsHttpMethod.OPTIONS,
         ],
-        allowOrigins: ["http://localhost:5173", "https://app.donver.cr"],
+        allowOrigins: [
+          "http://localhost:5173",
+          "http://localhost:4173",
+          "http://127.0.0.1:5173",
+          "http://127.0.0.1:4173",
+          "https://app.donver.cr",
+        ],
         allowCredentials: true,
       },
     });
@@ -168,12 +177,14 @@ export class DonverApiStack extends cdk.Stack {
     const h = (fn: lambda.IFunction, intId: string) => new HttpLambdaIntegration(intId, fn);
     const auth = jwtAuthorizer;
 
+    httpApi.addRoutes({ path: "/auth/register",   methods: [apigwv2.HttpMethod.POST], integration: h(authRegisterFn, "AuthRegister") });
     httpApi.addRoutes({ path: "/auth/bootstrap",  methods: [apigwv2.HttpMethod.POST], integration: h(authBootstrapFn, "AuthBootstrap"),    authorizer: auth });
     httpApi.addRoutes({ path: "/me",               methods: [apigwv2.HttpMethod.GET],  integration: h(getMeFn, "GetMe"),                    authorizer: auth });
     httpApi.addRoutes({ path: "/me/profile",        methods: [apigwv2.HttpMethod.PUT],  integration: h(updateProfileFn, "UpdateProfile"),    authorizer: auth });
-    httpApi.addRoutes({ path: "/spaces",           methods: [apigwv2.HttpMethod.GET],  integration: h(listSpacesFn, "ListSpaces"),           authorizer: auth });
-    httpApi.addRoutes({ path: "/spaces/{id}",      methods: [apigwv2.HttpMethod.GET],  integration: h(getSpaceDetailFn, "GetSpaceDetail"),   authorizer: auth });
-    httpApi.addRoutes({ path: "/spaces/{id}/reviews", methods: [apigwv2.HttpMethod.GET],  integration: h(listReviewsFn, "ListReviews"),      authorizer: auth });
+    httpApi.addRoutes({ path: "/caregiver/onboarding", methods: [apigwv2.HttpMethod.POST], integration: h(caregiverOnboardingFn, "CaregiverOnboarding"), authorizer: auth });
+    httpApi.addRoutes({ path: "/spaces",           methods: [apigwv2.HttpMethod.GET],  integration: h(listSpacesFn, "ListSpaces") });
+    httpApi.addRoutes({ path: "/spaces/{id}",      methods: [apigwv2.HttpMethod.GET],  integration: h(getSpaceDetailFn, "GetSpaceDetail") });
+    httpApi.addRoutes({ path: "/spaces/{id}/reviews", methods: [apigwv2.HttpMethod.GET],  integration: h(listReviewsFn, "ListReviews") });
     httpApi.addRoutes({ path: "/spaces/{id}/reviews", methods: [apigwv2.HttpMethod.POST], integration: h(createReviewFn, "CreateReview"),    authorizer: auth });
     httpApi.addRoutes({ path: "/caregiver/spaces",                                    methods: [apigwv2.HttpMethod.GET],    integration: h(listMySpacesFn, "ListMySpaces"),          authorizer: auth });
     httpApi.addRoutes({ path: "/caregiver/spaces",                                    methods: [apigwv2.HttpMethod.POST],   integration: h(createSpaceFn, "CreateSpace"),            authorizer: auth });

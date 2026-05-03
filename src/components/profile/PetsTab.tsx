@@ -6,9 +6,9 @@ import type { Pet } from "@/types";
 
 interface PetsTabProps {
   pets: Pet[];
-  onPetAdded: (pet: Pet) => void;
-  onPetUpdated: (pet: Pet) => void;
-  onPetDeleted: (petId: string) => void;
+  onPetAdded: (pet: Pet) => void | Promise<void>;
+  onPetUpdated: (pet: Pet) => void | Promise<void>;
+  onPetDeleted: (petId: string) => void | Promise<void>;
 }
 
 export function PetsTab({
@@ -30,30 +30,39 @@ export function PetsTab({
     setFormOpen(true);
   };
 
-  const handleSave = (petData: Partial<Pet>) => {
+  const handleSave = async (petData: Partial<Pet>) => {
     if (selectedPet) {
-      onPetUpdated({ ...selectedPet, ...petData } as Pet);
+      await onPetUpdated({ ...selectedPet, ...petData } as Pet);
     } else {
       const newPet: Pet = {
         id: `pet-${Date.now()}`,
         ownerId: "user-1",
         ...petData,
       } as Pet;
-      onPetAdded(newPet);
+      await onPetAdded(newPet);
     }
     setFormOpen(false);
   };
 
   if (pets.length === 0) {
     return (
-      <div className="text-center py-12">
-        <div className="text-4xl mb-3">🐾</div>
-        <p className="text-muted-foreground mb-6">Aún no has registrado mascotas.</p>
-        <Button onClick={handleOpenAdd} className="gap-2">
-          <Plus className="w-4 h-4" />
-          Agregar mascota
-        </Button>
-      </div>
+      <>
+        <div className="text-center py-12">
+          <div className="text-4xl mb-3">🐾</div>
+          <p className="text-muted-foreground mb-6">Aún no has registrado mascotas.</p>
+          <Button onClick={handleOpenAdd} className="gap-2">
+            <Plus className="w-4 h-4" />
+            Agregar mascota
+          </Button>
+        </div>
+
+        <PetFormDialog
+          open={formOpen}
+          onOpenChange={setFormOpen}
+          onSave={handleSave}
+          pet={selectedPet}
+        />
+      </>
     );
   }
 

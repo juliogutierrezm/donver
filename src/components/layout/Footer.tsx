@@ -1,11 +1,11 @@
 import { Link } from "react-router-dom";
 import {
-  PawPrint,
   Facebook,
   Instagram,
   Twitter,
   Mail,
 } from "lucide-react";
+import DonverLogo from "@/assets/Donver-logo.png";
 
 export function Footer() {
   return (
@@ -16,8 +16,13 @@ export function Footer() {
           {/* Brand */}
           <div>
             <Link to="/" className="flex items-center gap-2 mb-4 font-heading font-bold text-primary">
-              <PawPrint className="w-5 h-5" />
-              <span>Donver</span>
+              <img
+                src={DonverLogo}
+                alt="Donver logo"
+                className="h-7 w-auto"
+                style={{ maxHeight: 32 }}
+              />
+              <span className="sr-only">Donver</span>
             </Link>
             <p className="text-sm text-muted-foreground">
               Cuidado de mascotas confiable en Costa Rica.

@@ -6,17 +6,24 @@ interface CaregiverStepOneProps {
     email: string;
     phone: string;
     bio: string;
+    password?: string;
+    confirmPassword?: string;
   };
   onChange: (field: string, value: string) => void;
   onNext: () => void;
+  requirePassword?: boolean;
 }
 
 export function CaregiverStepOne({
   formData,
   onChange,
   onNext,
+  requirePassword = false,
 }: CaregiverStepOneProps) {
-  const isComplete = formData.name && formData.email && formData.phone && formData.bio;
+  const hasPassword = !requirePassword || (formData.password && formData.confirmPassword);
+  const passwordsMatch =
+    !requirePassword || formData.password === formData.confirmPassword;
+  const isComplete = formData.name && formData.email && formData.phone && formData.bio && hasPassword && passwordsMatch;
 
   return (
     <div className="space-y-6">
@@ -71,6 +78,41 @@ export function CaregiverStepOne({
           className="w-full px-4 py-2 border border-input rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary resize-none"
         />
       </div>
+
+      {requirePassword && (
+        <>
+          <div>
+            <label className="text-sm font-semibold text-foreground mb-1 block">
+              Contraseña
+            </label>
+            <input
+              type="password"
+              value={formData.password ?? ""}
+              onChange={(e) => onChange("password", e.target.value)}
+              placeholder="••••••••"
+              className="w-full px-4 py-2 border border-input rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+          </div>
+
+          <div>
+            <label className="text-sm font-semibold text-foreground mb-1 block">
+              Confirmar contraseña
+            </label>
+            <input
+              type="password"
+              value={formData.confirmPassword ?? ""}
+              onChange={(e) => onChange("confirmPassword", e.target.value)}
+              placeholder="••••••••"
+              className="w-full px-4 py-2 border border-input rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+            {formData.confirmPassword && !passwordsMatch && (
+              <p className="mt-2 text-sm text-destructive">
+                Las contraseñas deben coincidir para continuar.
+              </p>
+            )}
+          </div>
+        </>
+      )}
 
       <Button
         onClick={onNext}

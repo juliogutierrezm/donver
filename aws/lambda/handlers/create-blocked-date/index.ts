@@ -2,12 +2,16 @@ import type { APIGatewayProxyEventV2WithJWTAuthorizer } from 'aws-lambda';
 import { GetCommand, PutCommand } from '@aws-sdk/lib-dynamodb';
 import { ddb, CORE_TABLE_NAME, coreKeys } from '../../shared/core-db';
 import { BOOKINGS_TABLE_NAME, bookingKeys } from '../../shared/bookings-db';
-import { getAuthClaims } from '../../shared/auth';
+import { getAuthClaims, userHasRole } from '../../shared/auth';
 import { created, badRequest, forbidden, notFound, serverError } from '../../shared/response';
 
 export async function handler(event: APIGatewayProxyEventV2WithJWTAuthorizer) {
   try {
     const { sub } = getAuthClaims(event);
+    if (!(await userHasRole(sub, 'caregiver'))) {
+      return forbidden('Caregiver role required');
+    }
+
     const spaceId = event.pathParameters?.['id'];
     if (!spaceId) return notFound('Space not found');
 

@@ -1,10 +1,10 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { PawPrint } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
-import { authApi } from "@/services/api";
+import { authApi, getDefaultPostAuthPath } from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
 
 export default function LoginPage() {
@@ -12,23 +12,39 @@ export default function LoginPage() {
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
   const initialEmail = useMemo(() => searchParams.get("email")?.trim() ?? "", [searchParams]);
+  const next = useMemo(() => searchParams.get("next")?.trim() ?? "", [searchParams]);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: initialEmail,
     password: "",
   });
 
+  useEffect(() => {
+    let cancelled = false;
+
+    async function restoreSession() {
+      const session = await authApi.restoreSession().catch(() => null);
+      if (!session || cancelled) return;
+      navigate(getDefaultPostAuthPath(session.user, next), { replace: true });
+    }
+
+    void restoreSession();
+    return () => {
+      cancelled = true;
+    };
+  }, [navigate, next]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      await authApi.login(formData);
+      const session = await authApi.login(formData);
       toast({
         title: "Sesion iniciada",
         description: "Bienvenido de vuelta a Donver.",
       });
-      navigate("/profile");
+      navigate(getDefaultPostAuthPath(session.user, next));
     } catch (error) {
       const isUnconfirmed =
         error instanceof Error &&
@@ -45,7 +61,9 @@ export default function LoginPage() {
       });
 
       if (isUnconfirmed && formData.email) {
-        navigate(`/verify-email?email=${encodeURIComponent(formData.email)}`);
+        navigate(
+          `/verify-email?email=${encodeURIComponent(formData.email)}${next ? `&next=${encodeURIComponent(next)}` : ""}`
+        );
       }
     } finally {
       setLoading(false);

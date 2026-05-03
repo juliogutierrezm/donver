@@ -17,9 +17,31 @@ export class DonverSharedStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: DonverSharedStackProps) {
     super(scope, id, props);
 
+    const bucketCors: s3.CorsRule[] = [
+      {
+        allowedHeaders: ["*"],
+        allowedMethods: [
+          s3.HttpMethods.GET,
+          s3.HttpMethods.HEAD,
+          s3.HttpMethods.PUT,
+        ],
+        allowedOrigins: [
+          "http://localhost:5173",
+          "http://localhost:4173",
+          "http://127.0.0.1:5173",
+          "http://127.0.0.1:4173",
+          "https://app.donver.cr",
+        ],
+        exposedHeaders: ["ETag", "x-amz-request-id", "x-amz-id-2"],
+        maxAge: 3600,
+      },
+    ];
+
     this.spacePhotosBucket = new s3.Bucket(this, "SpacePhotosBucket", {
       bucketName: `donver-space-photos-${props.envName}-${cdk.Aws.ACCOUNT_ID}`,
-      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ACLS,
+      cors: bucketCors,
+      publicReadAccess: true,
       encryption: s3.BucketEncryption.S3_MANAGED,
       versioned: true,
       enforceSSL: true,
@@ -28,7 +50,9 @@ export class DonverSharedStack extends cdk.Stack {
 
     this.petPhotosBucket = new s3.Bucket(this, "PetPhotosBucket", {
       bucketName: `donver-pet-photos-${props.envName}-${cdk.Aws.ACCOUNT_ID}`,
-      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ACLS,
+      cors: bucketCors,
+      publicReadAccess: true,
       encryption: s3.BucketEncryption.S3_MANAGED,
       versioned: true,
       enforceSSL: true,

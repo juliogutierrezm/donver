@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -14,18 +14,12 @@ import type { Pet } from "@/types";
 interface PetFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave: (pet: Partial<Pet>) => void;
+  onSave: (pet: Partial<Pet>) => void | Promise<void>;
   pet?: Pet;
 }
 
-export function PetFormDialog({
-  open,
-  onOpenChange,
-  onSave,
-  pet,
-}: PetFormDialogProps) {
-  const [isUploadingPhotos, setIsUploadingPhotos] = useState(false);
-  const [formData, setFormData] = useState<Partial<Pet>>(
+function createDefaultPetForm(pet?: Pet): Partial<Pet> {
+  return (
     pet || {
       name: "",
       type: "dog",
@@ -37,9 +31,28 @@ export function PetFormDialog({
       specialNeeds: "",
     }
   );
+}
 
-  const handleSubmit = () => {
-    if (isUploadingPhotos) {
+export function PetFormDialog({
+  open,
+  onOpenChange,
+  onSave,
+  pet,
+}: PetFormDialogProps) {
+  const [isUploadingPhotos, setIsUploadingPhotos] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState<Partial<Pet>>(createDefaultPetForm(pet));
+
+  useEffect(() => {
+    if (open) {
+      setFormData(createDefaultPetForm(pet));
+      setIsUploadingPhotos(false);
+      setIsSubmitting(false);
+    }
+  }, [open, pet]);
+
+  const handleSubmit = async () => {
+    if (isUploadingPhotos || isSubmitting) {
       return;
     }
 
@@ -47,8 +60,14 @@ export function PetFormDialog({
       alert("Por favor ingresa el nombre de tu mascota");
       return;
     }
-    onSave(formData);
-    onOpenChange(false);
+
+    setIsSubmitting(true);
+    try {
+      await onSave(formData);
+      onOpenChange(false);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -208,12 +227,22 @@ export function PetFormDialog({
         <DialogFooter>
           <Button
             variant="outline"
+            type="button"
+            disabled={isSubmitting}
             onClick={() => onOpenChange(false)}
           >
             Cancelar
           </Button>
-          <Button onClick={handleSubmit} disabled={isUploadingPhotos}>
-            {pet ? "Guardar cambios" : "Agregar mascota"}
+          <Button
+            type="button"
+            onClick={() => void handleSubmit()}
+            disabled={isUploadingPhotos || isSubmitting}
+          >
+            {isSubmitting
+              ? "Guardando..."
+              : pet
+                ? "Guardar cambios"
+                : "Agregar mascota"}
           </Button>
         </DialogFooter>
       </DialogContent>

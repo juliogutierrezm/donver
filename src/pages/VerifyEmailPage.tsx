@@ -12,6 +12,7 @@ export default function VerifyEmailPage() {
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
   const initialEmail = useMemo(() => searchParams.get("email")?.trim() ?? "", [searchParams]);
+  const next = useMemo(() => searchParams.get("next")?.trim() ?? "", [searchParams]);
   const [email, setEmail] = useState(initialEmail);
   const [code, setCode] = useState("");
   const [verifying, setVerifying] = useState(false);
@@ -27,7 +28,9 @@ export default function VerifyEmailPage() {
         title: "Correo verificado",
         description: "Tu cuenta ya fue confirmada. Ahora puedes iniciar sesion.",
       });
-      navigate(`/login?email=${encodeURIComponent(email)}`);
+      navigate(
+        `/login?email=${encodeURIComponent(email)}${next ? `&next=${encodeURIComponent(next)}` : ""}`
+      );
     } catch (error) {
       toast({
         title: "No se pudo verificar el correo",
@@ -130,7 +133,10 @@ export default function VerifyEmailPage() {
 
             <div className="text-center text-sm text-muted-foreground">
               ¿Ya verificaste tu cuenta?{" "}
-              <Link to="/login" className="text-primary hover:underline font-semibold">
+              <Link
+                to={`/login${email ? `?email=${encodeURIComponent(email)}${next ? `&next=${encodeURIComponent(next)}` : ""}` : next ? `?next=${encodeURIComponent(next)}` : ""}`}
+                className="text-primary hover:underline font-semibold"
+              >
                 Inicia sesion
               </Link>
             </div>

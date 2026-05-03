@@ -1,262 +1,265 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { PawPrint } from "lucide-react";
-import { Link } from "react-router-dom";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
-import { StepIndicator } from "@/components/caregiver/StepIndicator";
-import { CaregiverStepOne } from "@/components/caregiver/CaregiverStepOne";
-import { CaregiverStepTwo } from "@/components/caregiver/CaregiverStepTwo";
-import { CaregiverStepThree } from "@/components/caregiver/CaregiverStepThree";
-import { authApi, spacesApi } from "@/services/api";
+import { Button } from "@/components/ui/button";
+import { CANTONES, PROVINCES } from "@/types";
+import { authApi } from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
-import type { Province } from "@/types";
-
-interface FormData {
-  // Step 1
-  name: string;
-  email: string;
-  phone: string;
-  bio: string;
-  // Step 2
-  province: string;
-  canton: string;
-  locationName: string;
-  coordinates: { lat: number; lng: number } | null;
-  // Step 3
-  spaceTitle: string;
-  spaceDescription: string;
-  pricePerNight: number;
-  pricePerHour: number;
-  minHours: number;
-  acceptedPetTypes: string[];
-  acceptedPetSizes: string[];
-  maxPets: number;
-  amenities: string[];
-  photos: string[];
-}
 
 export default function BecomeCaregiverPage() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [currentStep, setCurrentStep] = useState(1);
-  const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState<FormData>({
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [email, setEmail] = useState("");
+  const [formData, setFormData] = useState({
     name: "",
-    email: "",
     phone: "",
-    bio: "",
     province: "",
     canton: "",
-    locationName: "",
-    coordinates: null,
-    spaceTitle: "",
-    spaceDescription: "",
-    pricePerNight: 0,
-    pricePerHour: 0,
-    minHours: 2,
-    acceptedPetTypes: [],
-    acceptedPetSizes: [],
-    maxPets: 3,
-    amenities: [],
-    photos: [],
+    bio: "",
   });
 
   useEffect(() => {
     let cancelled = false;
 
-    async function loadCurrentUser() {
+    async function load() {
+      const session = await authApi.restoreSession().catch(() => null);
+      if (!session) {
+        navigate("/login?next=%2Fbecome-caregiver", { replace: true });
+        return;
+      }
+
       try {
         const user = await authApi.getCurrentUser();
         if (cancelled) return;
-        setFormData((prev) => ({
-          ...prev,
-          name: prev.name || user.name,
-          email: prev.email || user.email,
-          phone: prev.phone || user.phone || "",
-          province: prev.province || user.province,
-          canton: prev.canton || user.canton,
-        }));
-      } catch {
-        // Esta pantalla puede abrirse sin sesion; el submit validara el acceso.
+
+        if (user.roles.includes("caregiver")) {
+          navigate("/caregiver/dashboard", { replace: true });
+          return;
+        }
+
+        setEmail(user.email);
+        setFormData({
+          name: user.name,
+          phone: user.phone ?? "",
+          province: user.province,
+          canton: user.canton,
+          bio: user.bio ?? "",
+        });
+      } catch (error) {
+        if (cancelled) return;
+        if (error instanceof Error && error.message.toLowerCase().includes("sesion")) {
+          navigate("/login?next=%2Fbecome-caregiver", { replace: true });
+          return;
+        }
+        toast({
+          title: "No se pudo cargar el onboarding",
+          description:
+            error instanceof Error
+              ? error.message
+              : "Intenta nuevamente en unos minutos.",
+          variant: "destructive",
+        });
+        navigate("/profile", { replace: true });
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     }
 
-    void loadCurrentUser();
+    void load();
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [navigate, toast]);
 
-  const handleChange = (field: string, value: any) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
+  const availableCantons = useMemo(() => {
+    if (!formData.province) return [];
+    return CANTONES[formData.province as keyof typeof CANTONES] || [];
+  }, [formData.province]);
 
-  const handleStepTwoChange = (field: string, value: any) => {
-    setFormData((prev) => {
-      if (field === "province") {
-        return {
-          ...prev,
-          province: value,
-          canton: "",
-          locationName: "",
-          coordinates: null,
-        };
-      }
+  useEffect(() => {
+    if (formData.province && formData.canton && !availableCantons.includes(formData.canton)) {
+      setFormData((prev) => ({ ...prev, canton: "" }));
+    }
+  }, [availableCantons, formData.canton, formData.province]);
 
-      return { ...prev, [field]: value };
-    });
-  };
-
-  const handleNext = () => {
-    setCurrentStep((prev) => prev + 1);
-  };
-
-  const handleBack = () => {
-    setCurrentStep((prev) => prev - 1);
-  };
-
-  const handleSubmit = async () => {
-    setLoading(true);
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setSubmitting(true);
 
     try {
-      await authApi.updateProfile({
+      await authApi.completeCaregiverOnboarding({
         name: formData.name,
-        bio: formData.bio,
         phone: formData.phone,
-        role: "both",
-      });
-
-      await spacesApi.create({
-        caregiverId: "",
-        title: formData.spaceTitle,
-        description: formData.spaceDescription,
-        photos: formData.photos,
-        province: (formData.province || "San José") as Province,
-        canton: formData.canton || "San José",
-        address: formData.locationName,
-        latitude: formData.coordinates?.lat ?? 9.7489,
-        longitude: formData.coordinates?.lng ?? -83.7534,
-        pricePerNight: formData.pricePerNight,
-        pricePerHour: formData.pricePerHour,
-        minHours: formData.minHours,
-        acceptedPetTypes: formData.acceptedPetTypes as import("@/types").PetType[],
-        acceptedPetSizes: formData.acceptedPetSizes as import("@/types").PetSize[],
-        maxPets: formData.maxPets,
-        amenities: formData.amenities,
-        isActive: true,
+        province: formData.province as typeof PROVINCES[number],
+        canton: formData.canton,
+        bio: formData.bio,
       });
 
       toast({
-        title: "Perfil de cuidador creado",
-        description: "Tu espacio inicial ya fue registrado en Donver.",
+        title: "Perfil de cuidador completado",
+        description: "Ya puedes administrar tu dashboard y crear tus espacios.",
       });
-      navigate("/caregiver/dashboard");
+      navigate("/caregiver/dashboard", { replace: true });
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Intenta nuevamente en unos minutos.";
-
       toast({
-        title: "No se pudo completar el registro de cuidador",
-        description: message,
+        title: "No se pudo completar el perfil de cuidador",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Intenta nuevamente en unos minutos.",
         variant: "destructive",
       });
-
-      if (message.includes("iniciar sesion")) {
-        navigate("/login");
-      }
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
+
+  if (loading) {
+    return (
+      <>
+        <Header />
+        <main className="flex min-h-screen items-center justify-center bg-background">
+          <p className="text-muted-foreground">Cargando onboarding...</p>
+        </main>
+        <Footer />
+      </>
+    );
+  }
 
   return (
     <>
       <Header />
       <main className="min-h-screen bg-background py-12">
-        <div className="max-w-2xl mx-auto px-4">
-          {/* Logo */}
+        <div className="mx-auto max-w-2xl px-4">
           <Link
             to="/"
-            className="flex items-center justify-center gap-2 mb-8 font-heading font-bold text-primary"
+            className="mb-8 flex items-center justify-center gap-2 font-heading font-bold text-primary"
           >
-            <PawPrint className="w-8 h-8" />
+            <PawPrint className="h-8 w-8" />
             <span className="text-2xl">Donver</span>
           </Link>
 
-          {/* Card */}
-          <div className="bg-card border border-border rounded-xl p-8">
-            <div className="text-center mb-8">
-              <h1 className="text-2xl font-heading font-bold text-foreground">
-                Conviértete en Cuidador
+          <div className="rounded-xl border border-border bg-card p-8">
+            <div className="mb-8 text-center">
+              <h1 className="text-3xl font-heading font-bold text-foreground">
+                Completa tu perfil de cuidador
               </h1>
-              <p className="text-muted-foreground mt-2">
-                Comparte tu amor por los animales y gana dinero extra
+              <p className="mt-2 text-muted-foreground">
+                Tu cuenta ya está creada. Solo falta completar estos datos para activar la experiencia de cuidador.
               </p>
             </div>
 
-            {/* Step Indicator */}
-            <StepIndicator currentStep={currentStep} totalSteps={3} />
-
-            {/* Form Steps */}
-            <div className="max-w-lg mx-auto">
-              {currentStep === 1 && (
-                <CaregiverStepOne
-                  formData={{
-                    name: formData.name,
-                    email: formData.email,
-                    phone: formData.phone,
-                    bio: formData.bio,
-                  }}
-                  onChange={handleChange}
-                  onNext={handleNext}
+            <form onSubmit={handleSubmit} className="mx-auto max-w-lg space-y-4">
+              <div>
+                <label className="mb-1 block text-sm font-semibold text-foreground">
+                  Nombre completo
+                </label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(event) => setFormData({ ...formData, name: event.target.value })}
+                  required
+                  className="w-full rounded-lg border border-input bg-background px-4 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                 />
-              )}
+              </div>
 
-              {currentStep === 2 && (
-                <CaregiverStepTwo
-                  formData={{
-                    province: formData.province,
-                    canton: formData.canton,
-                    locationName: formData.locationName,
-                    coordinates: formData.coordinates,
-                  }}
-                  onChange={handleStepTwoChange}
-                  onBack={handleBack}
-                  onNext={handleNext}
+              <div>
+                <label className="mb-1 block text-sm font-semibold text-foreground">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  disabled
+                  className="w-full cursor-not-allowed rounded-lg border border-input bg-muted px-4 py-2 text-muted-foreground"
                 />
-              )}
+              </div>
 
-              {currentStep === 3 && (
-                <CaregiverStepThree
-                  formData={{
-                    spaceTitle: formData.spaceTitle,
-                    spaceDescription: formData.spaceDescription,
-                    pricePerNight: formData.pricePerNight,
-                    pricePerHour: formData.pricePerHour,
-                    minHours: formData.minHours,
-                    acceptedPetTypes: formData.acceptedPetTypes,
-                    acceptedPetSizes: formData.acceptedPetSizes,
-                    maxPets: formData.maxPets,
-                    amenities: formData.amenities,
-                    photos: formData.photos,
-                  }}
-                  onChange={handleChange}
-                  onBack={handleBack}
-                  onSubmit={() => void handleSubmit()}
-                  isSubmitting={loading}
+              <div>
+                <label className="mb-1 block text-sm font-semibold text-foreground">
+                  Teléfono
+                </label>
+                <input
+                  type="tel"
+                  value={formData.phone}
+                  onChange={(event) => setFormData({ ...formData, phone: event.target.value })}
+                  required
+                  className="w-full rounded-lg border border-input bg-background px-4 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                 />
-              )}
-            </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="mb-1 block text-sm font-semibold text-foreground">
+                    Provincia
+                  </label>
+                  <select
+                    value={formData.province}
+                    onChange={(event) =>
+                      setFormData({
+                        ...formData,
+                        province: event.target.value,
+                        canton: "",
+                      })
+                    }
+                    required
+                    className="w-full rounded-lg border border-input bg-background px-4 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  >
+                    <option value="">Selecciona</option>
+                    {PROVINCES.map((province) => (
+                      <option key={province} value={province}>
+                        {province}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-sm font-semibold text-foreground">
+                    Cantón
+                  </label>
+                  <select
+                    value={formData.canton}
+                    onChange={(event) => setFormData({ ...formData, canton: event.target.value })}
+                    disabled={!formData.province}
+                    required
+                    className="w-full rounded-lg border border-input bg-background px-4 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
+                  >
+                    <option value="">Selecciona</option>
+                    {availableCantons.map((canton) => (
+                      <option key={canton} value={canton}>
+                        {canton}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm font-semibold text-foreground">
+                  Cuéntanos sobre ti
+                </label>
+                <textarea
+                  value={formData.bio}
+                  onChange={(event) => setFormData({ ...formData, bio: event.target.value })}
+                  placeholder="Describe tu experiencia cuidando mascotas y qué ofreces como cuidador."
+                  required
+                  rows={5}
+                  className="w-full resize-none rounded-lg border border-input bg-background px-4 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+
+              <Button type="submit" className="w-full" disabled={submitting}>
+                {submitting ? "Guardando..." : "Activar experiencia de cuidador"}
+              </Button>
+            </form>
           </div>
-
-          {/* Help Text */}
-          <p className="text-center text-sm text-muted-foreground mt-8">
-            ¿Preguntas?{" "}
-            <a href="#" className="text-primary hover:underline">
-              Contacta nuestro equipo de soporte
-            </a>
-          </p>
         </div>
       </main>
       <Footer />

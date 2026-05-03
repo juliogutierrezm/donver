@@ -266,22 +266,23 @@ export default function SpacesPage() {
             </div>
           </div>
 
-          {filteredSpaces.length === 0 ? (
-            <div className="col-span-full text-center py-12">
-              <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-muted mb-4">
-                <MapPin className="w-8 h-8 text-muted-foreground" />
-              </div>
-              <h3 className="text-lg font-semibold text-foreground mb-2">
-                No hay espacios disponibles
-              </h3>
-              <p className="text-muted-foreground max-w-md mx-auto">
-                Intenta ajustar tus filtros o buscar en otra ubicación.
-              </p>
-            </div>
-          ) : (
-            <>
-              {(viewMode === "grid" || viewMode === "split") && (
-                <div className={viewMode === "split" ? "lg:w-1/2 lg:pr-4" : ""}>
+          <div className={viewMode === "split" ? "flex flex-col gap-6 lg:flex-row" : ""}>
+            {(viewMode === "grid" || viewMode === "split") && (
+              <div className={viewMode === "split" ? "lg:w-1/2 lg:pr-4" : ""}>
+                {filteredSpaces.length === 0 ? (
+                  <div className="text-center py-12">
+                    <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-muted mb-4">
+                      <MapPin className="w-8 h-8 text-muted-foreground" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-foreground mb-2">
+                      No hay espacios disponibles
+                    </h3>
+                    <p className="text-muted-foreground max-w-md mx-auto">
+                      Intenta ajustar tus filtros o buscar en otra ubicación.
+                    </p>
+                  </div>
+                ) : (
+                  <>
                   <div className="mb-4 text-sm text-muted-foreground">
                     Se encontraron{" "}
                     <span className="font-semibold text-foreground">{filteredSpaces.length}</span>{" "}
@@ -292,31 +293,32 @@ export default function SpacesPage() {
                       <SpaceCard key={space.id} space={space} />
                     ))}
                   </div>
-                </div>
-              )}
+                  </>
+                )}
+              </div>
+            )}
 
-              {(viewMode === "map" || viewMode === "split") && (
-                <div
-                  className={
-                    viewMode === "split"
-                      ? "lg:w-1/2 lg:pl-4 mt-6 lg:mt-0 h-[600px]"
-                      : "h-[600px]"
+            {(viewMode === "map" || viewMode === "split") && (
+              <div
+                className={
+                  viewMode === "split"
+                    ? "lg:w-1/2 lg:pl-4 mt-0 h-[600px]"
+                    : "h-[600px]"
+                }
+              >
+                <SpacesMap
+                  spaces={filteredSpaces}
+                  userLocation={
+                    searchLocation ||
+                    (coords ? { lat: coords.latitude, lon: coords.longitude } : null)
                   }
-                >
-                  <SpacesMap
-                    spaces={filteredSpaces}
-                    userLocation={
-                      searchLocation ||
-                      (coords ? { lat: coords.latitude, lon: coords.longitude } : null)
-                    }
-                    searchRadius={searchRadius}
-                    onRadiusChange={setSearchRadius}
-                    resultCount={filteredSpaces.length}
-                  />
-                </div>
-              )}
-            </>
-          )}
+                  searchRadius={searchRadius}
+                  onRadiusChange={setSearchRadius}
+                  resultCount={filteredSpaces.length}
+                />
+              </div>
+            )}
+          </div>
         </div>
       </main>
       <Footer />

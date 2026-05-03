@@ -1,8 +1,17 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { PawPrint } from "lucide-react";
+import { useAuthSessionUser } from "@/hooks/useAuthSessionUser";
 
 export function CTASection() {
+  const { authenticated, experienceMode } = useAuthSessionUser();
+  const primaryCta =
+    experienceMode === "caregiver_pending"
+      ? { to: "/become-caregiver", label: "Continuar como cuidador" }
+      : experienceMode === "caregiver"
+        ? { to: "/caregiver/dashboard", label: "Ir a mi dashboard" }
+        : { to: authenticated ? "/profile" : "/register", label: authenticated ? "Ir a mi perfil" : "Crear cuenta gratis" };
+
   return (
     <section className="py-20">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -23,12 +32,12 @@ export function CTASection() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/register">
+            <Link to={primaryCta.to}>
               <Button
                 size="lg"
                 className="bg-white text-primary hover:bg-white/90 rounded-full px-8 w-full sm:w-auto"
               >
-                Crear cuenta gratis
+                {primaryCta.label}
               </Button>
             </Link>
             <Link to="/spaces">

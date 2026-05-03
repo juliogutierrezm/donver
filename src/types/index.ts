@@ -1,4 +1,5 @@
-export type UserRole = "owner" | "caregiver" | "both";
+export type UserRole = "owner" | "caregiver";
+export type SignupIntent = "caregiver";
 export type Province =
   | "San José"
   | "Alajuela"
@@ -8,16 +9,27 @@ export type Province =
   | "Puntarenas"
   | "Limón";
 
+export interface CaregiverStatus {
+  profileComplete: boolean;
+  operationalReady: boolean;
+  missingProfileFields: string[];
+  hasPublishableSpace: boolean;
+}
+
 export interface User {
   id: string;
   email: string;
   name: string;
   phone?: string;
-  role: UserRole;
+  bio?: string;
+  roles: UserRole[];
+  activeRole?: UserRole;
   avatar?: string;
   createdAt: Date;
   province: Province;
   canton: string;
+  signupIntent?: SignupIntent | null;
+  caregiverStatus?: CaregiverStatus;
 }
 
 export type PetType = "dog" | "cat" | "bird" | "other";
