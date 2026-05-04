@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
 import { UserInfoCard } from "@/components/profile/UserInfoCard";
 import { BookingsTab } from "@/components/profile/BookingsTab";
 import { PetsTab } from "@/components/profile/PetsTab";
@@ -238,6 +239,13 @@ export default function ProfilePage() {
                               <p className="text-sm text-muted-foreground">
                                 {booking.status} • ₡{booking.totalPrice.toLocaleString("es-CR")}
                               </p>
+                              <Button
+                                variant="link"
+                                className="mt-2 h-auto px-0"
+                                onClick={() => navigate(`/bookings/${booking.id}`)}
+                              >
+                                Ver detalles
+                              </Button>
                             </div>
                           ))}
                         </div>

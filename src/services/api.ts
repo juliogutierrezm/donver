@@ -136,6 +136,49 @@ export interface PaymentIntent {
   checkoutUrl: string;
 }
 
+export interface BookingPartySummary {
+  id: string;
+  name: string;
+  avatarUrl?: string;
+}
+
+export interface BookingSpaceSummary {
+  id: string;
+  title: string;
+  province?: Province;
+  canton?: string;
+  address?: string;
+}
+
+export interface BookingPetSummary {
+  id: string;
+  name: string;
+  type: PetType;
+  breed?: string;
+  size?: PetSize;
+}
+
+export interface BookingDetail extends Booking {
+  caregiverId?: string;
+  updatedAt?: Date;
+  space?: BookingSpaceSummary;
+  pets?: BookingPetSummary[];
+  owner?: BookingPartySummary;
+  caregiver?: BookingPartySummary;
+}
+
+export class ApiError extends Error {
+  status: number;
+  body?: unknown;
+
+  constructor(message: string, status: number, body?: unknown) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+    this.body = body;
+  }
+}
+
 function delay(ms = PLACEHOLDER_DELAY_MS) {
   return new Promise<void>((resolve) => setTimeout(resolve, ms));
 }
@@ -183,6 +226,18 @@ function cloneBooking(booking: Booking): Booking {
     startDate: cloneDate(booking.startDate),
     endDate: cloneDate(booking.endDate),
     createdAt: cloneDate(booking.createdAt),
+  };
+}
+
+function cloneBookingDetail(booking: BookingDetail): BookingDetail {
+  return {
+    ...cloneBooking(booking),
+    caregiverId: booking.caregiverId,
+    updatedAt: booking.updatedAt ? cloneDate(booking.updatedAt) : undefined,
+    space: booking.space ? { ...booking.space } : undefined,
+    pets: booking.pets ? booking.pets.map((pet) => ({ ...pet })) : undefined,
+    owner: booking.owner ? { ...booking.owner } : undefined,
+    caregiver: booking.caregiver ? { ...booking.caregiver } : undefined,
   };
 }
 
@@ -505,7 +560,7 @@ async function parseResponse(res: Response) {
       typeof json === "object" && json && "error" in json && typeof json.error === "string"
         ? json.error
         : text || `Error ${res.status}`;
-    throw new Error(message);
+    throw new ApiError(message, res.status, json);
   }
 
   return json;
@@ -816,6 +871,63 @@ function mapBackendBooking(booking: Record<string, unknown>): Booking {
   };
 }
 
+function mapBookingPartySummary(value: unknown): BookingPartySummary | undefined {
+  if (typeof value !== "object" || !value) return undefined;
+  const party = value as Record<string, unknown>;
+
+  return {
+    id: String(party.id ?? ""),
+    name: String(party.name ?? ""),
+    avatarUrl:
+      typeof party.avatar_url === "string" && party.avatar_url
+        ? party.avatar_url
+        : undefined,
+  };
+}
+
+function mapBookingSpaceSummary(value: unknown): BookingSpaceSummary | undefined {
+  if (typeof value !== "object" || !value) return undefined;
+  const space = value as Record<string, unknown>;
+
+  return {
+    id: String(space.id ?? ""),
+    title: String(space.name ?? space.title ?? ""),
+    province: typeof space.province === "string" ? normalizeProvince(space.province) : undefined,
+    canton: typeof space.canton === "string" ? space.canton : undefined,
+    address: typeof space.address === "string" ? space.address : undefined,
+  };
+}
+
+function mapBookingPetSummary(value: unknown): BookingPetSummary | undefined {
+  if (typeof value !== "object" || !value) return undefined;
+  const pet = value as Record<string, unknown>;
+
+  return {
+    id: String(pet.id ?? ""),
+    name: String(pet.name ?? ""),
+    type: normalizePetType(String(pet.species ?? pet.type ?? "other")),
+    breed: typeof pet.breed === "string" && pet.breed ? pet.breed : undefined,
+    size: typeof pet.size === "string" && pet.size ? normalizePetSize(pet.size) : undefined,
+  };
+}
+
+function mapBackendBookingDetail(booking: Record<string, unknown>): BookingDetail {
+  const baseBooking = mapBackendBooking(booking);
+  return {
+    ...baseBooking,
+    caregiverId: typeof booking.caregiver_id === "string" ? booking.caregiver_id : undefined,
+    updatedAt: typeof booking.updated_at === "string" && booking.updated_at ? toDate(booking.updated_at) : undefined,
+    space: mapBookingSpaceSummary(booking.space),
+    pets: Array.isArray(booking.pets)
+      ? booking.pets
+          .map(mapBookingPetSummary)
+          .filter((pet): pet is BookingPetSummary => Boolean(pet))
+      : undefined,
+    owner: mapBookingPartySummary(booking.owner),
+    caregiver: mapBookingPartySummary(booking.caregiver),
+  };
+}
+
 function mapBackendBlockedDate(value: Record<string, unknown>, spaceId: string): BlockedDate {
   const date = String(value.date ?? value.id ?? new Date().toISOString().slice(0, 10));
   return {
@@ -894,6 +1006,50 @@ function mapBackendConversation(conversation: Record<string, unknown>): Conversa
         }
       : undefined,
     spaceTitle: spacesStore.find((space) => space.id === String(conversation.space_id ?? ""))?.title,
+  };
+}
+
+function buildMockBookingDetail(booking: Booking): BookingDetail {
+  const space = spacesStore.find((item) => item.id === booking.spaceId);
+  const pets = petsStore
+    .filter((pet) => booking.petIds.includes(pet.id))
+    .map((pet) => ({
+      id: pet.id,
+      name: pet.name,
+      type: pet.type,
+      breed: pet.breed,
+      size: pet.size,
+    }));
+
+  const owner: BookingPartySummary = {
+    id: booking.ownerId,
+    name: booking.ownerId === currentUserStore.id ? currentUserStore.name : `Dueño ${booking.ownerId.slice(0, 6)}`,
+    avatarUrl: booking.ownerId === currentUserStore.id ? currentUserStore.avatar : undefined,
+  };
+
+  const caregiver: BookingPartySummary | undefined = space
+    ? {
+        id: space.caregiverId,
+        name: space.caregiverId === currentUserStore.id ? currentUserStore.name : `Cuidador ${space.caregiverId.slice(0, 6)}`,
+        avatarUrl: space.caregiverId === currentUserStore.id ? currentUserStore.avatar : undefined,
+      }
+    : undefined;
+
+  return {
+    ...cloneBooking(booking),
+    caregiverId: space?.caregiverId,
+    space: space
+      ? {
+          id: space.id,
+          title: space.title,
+          province: space.province,
+          canton: space.canton,
+          address: space.address,
+        }
+      : undefined,
+    pets,
+    owner,
+    caregiver,
   };
 }
 
@@ -1433,10 +1589,17 @@ export const bookingsApi = {
   },
 
   async getById(bookingId: string) {
-    await delay();
-    return cloneBooking(
-      requireEntity(bookingsStore.find((booking) => booking.id === bookingId), "Reservacion no encontrada.")
-    );
+    if (!IS_API_CONFIGURED) {
+      await delay();
+      const booking = requireEntity(
+        bookingsStore.find((item) => item.id === bookingId),
+        "Reservacion no encontrada."
+      );
+      return cloneBookingDetail(buildMockBookingDetail(booking));
+    }
+
+    const data = await apiRequest<Record<string, unknown>>(`/bookings/${bookingId}`);
+    return mapBackendBookingDetail(data);
   },
 
   async create(input: CreateBookingInput) {

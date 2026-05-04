@@ -111,6 +111,7 @@ export class DonverApiStack extends cdk.Stack {
     const deletePetFn         = createFn("DeletePetFn",          "delete-pet");
     const listOwnerBookingsFn = createFn("ListOwnerBookingsFn",  "list-owner-bookings");
     const listCgBookingsFn    = createFn("ListCgBookingsFn",     "list-caregiver-bookings");
+    const getBookingDetailFn  = createFn("GetBookingDetailFn",   "get-booking-detail");
     const createBookingFn     = createFn("CreateBookingFn",      "create-booking");
     const cancelBookingFn     = createFn("CancelBookingFn",      "cancel-booking");
     const createBlockedDateFn = createFn("CreateBlockedDateFn",  "create-blocked-date");
@@ -137,6 +138,14 @@ export class DonverApiStack extends cdk.Stack {
       cancelBookingFn, createBlockedDateFn, deleteBlockedDateFn, createReviewFn,
     ];
     bookingsFunctions.forEach((fn) => grantDomainTableAccess(fn, bookingsTableName));
+
+    grantDomainTableAccess(getBookingDetailFn, bookingsTableName, ["dynamodb:GetItem"]);
+    grantDomainTableAccess(getBookingDetailFn, coreTableName, ["dynamodb:GetItem"]);
+
+    // Availability blocked-dates handlers call userHasRole() and read the space record from Core.
+    // Keep least-privilege: read-only access (GetItem) to the Core table.
+    grantDomainTableAccess(createBlockedDateFn, coreTableName, ["dynamodb:GetItem"]);
+    grantDomainTableAccess(deleteBlockedDateFn, coreTableName, ["dynamodb:GetItem"]);
 
     const messagingFunctions = [
       listConvsFn, listMessagesFn, wsConnectFn, wsDisconnectFn, wsSendMessageFn,
@@ -197,6 +206,7 @@ export class DonverApiStack extends cdk.Stack {
     httpApi.addRoutes({ path: "/owner/pets/{id}",  methods: [apigwv2.HttpMethod.PUT],    integration: h(updatePetFn, "UpdatePet"),     authorizer: auth });
     httpApi.addRoutes({ path: "/owner/pets/{id}",  methods: [apigwv2.HttpMethod.DELETE], integration: h(deletePetFn, "DeletePet"),     authorizer: auth });
     httpApi.addRoutes({ path: "/owner/bookings",   methods: [apigwv2.HttpMethod.GET],    integration: h(listOwnerBookingsFn, "ListOwnerBookings"), authorizer: auth });
+    httpApi.addRoutes({ path: "/bookings/{id}",    methods: [apigwv2.HttpMethod.GET],    integration: h(getBookingDetailFn, "GetBookingDetail"), authorizer: auth });
     httpApi.addRoutes({ path: "/bookings",           methods: [apigwv2.HttpMethod.POST], integration: h(createBookingFn, "CreateBooking"), authorizer: auth });
     httpApi.addRoutes({ path: "/bookings/{id}/cancel", methods: [apigwv2.HttpMethod.POST], integration: h(cancelBookingFn, "CancelBooking"), authorizer: auth });
     httpApi.addRoutes({ path: "/uploads/presign",                      methods: [apigwv2.HttpMethod.POST], integration: h(createUploadUrlFn, "CreateUploadUrl"), authorizer: auth });

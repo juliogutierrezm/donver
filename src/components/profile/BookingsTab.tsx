@@ -1,9 +1,11 @@
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Calendar, DollarSign, MapPin } from "lucide-react";
+import { Link } from "react-router-dom";
 import type { Booking } from "@/types";
 import { getSpaceById } from "@/data/mockProfileData";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 interface BookingsTabProps {
   bookings: Booking[];
@@ -91,9 +93,9 @@ export function BookingsTab({ bookings }: BookingsTabProps) {
             </div>
 
             <div className="pt-4 border-t border-border">
-              <button className="text-sm font-semibold text-primary hover:underline">
-                Ver detalles
-              </button>
+              <Button asChild variant="link" className="h-auto px-0 text-sm font-semibold">
+                <Link to={`/bookings/${booking.id}`}>Ver detalles</Link>
+              </Button>
             </div>
           </div>
         );

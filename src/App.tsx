@@ -8,6 +8,7 @@ import LoginPage from "@/pages/LoginPage";
 import RegisterPage from "@/pages/RegisterPage";
 import VerifyEmailPage from "@/pages/VerifyEmailPage";
 import ProfilePage from "@/pages/ProfilePage";
+import BookingDetailPage from "@/pages/BookingDetailPage";
 import BecomeCaregiverPage from "@/pages/BecomeCaregiverPage";
 import CaregiverDashboardPage from "@/pages/CaregiverDashboardPage";
 import MessagesPage from "@/pages/MessagesPage";
@@ -32,6 +33,7 @@ function App() {
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/verify-email" element={<VerifyEmailPage />} />
             <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/bookings/:id" element={<BookingDetailPage />} />
             <Route path="/become-caregiver" element={<BecomeCaregiverPage />} />
             <Route path="/caregiver/dashboard" element={<CaregiverDashboardPage />} />
             <Route path="/messages" element={<MessagesPage />} />

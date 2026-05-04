@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   format,
   startOfMonth,
@@ -7,7 +7,6 @@ import {
   isSameMonth,
   addMonths,
   subMonths,
-  isWithinInterval,
 } from "date-fns";
 import { es } from "date-fns/locale";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
@@ -42,6 +41,31 @@ export function AvailabilityCalendar({
   const monthEnd = endOfMonth(currentMonth);
   const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
 
+  // Backend stores blocked dates as date-only strings (YYYY-MM-DD). When we deserialize them into
+  // Date objects, timezone offsets can shift the day (e.g. "2026-05-10" becoming May 9 local time).
+  // To avoid off-by-one rendering bugs, compare using the UTC date-only slice.
+  const blockedDateKeys = useMemo(() => {
+    const keys = new Set<string>();
+    for (const blocked of blockedDates) {
+      const start = blocked.startDate instanceof Date ? blocked.startDate : new Date(blocked.startDate);
+      const end = blocked.endDate instanceof Date ? blocked.endDate : new Date(blocked.endDate);
+
+      const startKey = start.toISOString().slice(0, 10);
+      const endKey = end.toISOString().slice(0, 10);
+
+      // Current model is day-based; keep it simple and robust by filling inclusive UTC days.
+      const cur = new Date(`${startKey}T00:00:00.000Z`);
+      const endUtc = new Date(`${endKey}T00:00:00.000Z`);
+      while (cur <= endUtc) {
+        keys.add(cur.toISOString().slice(0, 10));
+        cur.setUTCDate(cur.getUTCDate() + 1);
+      }
+    }
+    return keys;
+  }, [blockedDates]);
+
+  const dateKey = (date: Date) => date.toISOString().slice(0, 10);
+
   const handleDayClick = (date: Date) => {
     if (selectedDates.some((d) => format(d, "yyyy-MM-dd") === format(date, "yyyy-MM-dd"))) {
       setSelectedDates(selectedDates.filter((d) => format(d, "yyyy-MM-dd") !== format(date, "yyyy-MM-dd")));
@@ -66,11 +90,7 @@ export function AvailabilityCalendar({
     }
   };
 
-  const isDateBlocked = (date: Date) => {
-    return blockedDates.some((blocked) =>
-      isWithinInterval(date, { start: blocked.startDate, end: blocked.endDate })
-    );
-  };
+  const isDateBlocked = (date: Date) => blockedDateKeys.has(dateKey(date));
 
   const weekDays = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
 
@@ -126,12 +146,13 @@ export function AvailabilityCalendar({
                 onClick={() => handleDayClick(date)}
                 className={`
                   p-2 rounded text-sm font-semibold transition-colors
-                  ${isBlocked ? "bg-destructive/20 text-destructive cursor-not-allowed" : ""}
-                  ${isSelected ? "bg-primary text-primary-foreground" : ""}
+                  ${isBlocked ? "bg-destructive/20 text-destructive cursor-not-allowed ring-1 ring-destructive/30" : ""}
+                  ${isSelected ? "bg-primary text-primary-foreground ring-2 ring-primary/40" : ""}
                   ${!isBlocked && !isSelected ? "hover:bg-secondary" : ""}
                   ${!isSameMonth(date, currentMonth) ? "text-muted-foreground opacity-50" : ""}
                 `}
                 disabled={isBlocked}
+                title={isBlocked ? "Fecha bloqueada" : undefined}
               >
                 {format(date, "d")}
               </button>

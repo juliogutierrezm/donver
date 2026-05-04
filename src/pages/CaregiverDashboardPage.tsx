@@ -399,6 +399,13 @@ export default function CaregiverDashboardPage() {
                         {booking.status} • ₡{booking.totalPrice.toLocaleString("es-CR")}
                       </div>
                     </div>
+                    <Button
+                      variant="link"
+                      className="mt-3 h-auto px-0"
+                      onClick={() => navigate(`/bookings/${booking.id}`)}
+                    >
+                      Ver detalles
+                    </Button>
                   </div>
                 ))}
               </div>

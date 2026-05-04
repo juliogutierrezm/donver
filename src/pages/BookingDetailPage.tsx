@@ -1,0 +1,405 @@
+import { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import { ArrowLeft, Calendar, Clock3, DollarSign, Home, PawPrint, ShieldAlert, UserRound } from "lucide-react";
+import { Footer } from "@/components/layout/Footer";
+import { Header } from "@/components/layout/Header";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import { ApiError, authApi, bookingsApi, type BookingDetail, type BookingPartySummary } from "@/services/api";
+import type { User } from "@/types";
+
+type ViewState = "loading" | "ready" | "forbidden" | "not-found" | "error";
+
+const statusLabels: Record<BookingDetail["status"], string> = {
+  pending: "Pendiente de aprobación",
+  confirmed: "Confirmada",
+  cancelled: "Cancelada",
+  completed: "Completada",
+};
+
+const statusClasses: Record<BookingDetail["status"], string> = {
+  pending: "bg-yellow-100 text-yellow-800 border-yellow-200",
+  confirmed: "bg-green-100 text-green-800 border-green-200",
+  cancelled: "bg-red-100 text-red-800 border-red-200",
+  completed: "bg-blue-100 text-blue-800 border-blue-200",
+};
+
+function formatCurrency(amount: number) {
+  return `₡${amount.toLocaleString("es-CR")}`;
+}
+
+function formatBookingType(detail: BookingDetail) {
+  return detail.bookingType === "overnight" ? "Por noche" : "Por hora";
+}
+
+function formatDateTimeLabel(value: Date) {
+  return format(value, "d 'de' MMMM yyyy", { locale: es });
+}
+
+function DetailState({
+  title,
+  description,
+  variant = "default",
+}: {
+  title: string;
+  description: string;
+  variant?: "default" | "destructive";
+}) {
+  return (
+    <div className="rounded-xl border border-border bg-card p-8 text-center">
+      <ShieldAlert className={`mx-auto mb-4 h-10 w-10 ${variant === "destructive" ? "text-destructive" : "text-muted-foreground"}`} />
+      <h2 className="text-xl font-semibold text-foreground">{title}</h2>
+      <p className="mt-2 text-sm text-muted-foreground">{description}</p>
+      <div className="mt-6 flex justify-center">
+        <Button asChild variant="outline">
+          <Link to="/profile">Volver al perfil</Link>
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function PartyCard({ title, party, fallbackId }: { title: string; party?: BookingPartySummary; fallbackId?: string }) {
+  if (!party && !fallbackId) return null;
+
+  return (
+    <div className="rounded-xl border border-border bg-card p-5">
+      <p className="text-sm text-muted-foreground">{title}</p>
+      <div className="mt-3 flex items-center gap-3">
+        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-secondary text-secondary-foreground">
+          <UserRound className="h-5 w-5" />
+        </div>
+        <div>
+          <p className="font-semibold text-foreground">{party?.name ?? `Usuario ${fallbackId?.slice(0, 6)}`}</p>
+          <p className="text-sm text-muted-foreground">ID: {party?.id ?? fallbackId}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function BookingDetailPage() {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [viewState, setViewState] = useState<ViewState>("loading");
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [detail, setDetail] = useState<BookingDetail | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string>("");
+  const [cancelling, setCancelling] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      if (!id) {
+        setViewState("not-found");
+        return;
+      }
+
+      try {
+        const user = await authApi.getCurrentUser();
+        if (cancelled) return;
+        setCurrentUser(user);
+
+        const bookingDetail = await bookingsApi.getById(id);
+        if (cancelled) return;
+
+        setDetail(bookingDetail);
+        setViewState("ready");
+      } catch (error) {
+        if (cancelled) return;
+        if (error instanceof Error && error.message.toLowerCase().includes("sesion")) {
+          navigate(`/login?next=${encodeURIComponent(`/bookings/${id}`)}`, { replace: true });
+          return;
+        }
+
+        if (error instanceof ApiError) {
+          if (error.status === 403) {
+            setViewState("forbidden");
+            return;
+          }
+          if (error.status === 404) {
+            setViewState("not-found");
+            return;
+          }
+        }
+
+        setErrorMessage(error instanceof Error ? error.message : "No se pudo cargar la reserva.");
+        setViewState("error");
+      }
+    }
+
+    void load();
+    return () => {
+      cancelled = true;
+    };
+  }, [id, navigate]);
+
+  const counterparty = useMemo(() => {
+    if (!detail || !currentUser) return undefined;
+    const isOwnerView = currentUser.id === detail.ownerId;
+    return {
+      title: isOwnerView ? "Cuidador" : "Dueño de la reserva",
+      party: isOwnerView ? detail.caregiver : detail.owner,
+      fallbackId: isOwnerView ? detail.caregiverId : detail.ownerId,
+    };
+  }, [currentUser, detail]);
+
+  const canCancel = Boolean(detail && (detail.status === "pending" || detail.status === "confirmed"));
+
+  const handleCancel = async () => {
+    if (!detail || !canCancel) return;
+
+    try {
+      setCancelling(true);
+      const updated = await bookingsApi.updateStatus(detail.id, "cancelled");
+      setDetail((currentDetail) =>
+        currentDetail
+          ? {
+              ...currentDetail,
+              ...updated,
+            }
+          : currentDetail
+      );
+      toast({
+        title: "Reserva cancelada",
+        description: "El estado de la reserva se actualizó correctamente.",
+      });
+    } catch (error) {
+      toast({
+        title: "No se pudo cancelar la reserva",
+        description: error instanceof Error ? error.message : "Intenta nuevamente en unos minutos.",
+        variant: "destructive",
+      });
+    } finally {
+      setCancelling(false);
+    }
+  };
+
+  return (
+    <>
+      <Header />
+      <main className="min-h-screen bg-background">
+        <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
+          <Button variant="ghost" className="mb-6 gap-2" onClick={() => navigate(-1)}>
+            <ArrowLeft className="h-4 w-4" />
+            Volver
+          </Button>
+
+          {viewState === "loading" && (
+            <div className="rounded-xl border border-border bg-card p-10 text-center text-muted-foreground">
+              Cargando detalle de la reserva...
+            </div>
+          )}
+
+          {viewState === "forbidden" && (
+            <DetailState
+              title="Sin permisos para ver esta reserva"
+              description="Esta reserva no pertenece a tu cuenta ni a uno de tus espacios."
+              variant="destructive"
+            />
+          )}
+
+          {viewState === "not-found" && (
+            <DetailState
+              title="Reserva no encontrada"
+              description="La reserva que intentaste abrir no existe o ya no está disponible."
+            />
+          )}
+
+          {viewState === "error" && (
+            <DetailState
+              title="No se pudo cargar la reserva"
+              description={errorMessage || "Intenta nuevamente en unos minutos."}
+              variant="destructive"
+            />
+          )}
+
+          {viewState === "ready" && detail && (
+            <div className="space-y-6">
+              <section className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+                <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Reserva {detail.id}</p>
+                    <h1 className="mt-1 text-3xl font-heading font-bold text-foreground">
+                      Detalle de reservación
+                    </h1>
+                    <p className="mt-2 text-sm text-muted-foreground">
+                      Creada el {format(detail.createdAt, "d MMM yyyy, h:mm a", { locale: es })}
+                    </p>
+                  </div>
+                  <Badge className={statusClasses[detail.status]}>{statusLabels[detail.status]}</Badge>
+                </div>
+              </section>
+
+              <section className="grid gap-6 lg:grid-cols-[1.4fr,0.9fr]">
+                <div className="space-y-6">
+                  <div className="rounded-xl border border-border bg-card p-6">
+                    <h2 className="text-lg font-semibold text-foreground">Resumen de la reserva</h2>
+                    <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                      <div className="rounded-lg bg-secondary/40 p-4">
+                        <p className="text-xs uppercase tracking-wide text-muted-foreground">Estado</p>
+                        <p className="mt-2 font-semibold text-foreground">{statusLabels[detail.status]}</p>
+                      </div>
+                      <div className="rounded-lg bg-secondary/40 p-4">
+                        <p className="text-xs uppercase tracking-wide text-muted-foreground">Tipo</p>
+                        <p className="mt-2 font-semibold text-foreground">{formatBookingType(detail)}</p>
+                      </div>
+                      <div className="rounded-lg bg-secondary/40 p-4">
+                        <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-muted-foreground">
+                          <Calendar className="h-3.5 w-3.5" />
+                          Fecha inicio
+                        </div>
+                        <p className="mt-2 font-semibold text-foreground">{formatDateTimeLabel(detail.startDate)}</p>
+                      </div>
+                      <div className="rounded-lg bg-secondary/40 p-4">
+                        <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-muted-foreground">
+                          <Calendar className="h-3.5 w-3.5" />
+                          Fecha fin
+                        </div>
+                        <p className="mt-2 font-semibold text-foreground">{formatDateTimeLabel(detail.endDate)}</p>
+                      </div>
+                      {detail.bookingType === "hourly" && (
+                        <>
+                          <div className="rounded-lg bg-secondary/40 p-4">
+                            <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-muted-foreground">
+                              <Clock3 className="h-3.5 w-3.5" />
+                              Hora inicio
+                            </div>
+                            <p className="mt-2 font-semibold text-foreground">{detail.startTime || "No definida"}</p>
+                          </div>
+                          <div className="rounded-lg bg-secondary/40 p-4">
+                            <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-muted-foreground">
+                              <Clock3 className="h-3.5 w-3.5" />
+                              Hora fin
+                            </div>
+                            <p className="mt-2 font-semibold text-foreground">{detail.endTime || "No definida"}</p>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="rounded-xl border border-border bg-card p-6">
+                    <h2 className="text-lg font-semibold text-foreground">Espacio reservado</h2>
+                    {detail.space ? (
+                      <div className="mt-4 rounded-lg border border-border p-4">
+                        <div className="flex items-start gap-3">
+                          <Home className="mt-0.5 h-5 w-5 text-primary" />
+                          <div>
+                            <p className="font-semibold text-foreground">{detail.space.title}</p>
+                            <p className="mt-1 text-sm text-muted-foreground">
+                              {[detail.space.canton, detail.space.province].filter(Boolean).join(", ") || "Ubicación no disponible"}
+                            </p>
+                            {detail.space.address && (
+                              <p className="mt-1 text-sm text-muted-foreground">{detail.space.address}</p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="mt-4 text-sm text-muted-foreground">No hay información adicional del espacio disponible.</p>
+                    )}
+                  </div>
+
+                  <div className="rounded-xl border border-border bg-card p-6">
+                    <h2 className="text-lg font-semibold text-foreground">Mascotas asociadas</h2>
+                    {detail.pets && detail.pets.length > 0 ? (
+                      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                        {detail.pets.map((pet) => (
+                          <div key={pet.id} className="rounded-lg border border-border p-4">
+                            <div className="flex items-start gap-3">
+                              <PawPrint className="mt-0.5 h-5 w-5 text-primary" />
+                              <div>
+                                <p className="font-semibold text-foreground">{pet.name}</p>
+                                <p className="text-sm text-muted-foreground">
+                                  {pet.type}
+                                  {pet.breed ? ` • ${pet.breed}` : ""}
+                                  {pet.size ? ` • ${pet.size}` : ""}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="mt-4 text-sm text-muted-foreground">No hay mascotas asociadas disponibles en este detalle.</p>
+                    )}
+                  </div>
+
+                  <div className="rounded-xl border border-border bg-card p-6">
+                    <h2 className="text-lg font-semibold text-foreground">Notas</h2>
+                    <p className="mt-4 text-sm leading-6 text-muted-foreground">
+                      {detail.notes?.trim() ? detail.notes : "Esta reserva no incluye notas adicionales."}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  <div className="rounded-xl border border-border bg-card p-6">
+                    <h2 className="text-lg font-semibold text-foreground">Cobro</h2>
+                    <div className="mt-5 space-y-4">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">Subtotal</span>
+                        <span className="font-semibold text-foreground">{formatCurrency(detail.subtotal)}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">Service fee</span>
+                        <span className="font-semibold text-foreground">{formatCurrency(detail.serviceFee)}</span>
+                      </div>
+                      <div className="border-t border-border pt-4">
+                        <div className="flex items-center justify-between">
+                          <span className="flex items-center gap-2 text-foreground">
+                            <DollarSign className="h-4 w-4 text-primary" />
+                            Total
+                          </span>
+                          <span className="text-xl font-bold text-primary">{formatCurrency(detail.totalPrice)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {counterparty && (
+                    <PartyCard
+                      title={counterparty.title}
+                      party={counterparty.party}
+                      fallbackId={counterparty.fallbackId}
+                    />
+                  )}
+
+                  <div className="rounded-xl border border-border bg-card p-6">
+                    <h2 className="text-lg font-semibold text-foreground">Acciones</h2>
+                    {canCancel ? (
+                      <>
+                        <p className="mt-3 text-sm text-muted-foreground">
+                          Puedes cancelar esta reserva mientras siga pendiente o confirmada.
+                        </p>
+                        <Button
+                          variant="destructive"
+                          className="mt-4 w-full"
+                          onClick={() => void handleCancel()}
+                          disabled={cancelling}
+                        >
+                          {cancelling ? "Cancelando..." : "Cancelar reserva"}
+                        </Button>
+                      </>
+                    ) : (
+                      <p className="mt-3 text-sm text-muted-foreground">
+                        No hay acciones disponibles para esta reserva en esta fase.
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </section>
+            </div>
+          )}
+        </div>
+      </main>
+      <Footer />
+    </>
+  );
+}
