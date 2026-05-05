@@ -7,6 +7,14 @@ import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { ApiError, authApi, bookingsApi, type BookingDetail, type BookingPartySummary } from "@/services/api";
 import type { User } from "@/types";
@@ -62,8 +70,10 @@ function DetailState({
   );
 }
 
-function PartyCard({ title, party, fallbackId }: { title: string; party?: BookingPartySummary; fallbackId?: string }) {
-  if (!party && !fallbackId) return null;
+type PendingAction = "confirm" | "cancel" | null;
+
+function PartyCard({ title, party }: { title: string; party?: BookingPartySummary }) {
+  if (!party) return null;
 
   return (
     <div className="rounded-xl border border-border bg-card p-5">
@@ -73,8 +83,7 @@ function PartyCard({ title, party, fallbackId }: { title: string; party?: Bookin
           <UserRound className="h-5 w-5" />
         </div>
         <div>
-          <p className="font-semibold text-foreground">{party?.name ?? `Usuario ${fallbackId?.slice(0, 6)}`}</p>
-          <p className="text-sm text-muted-foreground">ID: {party?.id ?? fallbackId}</p>
+          <p className="font-semibold text-foreground">{party.name || "Usuario Donver"}</p>
         </div>
       </div>
     </div>
@@ -89,7 +98,14 @@ export default function BookingDetailPage() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [detail, setDetail] = useState<BookingDetail | null>(null);
   const [errorMessage, setErrorMessage] = useState<string>("");
-  const [cancelling, setCancelling] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [pendingAction, setPendingAction] = useState<PendingAction>(null);
+
+  const reloadDetail = async (bookingId: string) => {
+    const bookingDetail = await bookingsApi.getById(bookingId);
+    setDetail(bookingDetail);
+    setViewState("ready");
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -145,40 +161,61 @@ export default function BookingDetailPage() {
     return {
       title: isOwnerView ? "Cuidador" : "Dueño de la reserva",
       party: isOwnerView ? detail.caregiver : detail.owner,
-      fallbackId: isOwnerView ? detail.caregiverId : detail.ownerId,
     };
   }, [currentUser, detail]);
 
-  const canCancel = Boolean(detail && (detail.status === "pending" || detail.status === "confirmed"));
+  const isCaregiver = Boolean(detail && currentUser && detail.caregiverId === currentUser.id);
+  const isOwner = Boolean(detail && currentUser && detail.ownerId === currentUser.id);
+  const canConfirm = Boolean(detail && isCaregiver && detail.status === "pending");
+  const canReject = Boolean(detail && isCaregiver && detail.status === "pending");
+  const canCancel = Boolean(
+    detail &&
+      detail.status !== "cancelled" &&
+      ((isOwner && (detail.status === "pending" || detail.status === "confirmed")) ||
+        (isCaregiver && detail.status === "confirmed"))
+  );
 
-  const handleCancel = async () => {
-    if (!detail || !canCancel) return;
+  const handleAction = async () => {
+    if (!detail || !pendingAction) return;
 
     try {
-      setCancelling(true);
-      const updated = await bookingsApi.updateStatus(detail.id, "cancelled");
-      setDetail((currentDetail) =>
-        currentDetail
-          ? {
-              ...currentDetail,
-              ...updated,
-            }
-          : currentDetail
-      );
+      setActionLoading(true);
+      await bookingsApi.updateStatus(detail.id, pendingAction === "confirm" ? "confirmed" : "cancelled");
+      await reloadDetail(detail.id);
       toast({
-        title: "Reserva cancelada",
-        description: "El estado de la reserva se actualizó correctamente.",
+        title: pendingAction === "confirm" ? "Reserva confirmada" : "Reserva actualizada",
+        description:
+          pendingAction === "confirm"
+            ? "La reserva fue aceptada correctamente."
+            : "El estado de la reserva se actualizó correctamente.",
       });
     } catch (error) {
       toast({
-        title: "No se pudo cancelar la reserva",
+        title: "No se pudo actualizar la reserva",
         description: error instanceof Error ? error.message : "Intenta nuevamente en unos minutos.",
         variant: "destructive",
       });
     } finally {
-      setCancelling(false);
+      setActionLoading(false);
+      setPendingAction(null);
     }
   };
+
+  const actionCopy =
+    pendingAction === "confirm"
+      ? {
+          title: "Aceptar reserva",
+          description: "Esta acción cambiará la reserva de pendiente a confirmada.",
+          button: "Aceptar reserva",
+        }
+      : {
+          title: "Cancelar o rechazar reserva",
+          description:
+            isCaregiver && detail?.status === "pending"
+              ? "Esta acción rechazará la reserva pendiente y la dejará cancelada."
+              : "Esta acción cancelará la reserva actual.",
+          button: "Confirmar acción",
+        };
 
   return (
     <>
@@ -224,7 +261,7 @@ export default function BookingDetailPage() {
               <section className="rounded-2xl border border-border bg-card p-6 shadow-sm">
                 <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground">Reserva {detail.id}</p>
+                    <p className="text-sm text-muted-foreground">Resumen de tu reservación</p>
                     <h1 className="mt-1 text-3xl font-heading font-bold text-foreground">
                       Detalle de reservación
                     </h1>
@@ -344,6 +381,28 @@ export default function BookingDetailPage() {
                     <h2 className="text-lg font-semibold text-foreground">Cobro</h2>
                     <div className="mt-5 space-y-4">
                       <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">Precio base</span>
+                        <span className="font-semibold text-foreground">
+                          {formatCurrency(detail.pricing?.baseSubtotal ?? detail.subtotal)}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">
+                          Mascotas adicionales ({Math.max(detail.petIds.length - 1, 0)})
+                        </span>
+                        <span className="font-semibold text-foreground">
+                          {Math.max(detail.petIds.length - 1, 0)}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">
+                          Recargo mascotas adicionales ({Math.round((detail.pricing?.additionalPetRate ?? 0.4) * 100)}%)
+                        </span>
+                        <span className="font-semibold text-foreground">
+                          {formatCurrency(detail.pricing?.additionalPetFee ?? 0)}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
                         <span className="text-muted-foreground">Subtotal</span>
                         <span className="font-semibold text-foreground">{formatCurrency(detail.subtotal)}</span>
                       </div>
@@ -367,26 +426,42 @@ export default function BookingDetailPage() {
                     <PartyCard
                       title={counterparty.title}
                       party={counterparty.party}
-                      fallbackId={counterparty.fallbackId}
                     />
                   )}
 
                   <div className="rounded-xl border border-border bg-card p-6">
                     <h2 className="text-lg font-semibold text-foreground">Acciones</h2>
-                    {canCancel ? (
-                      <>
-                        <p className="mt-3 text-sm text-muted-foreground">
-                          Puedes cancelar esta reserva mientras siga pendiente o confirmada.
+                    {canConfirm || canReject || canCancel ? (
+                      <div className="mt-3 space-y-3">
+                        <p className="text-sm text-muted-foreground">
+                          {canConfirm
+                            ? "Como cuidador puedes aceptar o rechazar esta reserva pendiente."
+                            : "Puedes cancelar esta reserva si todavía aplica."}
                         </p>
-                        <Button
-                          variant="destructive"
-                          className="mt-4 w-full"
-                          onClick={() => void handleCancel()}
-                          disabled={cancelling}
-                        >
-                          {cancelling ? "Cancelando..." : "Cancelar reserva"}
-                        </Button>
-                      </>
+                        {canConfirm && (
+                          <Button className="w-full" onClick={() => setPendingAction("confirm")}>
+                            Aceptar reserva
+                          </Button>
+                        )}
+                        {canReject && (
+                          <Button
+                            variant="destructive"
+                            className="w-full"
+                            onClick={() => setPendingAction("cancel")}
+                          >
+                            Rechazar reserva
+                          </Button>
+                        )}
+                        {!canReject && canCancel && (
+                          <Button
+                            variant="destructive"
+                            className="w-full"
+                            onClick={() => setPendingAction("cancel")}
+                          >
+                            Cancelar reserva
+                          </Button>
+                        )}
+                      </div>
                     ) : (
                       <p className="mt-3 text-sm text-muted-foreground">
                         No hay acciones disponibles para esta reserva en esta fase.
@@ -399,6 +474,26 @@ export default function BookingDetailPage() {
           )}
         </div>
       </main>
+      <Dialog open={pendingAction !== null} onOpenChange={(open) => !open && setPendingAction(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{actionCopy.title}</DialogTitle>
+            <DialogDescription>{actionCopy.description}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPendingAction(null)} disabled={actionLoading}>
+              Volver
+            </Button>
+            <Button
+              variant={pendingAction === "confirm" ? "default" : "destructive"}
+              onClick={() => void handleAction()}
+              disabled={actionLoading}
+            >
+              {actionLoading ? "Procesando..." : actionCopy.button}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <Footer />
     </>
   );

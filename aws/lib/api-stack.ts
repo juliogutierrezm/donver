@@ -113,6 +113,7 @@ export class DonverApiStack extends cdk.Stack {
     const listCgBookingsFn    = createFn("ListCgBookingsFn",     "list-caregiver-bookings");
     const getBookingDetailFn  = createFn("GetBookingDetailFn",   "get-booking-detail");
     const createBookingFn     = createFn("CreateBookingFn",      "create-booking");
+    const confirmBookingFn    = createFn("ConfirmBookingFn",     "confirm-booking");
     const cancelBookingFn     = createFn("CancelBookingFn",      "cancel-booking");
     const createBlockedDateFn = createFn("CreateBlockedDateFn",  "create-blocked-date");
     const deleteBlockedDateFn = createFn("DeleteBlockedDateFn",  "delete-blocked-date");
@@ -135,7 +136,7 @@ export class DonverApiStack extends cdk.Stack {
 
     const bookingsFunctions = [
       getSpaceDetailFn, listOwnerBookingsFn, listCgBookingsFn, createBookingFn,
-      cancelBookingFn, createBlockedDateFn, deleteBlockedDateFn, createReviewFn,
+      confirmBookingFn, cancelBookingFn, createBlockedDateFn, deleteBlockedDateFn, createReviewFn,
     ];
     bookingsFunctions.forEach((fn) => grantDomainTableAccess(fn, bookingsTableName));
 
@@ -208,6 +209,7 @@ export class DonverApiStack extends cdk.Stack {
     httpApi.addRoutes({ path: "/owner/bookings",   methods: [apigwv2.HttpMethod.GET],    integration: h(listOwnerBookingsFn, "ListOwnerBookings"), authorizer: auth });
     httpApi.addRoutes({ path: "/bookings/{id}",    methods: [apigwv2.HttpMethod.GET],    integration: h(getBookingDetailFn, "GetBookingDetail"), authorizer: auth });
     httpApi.addRoutes({ path: "/bookings",           methods: [apigwv2.HttpMethod.POST], integration: h(createBookingFn, "CreateBooking"), authorizer: auth });
+    httpApi.addRoutes({ path: "/bookings/{id}/confirm", methods: [apigwv2.HttpMethod.POST], integration: h(confirmBookingFn, "ConfirmBooking"), authorizer: auth });
     httpApi.addRoutes({ path: "/bookings/{id}/cancel", methods: [apigwv2.HttpMethod.POST], integration: h(cancelBookingFn, "CancelBooking"), authorizer: auth });
     httpApi.addRoutes({ path: "/uploads/presign",                      methods: [apigwv2.HttpMethod.POST], integration: h(createUploadUrlFn, "CreateUploadUrl"), authorizer: auth });
     httpApi.addRoutes({ path: "/messages/conversations",               methods: [apigwv2.HttpMethod.GET],  integration: h(listConvsFn, "ListConvs"),             authorizer: auth });

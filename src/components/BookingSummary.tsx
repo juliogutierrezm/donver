@@ -2,11 +2,17 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { Space, Booking } from "@/types";
+import type { Space, Booking, Pet } from "@/types";
+import type { BookingPricingBreakdown } from "@/lib/bookingPricing";
+
+type BookingPreview = Partial<Booking> & {
+  pricing?: BookingPricingBreakdown;
+  selectedPets?: Pet[];
+};
 
 interface BookingSummaryProps {
   space: Space;
-  booking: Partial<Booking>;
+  booking: BookingPreview;
   onConfirm: () => void;
   onModify: () => void;
   isLoading?: boolean;
@@ -95,16 +101,51 @@ export function BookingSummary({
         )}
 
         {/* Pets */}
-        <div className="flex justify-between">
-          <span className="text-muted-foreground">Mascotas</span>
-          <span className="font-semibold text-foreground">
-            {booking.petIds?.length || 0}
-          </span>
+        <div className="space-y-2">
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Mascotas</span>
+            <span className="font-semibold text-foreground">
+              {booking.petIds?.length || 0}
+            </span>
+          </div>
+          {booking.selectedPets && booking.selectedPets.length > 0 && (
+            <div className="rounded-lg bg-muted/40 p-3 text-sm">
+              {booking.selectedPets.map((pet) => (
+                <p key={pet.id} className="text-foreground">
+                  {pet.name} • {pet.type}
+                  {pet.breed ? ` • ${pet.breed}` : ""}
+                  {pet.size ? ` • ${pet.size}` : ""}
+                </p>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
       {/* Price Breakdown */}
       <div className="space-y-2 text-sm">
+        <div className="flex justify-between">
+          <span className="text-muted-foreground">Precio base</span>
+          <span className="font-semibold text-foreground">
+            ₡{booking.pricing?.baseSubtotal?.toLocaleString("es-CR") || 0}
+          </span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-muted-foreground">
+            Mascotas adicionales ({Math.max((booking.petIds?.length || 1) - 1, 0)})
+          </span>
+          <span className="font-semibold text-foreground">
+            {Math.max((booking.petIds?.length || 1) - 1, 0)}
+          </span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-muted-foreground">
+            Recargo mascotas adicionales ({Math.round((booking.pricing?.additionalPetRate ?? 0) * 100)}%)
+          </span>
+          <span className="font-semibold text-foreground">
+            ₡{booking.pricing?.additionalPetFee?.toLocaleString("es-CR") || 0}
+          </span>
+        </div>
         <div className="flex justify-between">
           <span className="text-muted-foreground">Subtotal</span>
           <span className="font-semibold text-foreground">

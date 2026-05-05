@@ -24,7 +24,13 @@ import {
   spacesApi,
 } from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
+import type { BookingPricingBreakdown } from "@/lib/bookingPricing";
 import type { BlockedDate, Booking, Pet, Review, Space } from "@/types";
+
+type BookingPreview = Partial<Booking> & {
+  pricing?: BookingPricingBreakdown;
+  selectedPets?: Pet[];
+};
 
 export default function SpaceDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -34,7 +40,7 @@ export default function SpaceDetailPage() {
   const [blockedDates, setBlockedDates] = useState<BlockedDate[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [bookingSummaryOpen, setBookingSummaryOpen] = useState(false);
-  const [bookingData, setBookingData] = useState<Partial<Booking> | null>(null);
+  const [bookingData, setBookingData] = useState<BookingPreview | null>(null);
   const [confirmingBooking, setConfirmingBooking] = useState(false);
 
   useEffect(() => {
@@ -73,8 +79,9 @@ export default function SpaceDetailPage() {
     };
   }, [id, toast]);
 
-  const handleBookingSummary = (booking: Partial<Booking>) => {
-    setBookingData(booking);
+  const handleBookingSummary = (booking: BookingPreview) => {
+    const selectedPets = pets.filter((pet) => (booking.petIds ?? []).includes(pet.id));
+    setBookingData({ ...booking, selectedPets });
     setBookingSummaryOpen(true);
   };
 

@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import Logo from "@/assets/Logo.png";
+import DonverLogo from "@/assets/Donver-logo.png";
 import { Button } from "@/components/ui/button";
 import { useAuthSessionUser } from "@/hooks/useAuthSessionUser";
 
@@ -19,7 +20,7 @@ export function HeroSection() {
           {/* Left Content */}
           <div className="space-y-8">
             <div className="glass inline-flex items-center gap-3 rounded-full border px-4 py-2 shadow-soft w-fit">
-              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground">
+              <span className="flex h-10 w-10 items-center justify-center rounded-full text-primary-foreground">
                 <img
                   src={Logo}
                   alt="Logo Donver"
@@ -90,15 +91,14 @@ export function HeroSection() {
           <div className="flex items-center justify-center">
             <div className="card-gradient animate-float relative w-full max-w-md rounded-3xl border p-8 shadow-elegant">
               <div className="glass absolute right-6 top-6 rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide text-primary">
-                Tropical Pet Paradise
+                Your Pet Deserves the Best
               </div>
               <div className="flex min-h-[480px] flex-col justify-end rounded-2xl border border-primary/20 bg-card/50 p-8">
-                <div className="mb-6 inline-flex h-24 w-24 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-soft">
+                <div className="mb-6 flex w-full items-center justify-center rounded-2xl text-primary-foreground shadow-soft">
                   <img
-                    src={Logo}
+                    src={DonverLogo}
                     alt="Logo Donver"
-                    className="h-20 w-20 object-contain"
-                    style={{ maxHeight: 80, maxWidth: 80 }}
+                    className="mx-auto h-auto w-[95%] object-contain"
                   />
                 </div>
                 <h2 className="font-heading text-4xl font-bold text-card-foreground">

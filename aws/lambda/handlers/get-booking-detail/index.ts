@@ -19,11 +19,24 @@ async function safeGetItem(key: Record<string, string>, tableName: string) {
 }
 
 function toPartySummary(item: Record<string, unknown> | undefined, userId: string) {
-  if (!item) return undefined;
+  const fullName =
+    typeof item?.['full_name'] === 'string' && item['full_name'].trim()
+      ? item['full_name']
+      : typeof item?.['fullName'] === 'string' && item['fullName'].trim()
+        ? item['fullName']
+        : undefined;
+  const name =
+    typeof item?.['name'] === 'string' && item['name'].trim()
+      ? item['name']
+      : fullName;
+  const email =
+    typeof item?.['email'] === 'string' && item['email'].trim()
+      ? item['email']
+      : undefined;
 
   return {
     id: userId,
-    name: typeof item['name'] === 'string' && item['name'].trim() ? item['name'] : `Usuario ${userId.slice(0, 6)}`,
+    name: name ?? email ?? 'Usuario Donver',
     avatar_url: typeof item['avatar_url'] === 'string' && item['avatar_url'].trim() ? item['avatar_url'] : undefined,
   };
 }
@@ -37,6 +50,10 @@ function toSpaceSummary(item: Record<string, unknown> | undefined) {
     province: typeof item['province'] === 'string' ? item['province'] : undefined,
     canton: typeof item['canton'] === 'string' ? item['canton'] : undefined,
     address: typeof item['address'] === 'string' ? item['address'] : undefined,
+    price_per_night: typeof item['price_per_night'] === 'number' ? item['price_per_night'] : 0,
+    price_per_hour: typeof item['price_per_hour'] === 'number' ? item['price_per_hour'] : 0,
+    additional_pet_rate:
+      typeof item['additional_pet_rate'] === 'number' ? item['additional_pet_rate'] : undefined,
   };
 }
 

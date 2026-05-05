@@ -12,6 +12,11 @@ import type {
   User,
   UserRole,
 } from "@/types";
+import {
+  calculateBookingPricing,
+  DEFAULT_ADDITIONAL_PET_RATE,
+  type BookingPricingBreakdown,
+} from "@/lib/bookingPricing";
 import type {
   Conversation,
   ConversationParticipant,
@@ -161,6 +166,7 @@ export interface BookingPetSummary {
 export interface BookingDetail extends Booking {
   caregiverId?: string;
   updatedAt?: Date;
+  pricing?: BookingPricingBreakdown;
   space?: BookingSpaceSummary;
   pets?: BookingPetSummary[];
   owner?: BookingPartySummary;
@@ -234,6 +240,7 @@ function cloneBookingDetail(booking: BookingDetail): BookingDetail {
     ...cloneBooking(booking),
     caregiverId: booking.caregiverId,
     updatedAt: booking.updatedAt ? cloneDate(booking.updatedAt) : undefined,
+    pricing: booking.pricing ? { ...booking.pricing } : undefined,
     space: booking.space ? { ...booking.space } : undefined,
     pets: booking.pets ? booking.pets.map((pet) => ({ ...pet })) : undefined,
     owner: booking.owner ? { ...booking.owner } : undefined,
@@ -874,10 +881,16 @@ function mapBackendBooking(booking: Record<string, unknown>): Booking {
 function mapBookingPartySummary(value: unknown): BookingPartySummary | undefined {
   if (typeof value !== "object" || !value) return undefined;
   const party = value as Record<string, unknown>;
+  const name =
+    (typeof party.name === "string" && party.name) ||
+    (typeof party.full_name === "string" && party.full_name) ||
+    (typeof party.fullName === "string" && party.fullName) ||
+    (typeof party.email === "string" && party.email) ||
+    "Usuario Donver";
 
   return {
     id: String(party.id ?? ""),
-    name: String(party.name ?? ""),
+    name: name,
     avatarUrl:
       typeof party.avatar_url === "string" && party.avatar_url
         ? party.avatar_url
@@ -913,10 +926,28 @@ function mapBookingPetSummary(value: unknown): BookingPetSummary | undefined {
 
 function mapBackendBookingDetail(booking: Record<string, unknown>): BookingDetail {
   const baseBooking = mapBackendBooking(booking);
+  const petCount = Array.isArray(booking.pet_ids) ? booking.pet_ids.length : baseBooking.petIds.length;
+  const pricing =
+    typeof booking.space === "object" && booking.space
+      ? calculateBookingPricing({
+          bookingType: baseBooking.bookingType,
+          startDate: baseBooking.startDate,
+          endDate: baseBooking.endDate,
+          pricePerNight: Number((booking.space as Record<string, unknown>).price_per_night ?? 0),
+          pricePerHour: Number((booking.space as Record<string, unknown>).price_per_hour ?? 0),
+          hours: baseBooking.hours,
+          petCount,
+          additionalPetRate:
+            typeof (booking.space as Record<string, unknown>).additional_pet_rate === "number"
+              ? Number((booking.space as Record<string, unknown>).additional_pet_rate)
+              : DEFAULT_ADDITIONAL_PET_RATE,
+        })
+      : undefined;
   return {
     ...baseBooking,
     caregiverId: typeof booking.caregiver_id === "string" ? booking.caregiver_id : undefined,
     updatedAt: typeof booking.updated_at === "string" && booking.updated_at ? toDate(booking.updated_at) : undefined,
+    pricing,
     space: mapBookingSpaceSummary(booking.space),
     pets: Array.isArray(booking.pets)
       ? booking.pets
@@ -1023,21 +1054,34 @@ function buildMockBookingDetail(booking: Booking): BookingDetail {
 
   const owner: BookingPartySummary = {
     id: booking.ownerId,
-    name: booking.ownerId === currentUserStore.id ? currentUserStore.name : `Dueño ${booking.ownerId.slice(0, 6)}`,
+    name: booking.ownerId === currentUserStore.id ? currentUserStore.name : "Usuario Donver",
     avatarUrl: booking.ownerId === currentUserStore.id ? currentUserStore.avatar : undefined,
   };
 
   const caregiver: BookingPartySummary | undefined = space
     ? {
         id: space.caregiverId,
-        name: space.caregiverId === currentUserStore.id ? currentUserStore.name : `Cuidador ${space.caregiverId.slice(0, 6)}`,
+        name: space.caregiverId === currentUserStore.id ? currentUserStore.name : "Usuario Donver",
         avatarUrl: space.caregiverId === currentUserStore.id ? currentUserStore.avatar : undefined,
       }
+    : undefined;
+  const pricing = space
+    ? calculateBookingPricing({
+        bookingType: booking.bookingType,
+        startDate: booking.startDate,
+        endDate: booking.endDate,
+        pricePerNight: space.pricePerNight,
+        pricePerHour: space.pricePerHour,
+        hours: booking.hours,
+        petCount: booking.petIds.length,
+        additionalPetRate: DEFAULT_ADDITIONAL_PET_RATE,
+      })
     : undefined;
 
   return {
     ...cloneBooking(booking),
     caregiverId: space?.caregiverId,
+    pricing,
     space: space
       ? {
           id: space.id,
@@ -1605,6 +1649,23 @@ export const bookingsApi = {
   async create(input: CreateBookingInput) {
     if (!IS_API_CONFIGURED) {
       await delay();
+      const space = requireEntity(
+        spacesStore.find((item) => item.id === input.spaceId),
+        "Espacio no encontrado."
+      );
+      if (input.petIds.length > space.maxPets) {
+        throw new Error(`Este espacio permite máximo ${space.maxPets} mascotas por reserva.`);
+      }
+      const pricing = calculateBookingPricing({
+        bookingType: input.bookingType,
+        startDate: input.startDate,
+        endDate: input.endDate,
+        pricePerNight: space.pricePerNight,
+        pricePerHour: space.pricePerHour,
+        hours: input.hours,
+        petCount: input.petIds.length,
+        additionalPetRate: DEFAULT_ADDITIONAL_PET_RATE,
+      });
       const newBooking: Booking = {
         id: createId("booking"),
         spaceId: input.spaceId,
@@ -1616,9 +1677,9 @@ export const bookingsApi = {
         startTime: input.startTime,
         endTime: input.endTime,
         hours: input.hours,
-        subtotal: input.subtotal,
-        serviceFee: input.serviceFee,
-        totalPrice: input.totalPrice,
+        subtotal: pricing.subtotal,
+        serviceFee: pricing.serviceFee,
+        totalPrice: pricing.total,
         status: "pending",
         paymentStatus: "pending",
         createdAt: new Date(),
@@ -1654,19 +1715,32 @@ export const bookingsApi = {
         bookingsStore.find((item) => item.id === bookingId),
         "No se puede actualizar una reservacion inexistente."
       );
+      if (status === "confirmed" && booking.status !== "pending") {
+        throw new Error("Solo se pueden confirmar reservaciones pendientes.");
+      }
+      if (status === "cancelled" && booking.status !== "pending" && booking.status !== "confirmed") {
+        throw new Error("Solo se pueden cancelar reservaciones pendientes o confirmadas.");
+      }
       const updated: Booking = { ...booking, status };
       bookingsStore = bookingsStore.map((item) => (item.id === bookingId ? updated : item));
       return cloneBooking(updated);
     }
 
-    if (status !== "cancelled") {
-      throw new Error("Solo se soporta cancelar reservaciones en la API real.");
+    if (status === "confirmed") {
+      const data = await apiRequest<Record<string, unknown>>(`/bookings/${bookingId}/confirm`, {
+        method: "POST",
+      });
+      return mapBackendBooking(data);
     }
 
-    const data = await apiRequest<Record<string, unknown>>(`/bookings/${bookingId}/cancel`, {
-      method: "POST",
-    });
-    return mapBackendBooking(data);
+    if (status === "cancelled") {
+      const data = await apiRequest<Record<string, unknown>>(`/bookings/${bookingId}/cancel`, {
+        method: "POST",
+      });
+      return mapBackendBooking(data);
+    }
+
+    throw new Error("Ese cambio de estado no está soportado en esta fase.");
   },
 };
 
