@@ -9,7 +9,7 @@ export function HeroSection() {
   const caregiverCta =
     experienceMode === "caregiver_pending"
       ? { to: "/become-caregiver", label: "Continuar registro de cuidador" }
-      : experienceMode === "caregiver"
+      : experienceMode === "caregiver" || experienceMode === "both"
         ? { to: "/caregiver/dashboard", label: "Ir a mi dashboard" }
         : { to: "/become-caregiver", label: authenticated ? "Quiero ser cuidador" : "Ofrecer mi espacio" };
 
@@ -91,7 +91,7 @@ export function HeroSection() {
           <div className="flex items-center justify-center">
             <div className="card-gradient animate-float relative w-full max-w-md rounded-3xl border p-8 shadow-elegant">
               <div className="glass absolute right-6 top-6 rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide text-primary">
-                Your Pet Deserves the Best
+                Tu mascota merece lo mejor
               </div>
               <div className="flex min-h-[480px] flex-col justify-end rounded-2xl border border-primary/20 bg-card/50 p-8">
                 <div className="mb-6 flex w-full items-center justify-center rounded-2xl text-primary-foreground shadow-soft">

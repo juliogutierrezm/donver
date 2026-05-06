@@ -2,6 +2,7 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { getPetSizeLabel, getPetTypeSingularLabel } from "@/lib/pet-labels";
 import type { Space, Booking, Pet } from "@/types";
 import type { BookingPricingBreakdown } from "@/lib/bookingPricing";
 
@@ -112,9 +113,9 @@ export function BookingSummary({
             <div className="rounded-lg bg-muted/40 p-3 text-sm">
               {booking.selectedPets.map((pet) => (
                 <p key={pet.id} className="text-foreground">
-                  {pet.name} • {pet.type}
+                  {pet.name} • {getPetTypeSingularLabel(pet.type)}
                   {pet.breed ? ` • ${pet.breed}` : ""}
-                  {pet.size ? ` • ${pet.size}` : ""}
+                  {pet.size ? ` • ${getPetSizeLabel(pet.size)}` : ""}
                 </p>
               ))}
             </div>

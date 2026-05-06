@@ -11,12 +11,20 @@ import { authApi, availabilityApi, bookingsApi, spacesApi } from "@/services/api
 import { useToast } from "@/hooks/use-toast";
 import type { BlockedDate, Booking, Space, User } from "@/types";
 
+const statusLabels: Record<string, string> = {
+  pending: "Pendiente",
+  confirmed: "Confirmada",
+  cancelled: "Cancelada",
+  completed: "Completada",
+};
+
 export default function CaregiverDashboardPage() {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [spaces, setSpaces] = useState<Space[]>([]);
   const [incomingBookings, setIncomingBookings] = useState<Booking[]>([]);
+  const [loadingData, setLoadingData] = useState(true);
   const [blockedDates, setBlockedDates] = useState<Record<string, BlockedDate[]>>({});
   const [formOpen, setFormOpen] = useState(false);
   const [selectedSpace, setSelectedSpace] = useState<Space | undefined>();
@@ -26,6 +34,7 @@ export default function CaregiverDashboardPage() {
     let cancelled = false;
 
     async function load() {
+      setLoadingData(true);
       try {
         const currentUser = await authApi.getCurrentUser();
         if (cancelled) return;
@@ -77,6 +86,10 @@ export default function CaregiverDashboardPage() {
             error instanceof Error ? error.message : "Intenta nuevamente en unos minutos.",
           variant: "destructive",
         });
+      } finally {
+        if (!cancelled) {
+          setLoadingData(false);
+        }
       }
     }
 
@@ -300,7 +313,11 @@ export default function CaregiverDashboardPage() {
             </div>
 
             <div className="space-y-4">
-              {spaces.length === 0 ? (
+              {loadingData ? (
+                <div className="rounded-xl border border-border bg-card py-12 text-center text-muted-foreground">
+                  Cargando espacios...
+                </div>
+              ) : spaces.length === 0 ? (
                 <div className="rounded-xl border border-border bg-card py-12 text-center">
                   <p className="mb-4 text-muted-foreground">Aún no has creado ningún espacio.</p>
                   <Button onClick={handleOpenAdd} className="gap-2">
@@ -380,7 +397,11 @@ export default function CaregiverDashboardPage() {
 
           <section>
             <h2 className="mb-6 text-2xl font-bold text-foreground">Reservas recibidas</h2>
-            {incomingBookings.length === 0 ? (
+            {loadingData ? (
+              <div className="rounded-xl border border-border bg-card py-10 text-center text-muted-foreground">
+                Cargando reservas...
+              </div>
+            ) : incomingBookings.length === 0 ? (
               <div className="rounded-xl border border-border bg-card py-10 text-center text-muted-foreground">
                 Aún no has recibido reservas.
               </div>
@@ -390,13 +411,16 @@ export default function CaregiverDashboardPage() {
                   <div key={booking.id} className="rounded-xl border border-border bg-card p-4">
                     <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                       <div>
-                        <p className="font-semibold text-foreground">Reserva {booking.id}</p>
+                        <p className="font-semibold text-foreground">{booking.spaceName ?? "Espacio Donver"}</p>
                         <p className="text-sm text-muted-foreground">
-                          Espacio {booking.spaceId} • {booking.petIds.length} mascota(s)
+                          {booking.ownerName ?? "Usuario Donver"} • {booking.petIds.length} mascota(s)
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {booking.startDate.toLocaleDateString("es-CR")} - {booking.endDate.toLocaleDateString("es-CR")}
                         </p>
                       </div>
                       <div className="text-sm text-muted-foreground">
-                        {booking.status} • ₡{booking.totalPrice.toLocaleString("es-CR")}
+                        {statusLabels[booking.status] ?? "Pendiente"} • ₡{booking.totalPrice.toLocaleString("es-CR")}
                       </div>
                     </div>
                     <Button

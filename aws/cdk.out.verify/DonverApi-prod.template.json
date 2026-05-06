@@ -1,0 +1,7780 @@
+{
+ "Description": "Donver API resources (prod)",
+ "Resources": {
+  "AuthRegisterFnLogs911A39F8": {
+   "Type": "AWS::Logs::LogGroup",
+   "Properties": {
+    "LogGroupName": "/aws/lambda/donver-auth-register-prod",
+    "RetentionInDays": 7
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/AuthRegisterFnLogs/Resource"
+   }
+  },
+  "AuthRegisterFnServiceRole00E0F1DA": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/AuthRegisterFn/ServiceRole/Resource"
+   }
+  },
+  "AuthRegisterFnServiceRoleDefaultPolicy7E1BA211": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:ConditionCheckItem"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-core-prod"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-core-prod/index/*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "AuthRegisterFnServiceRoleDefaultPolicy7E1BA211",
+    "Roles": [
+     {
+      "Ref": "AuthRegisterFnServiceRole00E0F1DA"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/AuthRegisterFn/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "AuthRegisterFnA61FDC02": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-donver-assets-183192606101-us-east-1",
+     "S3Key": "99d6574372416cb4f08683d6394e1f422bae5b7add4e65a446e8fc8c91be782f.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "DONVER_ENV": "prod",
+      "CORE_TABLE_NAME": "donver-core-prod",
+      "BOOKINGS_TABLE_NAME": "donver-bookings-prod",
+      "MESSAGING_TABLE_NAME": "donver-messaging-prod",
+      "SPACE_PHOTOS_BUCKET": {
+       "Fn::ImportValue": "DonverShared-prod:ExportsOutputRefSpacePhotosBucket9FD3EAE15F11F63D"
+      },
+      "PET_PHOTOS_BUCKET": {
+       "Fn::ImportValue": "DonverShared-prod:ExportsOutputRefPetPhotosBucket146E40377706B8E9"
+      },
+      "COGNITO_USER_POOL_CLIENT_ID": {
+       "Fn::ImportValue": "DonverAuth-prod:ExportsOutputRefDonverUserPoolDonverWebClient55387986BD58B7AB"
+      }
+     }
+    },
+    "FunctionName": "donver-auth-register-prod",
+    "Handler": "index.handler",
+    "LoggingConfig": {
+     "LogGroup": {
+      "Ref": "AuthRegisterFnLogs911A39F8"
+     }
+    },
+    "MemorySize": 256,
+    "Role": {
+     "Fn::GetAtt": [
+      "AuthRegisterFnServiceRole00E0F1DA",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs20.x",
+    "Timeout": 15
+   },
+   "DependsOn": [
+    "AuthRegisterFnServiceRoleDefaultPolicy7E1BA211",
+    "AuthRegisterFnServiceRole00E0F1DA"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/AuthRegisterFn/Resource",
+    "aws:asset:path": "asset.99d6574372416cb4f08683d6394e1f422bae5b7add4e65a446e8fc8c91be782f",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "AuthBootstrapFnLogs90E56850": {
+   "Type": "AWS::Logs::LogGroup",
+   "Properties": {
+    "LogGroupName": "/aws/lambda/donver-auth-bootstrap-prod",
+    "RetentionInDays": 7
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/AuthBootstrapFnLogs/Resource"
+   }
+  },
+  "AuthBootstrapFnServiceRole8BCC0448": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/AuthBootstrapFn/ServiceRole/Resource"
+   }
+  },
+  "AuthBootstrapFnServiceRoleDefaultPolicyBF1CC82F": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:ConditionCheckItem"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-core-prod"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-core-prod/index/*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "AuthBootstrapFnServiceRoleDefaultPolicyBF1CC82F",
+    "Roles": [
+     {
+      "Ref": "AuthBootstrapFnServiceRole8BCC0448"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/AuthBootstrapFn/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "AuthBootstrapFn03BDFDDA": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-donver-assets-183192606101-us-east-1",
+     "S3Key": "f761db831b735743c1177f5b1efa6704ded2307d27dc801ece97759c34fa38e8.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "DONVER_ENV": "prod",
+      "CORE_TABLE_NAME": "donver-core-prod",
+      "BOOKINGS_TABLE_NAME": "donver-bookings-prod",
+      "MESSAGING_TABLE_NAME": "donver-messaging-prod",
+      "SPACE_PHOTOS_BUCKET": {
+       "Fn::ImportValue": "DonverShared-prod:ExportsOutputRefSpacePhotosBucket9FD3EAE15F11F63D"
+      },
+      "PET_PHOTOS_BUCKET": {
+       "Fn::ImportValue": "DonverShared-prod:ExportsOutputRefPetPhotosBucket146E40377706B8E9"
+      },
+      "COGNITO_USER_POOL_CLIENT_ID": {
+       "Fn::ImportValue": "DonverAuth-prod:ExportsOutputRefDonverUserPoolDonverWebClient55387986BD58B7AB"
+      }
+     }
+    },
+    "FunctionName": "donver-auth-bootstrap-prod",
+    "Handler": "index.handler",
+    "LoggingConfig": {
+     "LogGroup": {
+      "Ref": "AuthBootstrapFnLogs90E56850"
+     }
+    },
+    "MemorySize": 256,
+    "Role": {
+     "Fn::GetAtt": [
+      "AuthBootstrapFnServiceRole8BCC0448",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs20.x",
+    "Timeout": 15
+   },
+   "DependsOn": [
+    "AuthBootstrapFnServiceRoleDefaultPolicyBF1CC82F",
+    "AuthBootstrapFnServiceRole8BCC0448"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/AuthBootstrapFn/Resource",
+    "aws:asset:path": "asset.f761db831b735743c1177f5b1efa6704ded2307d27dc801ece97759c34fa38e8",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "GetMeFnLogsB515344C": {
+   "Type": "AWS::Logs::LogGroup",
+   "Properties": {
+    "LogGroupName": "/aws/lambda/donver-get-me-prod",
+    "RetentionInDays": 7
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/GetMeFnLogs/Resource"
+   }
+  },
+  "GetMeFnServiceRole9C264DD5": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/GetMeFn/ServiceRole/Resource"
+   }
+  },
+  "GetMeFnServiceRoleDefaultPolicy5BFF2156": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:ConditionCheckItem"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-core-prod"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-core-prod/index/*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "GetMeFnServiceRoleDefaultPolicy5BFF2156",
+    "Roles": [
+     {
+      "Ref": "GetMeFnServiceRole9C264DD5"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/GetMeFn/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "GetMeFn9F44A8FA": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-donver-assets-183192606101-us-east-1",
+     "S3Key": "c468b4082bb352cbafad292a6b780a163421b11d95dfa030d8d2276cee68fb86.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "DONVER_ENV": "prod",
+      "CORE_TABLE_NAME": "donver-core-prod",
+      "BOOKINGS_TABLE_NAME": "donver-bookings-prod",
+      "MESSAGING_TABLE_NAME": "donver-messaging-prod",
+      "SPACE_PHOTOS_BUCKET": {
+       "Fn::ImportValue": "DonverShared-prod:ExportsOutputRefSpacePhotosBucket9FD3EAE15F11F63D"
+      },
+      "PET_PHOTOS_BUCKET": {
+       "Fn::ImportValue": "DonverShared-prod:ExportsOutputRefPetPhotosBucket146E40377706B8E9"
+      },
+      "COGNITO_USER_POOL_CLIENT_ID": {
+       "Fn::ImportValue": "DonverAuth-prod:ExportsOutputRefDonverUserPoolDonverWebClient55387986BD58B7AB"
+      }
+     }
+    },
+    "FunctionName": "donver-get-me-prod",
+    "Handler": "index.handler",
+    "LoggingConfig": {
+     "LogGroup": {
+      "Ref": "GetMeFnLogsB515344C"
+     }
+    },
+    "MemorySize": 256,
+    "Role": {
+     "Fn::GetAtt": [
+      "GetMeFnServiceRole9C264DD5",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs20.x",
+    "Timeout": 15
+   },
+   "DependsOn": [
+    "GetMeFnServiceRoleDefaultPolicy5BFF2156",
+    "GetMeFnServiceRole9C264DD5"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/GetMeFn/Resource",
+    "aws:asset:path": "asset.c468b4082bb352cbafad292a6b780a163421b11d95dfa030d8d2276cee68fb86",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "UpdateProfileFnLogs664E2ECC": {
+   "Type": "AWS::Logs::LogGroup",
+   "Properties": {
+    "LogGroupName": "/aws/lambda/donver-update-profile-prod",
+    "RetentionInDays": 7
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/UpdateProfileFnLogs/Resource"
+   }
+  },
+  "UpdateProfileFnServiceRoleED5B46AC": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/UpdateProfileFn/ServiceRole/Resource"
+   }
+  },
+  "UpdateProfileFnServiceRoleDefaultPolicy10896920": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:ConditionCheckItem"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-core-prod"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-core-prod/index/*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "UpdateProfileFnServiceRoleDefaultPolicy10896920",
+    "Roles": [
+     {
+      "Ref": "UpdateProfileFnServiceRoleED5B46AC"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/UpdateProfileFn/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "UpdateProfileFnB789FCAD": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-donver-assets-183192606101-us-east-1",
+     "S3Key": "f938a142b9dcc2b197c8079ed348e7cb26de92582173eaed7570e380bcf98c5f.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "DONVER_ENV": "prod",
+      "CORE_TABLE_NAME": "donver-core-prod",
+      "BOOKINGS_TABLE_NAME": "donver-bookings-prod",
+      "MESSAGING_TABLE_NAME": "donver-messaging-prod",
+      "SPACE_PHOTOS_BUCKET": {
+       "Fn::ImportValue": "DonverShared-prod:ExportsOutputRefSpacePhotosBucket9FD3EAE15F11F63D"
+      },
+      "PET_PHOTOS_BUCKET": {
+       "Fn::ImportValue": "DonverShared-prod:ExportsOutputRefPetPhotosBucket146E40377706B8E9"
+      },
+      "COGNITO_USER_POOL_CLIENT_ID": {
+       "Fn::ImportValue": "DonverAuth-prod:ExportsOutputRefDonverUserPoolDonverWebClient55387986BD58B7AB"
+      }
+     }
+    },
+    "FunctionName": "donver-update-profile-prod",
+    "Handler": "index.handler",
+    "LoggingConfig": {
+     "LogGroup": {
+      "Ref": "UpdateProfileFnLogs664E2ECC"
+     }
+    },
+    "MemorySize": 256,
+    "Role": {
+     "Fn::GetAtt": [
+      "UpdateProfileFnServiceRoleED5B46AC",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs20.x",
+    "Timeout": 15
+   },
+   "DependsOn": [
+    "UpdateProfileFnServiceRoleDefaultPolicy10896920",
+    "UpdateProfileFnServiceRoleED5B46AC"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/UpdateProfileFn/Resource",
+    "aws:asset:path": "asset.f938a142b9dcc2b197c8079ed348e7cb26de92582173eaed7570e380bcf98c5f",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "ActivateOwnerProfileFnLogs4F8DA987": {
+   "Type": "AWS::Logs::LogGroup",
+   "Properties": {
+    "LogGroupName": "/aws/lambda/donver-activate-owner-profile-prod",
+    "RetentionInDays": 7
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/ActivateOwnerProfileFnLogs/Resource"
+   }
+  },
+  "ActivateOwnerProfileFnServiceRoleBE359AE8": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/ActivateOwnerProfileFn/ServiceRole/Resource"
+   }
+  },
+  "ActivateOwnerProfileFnServiceRoleDefaultPolicy45448A4D": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:ConditionCheckItem"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-core-prod"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-core-prod/index/*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "ActivateOwnerProfileFnServiceRoleDefaultPolicy45448A4D",
+    "Roles": [
+     {
+      "Ref": "ActivateOwnerProfileFnServiceRoleBE359AE8"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/ActivateOwnerProfileFn/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "ActivateOwnerProfileFnE5BB280D": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-donver-assets-183192606101-us-east-1",
+     "S3Key": "5c7d435d7dc65661a4e662fb270106e6323ad8746608027a707b7a5608a551cd.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "DONVER_ENV": "prod",
+      "CORE_TABLE_NAME": "donver-core-prod",
+      "BOOKINGS_TABLE_NAME": "donver-bookings-prod",
+      "MESSAGING_TABLE_NAME": "donver-messaging-prod",
+      "SPACE_PHOTOS_BUCKET": {
+       "Fn::ImportValue": "DonverShared-prod:ExportsOutputRefSpacePhotosBucket9FD3EAE15F11F63D"
+      },
+      "PET_PHOTOS_BUCKET": {
+       "Fn::ImportValue": "DonverShared-prod:ExportsOutputRefPetPhotosBucket146E40377706B8E9"
+      },
+      "COGNITO_USER_POOL_CLIENT_ID": {
+       "Fn::ImportValue": "DonverAuth-prod:ExportsOutputRefDonverUserPoolDonverWebClient55387986BD58B7AB"
+      }
+     }
+    },
+    "FunctionName": "donver-activate-owner-profile-prod",
+    "Handler": "index.handler",
+    "LoggingConfig": {
+     "LogGroup": {
+      "Ref": "ActivateOwnerProfileFnLogs4F8DA987"
+     }
+    },
+    "MemorySize": 256,
+    "Role": {
+     "Fn::GetAtt": [
+      "ActivateOwnerProfileFnServiceRoleBE359AE8",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs20.x",
+    "Timeout": 15
+   },
+   "DependsOn": [
+    "ActivateOwnerProfileFnServiceRoleDefaultPolicy45448A4D",
+    "ActivateOwnerProfileFnServiceRoleBE359AE8"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/ActivateOwnerProfileFn/Resource",
+    "aws:asset:path": "asset.5c7d435d7dc65661a4e662fb270106e6323ad8746608027a707b7a5608a551cd",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "ListSpacesFnLogs06D51E2B": {
+   "Type": "AWS::Logs::LogGroup",
+   "Properties": {
+    "LogGroupName": "/aws/lambda/donver-list-spaces-prod",
+    "RetentionInDays": 7
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/ListSpacesFnLogs/Resource"
+   }
+  },
+  "ListSpacesFnServiceRoleEBEE992A": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/ListSpacesFn/ServiceRole/Resource"
+   }
+  },
+  "ListSpacesFnServiceRoleDefaultPolicy28125501": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:ConditionCheckItem"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-core-prod"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-core-prod/index/*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "ListSpacesFnServiceRoleDefaultPolicy28125501",
+    "Roles": [
+     {
+      "Ref": "ListSpacesFnServiceRoleEBEE992A"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/ListSpacesFn/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "ListSpacesFn4CFA17FB": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-donver-assets-183192606101-us-east-1",
+     "S3Key": "95227e6ff7ca37dc4c4db7b769405c5b952a7854340c8f0e4841c9582d6a0544.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "DONVER_ENV": "prod",
+      "CORE_TABLE_NAME": "donver-core-prod",
+      "BOOKINGS_TABLE_NAME": "donver-bookings-prod",
+      "MESSAGING_TABLE_NAME": "donver-messaging-prod",
+      "SPACE_PHOTOS_BUCKET": {
+       "Fn::ImportValue": "DonverShared-prod:ExportsOutputRefSpacePhotosBucket9FD3EAE15F11F63D"
+      },
+      "PET_PHOTOS_BUCKET": {
+       "Fn::ImportValue": "DonverShared-prod:ExportsOutputRefPetPhotosBucket146E40377706B8E9"
+      },
+      "COGNITO_USER_POOL_CLIENT_ID": {
+       "Fn::ImportValue": "DonverAuth-prod:ExportsOutputRefDonverUserPoolDonverWebClient55387986BD58B7AB"
+      }
+     }
+    },
+    "FunctionName": "donver-list-spaces-prod",
+    "Handler": "index.handler",
+    "LoggingConfig": {
+     "LogGroup": {
+      "Ref": "ListSpacesFnLogs06D51E2B"
+     }
+    },
+    "MemorySize": 256,
+    "Role": {
+     "Fn::GetAtt": [
+      "ListSpacesFnServiceRoleEBEE992A",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs20.x",
+    "Timeout": 15
+   },
+   "DependsOn": [
+    "ListSpacesFnServiceRoleDefaultPolicy28125501",
+    "ListSpacesFnServiceRoleEBEE992A"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/ListSpacesFn/Resource",
+    "aws:asset:path": "asset.95227e6ff7ca37dc4c4db7b769405c5b952a7854340c8f0e4841c9582d6a0544",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "GetSpaceDetailFnLogsA397F1E0": {
+   "Type": "AWS::Logs::LogGroup",
+   "Properties": {
+    "LogGroupName": "/aws/lambda/donver-get-space-detail-prod",
+    "RetentionInDays": 7
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/GetSpaceDetailFnLogs/Resource"
+   }
+  },
+  "GetSpaceDetailFnServiceRoleB55F98CC": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/GetSpaceDetailFn/ServiceRole/Resource"
+   }
+  },
+  "GetSpaceDetailFnServiceRoleDefaultPolicy27BC059C": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:ConditionCheckItem"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-core-prod"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-core-prod/index/*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": [
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:ConditionCheckItem"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-bookings-prod"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-bookings-prod/index/*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "GetSpaceDetailFnServiceRoleDefaultPolicy27BC059C",
+    "Roles": [
+     {
+      "Ref": "GetSpaceDetailFnServiceRoleB55F98CC"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/GetSpaceDetailFn/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "GetSpaceDetailFnA4B11542": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-donver-assets-183192606101-us-east-1",
+     "S3Key": "a9e701671d13be363f51706c555be68848f5fa91729bf99c1ec33ec15780308b.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "DONVER_ENV": "prod",
+      "CORE_TABLE_NAME": "donver-core-prod",
+      "BOOKINGS_TABLE_NAME": "donver-bookings-prod",
+      "MESSAGING_TABLE_NAME": "donver-messaging-prod",
+      "SPACE_PHOTOS_BUCKET": {
+       "Fn::ImportValue": "DonverShared-prod:ExportsOutputRefSpacePhotosBucket9FD3EAE15F11F63D"
+      },
+      "PET_PHOTOS_BUCKET": {
+       "Fn::ImportValue": "DonverShared-prod:ExportsOutputRefPetPhotosBucket146E40377706B8E9"
+      },
+      "COGNITO_USER_POOL_CLIENT_ID": {
+       "Fn::ImportValue": "DonverAuth-prod:ExportsOutputRefDonverUserPoolDonverWebClient55387986BD58B7AB"
+      }
+     }
+    },
+    "FunctionName": "donver-get-space-detail-prod",
+    "Handler": "index.handler",
+    "LoggingConfig": {
+     "LogGroup": {
+      "Ref": "GetSpaceDetailFnLogsA397F1E0"
+     }
+    },
+    "MemorySize": 256,
+    "Role": {
+     "Fn::GetAtt": [
+      "GetSpaceDetailFnServiceRoleB55F98CC",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs20.x",
+    "Timeout": 15
+   },
+   "DependsOn": [
+    "GetSpaceDetailFnServiceRoleDefaultPolicy27BC059C",
+    "GetSpaceDetailFnServiceRoleB55F98CC"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/GetSpaceDetailFn/Resource",
+    "aws:asset:path": "asset.a9e701671d13be363f51706c555be68848f5fa91729bf99c1ec33ec15780308b",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "ListMySpacesFnLogs0DDBD173": {
+   "Type": "AWS::Logs::LogGroup",
+   "Properties": {
+    "LogGroupName": "/aws/lambda/donver-list-my-spaces-prod",
+    "RetentionInDays": 7
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/ListMySpacesFnLogs/Resource"
+   }
+  },
+  "ListMySpacesFnServiceRole2207F728": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/ListMySpacesFn/ServiceRole/Resource"
+   }
+  },
+  "ListMySpacesFnServiceRoleDefaultPolicy28CFB07A": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:ConditionCheckItem"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-core-prod"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-core-prod/index/*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "ListMySpacesFnServiceRoleDefaultPolicy28CFB07A",
+    "Roles": [
+     {
+      "Ref": "ListMySpacesFnServiceRole2207F728"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/ListMySpacesFn/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "ListMySpacesFnE87DA6F1": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-donver-assets-183192606101-us-east-1",
+     "S3Key": "d564a3fb47b38354cb3c9636cc500278f860e2241e7f22df5d57c5a79998fe65.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "DONVER_ENV": "prod",
+      "CORE_TABLE_NAME": "donver-core-prod",
+      "BOOKINGS_TABLE_NAME": "donver-bookings-prod",
+      "MESSAGING_TABLE_NAME": "donver-messaging-prod",
+      "SPACE_PHOTOS_BUCKET": {
+       "Fn::ImportValue": "DonverShared-prod:ExportsOutputRefSpacePhotosBucket9FD3EAE15F11F63D"
+      },
+      "PET_PHOTOS_BUCKET": {
+       "Fn::ImportValue": "DonverShared-prod:ExportsOutputRefPetPhotosBucket146E40377706B8E9"
+      },
+      "COGNITO_USER_POOL_CLIENT_ID": {
+       "Fn::ImportValue": "DonverAuth-prod:ExportsOutputRefDonverUserPoolDonverWebClient55387986BD58B7AB"
+      }
+     }
+    },
+    "FunctionName": "donver-list-my-spaces-prod",
+    "Handler": "index.handler",
+    "LoggingConfig": {
+     "LogGroup": {
+      "Ref": "ListMySpacesFnLogs0DDBD173"
+     }
+    },
+    "MemorySize": 256,
+    "Role": {
+     "Fn::GetAtt": [
+      "ListMySpacesFnServiceRole2207F728",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs20.x",
+    "Timeout": 15
+   },
+   "DependsOn": [
+    "ListMySpacesFnServiceRoleDefaultPolicy28CFB07A",
+    "ListMySpacesFnServiceRole2207F728"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/ListMySpacesFn/Resource",
+    "aws:asset:path": "asset.d564a3fb47b38354cb3c9636cc500278f860e2241e7f22df5d57c5a79998fe65",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "CreateSpaceFnLogsFE895366": {
+   "Type": "AWS::Logs::LogGroup",
+   "Properties": {
+    "LogGroupName": "/aws/lambda/donver-create-space-prod",
+    "RetentionInDays": 7
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/CreateSpaceFnLogs/Resource"
+   }
+  },
+  "CreateSpaceFnServiceRoleA5A18D56": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/CreateSpaceFn/ServiceRole/Resource"
+   }
+  },
+  "CreateSpaceFnServiceRoleDefaultPolicy9F098FE9": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:ConditionCheckItem"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-core-prod"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-core-prod/index/*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "CreateSpaceFnServiceRoleDefaultPolicy9F098FE9",
+    "Roles": [
+     {
+      "Ref": "CreateSpaceFnServiceRoleA5A18D56"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/CreateSpaceFn/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "CreateSpaceFn86A81536": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-donver-assets-183192606101-us-east-1",
+     "S3Key": "1d46c58f61b4b57ae1e0b811c98d1e509043343d72d72f6a3e1de635cbc1d9ad.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "DONVER_ENV": "prod",
+      "CORE_TABLE_NAME": "donver-core-prod",
+      "BOOKINGS_TABLE_NAME": "donver-bookings-prod",
+      "MESSAGING_TABLE_NAME": "donver-messaging-prod",
+      "SPACE_PHOTOS_BUCKET": {
+       "Fn::ImportValue": "DonverShared-prod:ExportsOutputRefSpacePhotosBucket9FD3EAE15F11F63D"
+      },
+      "PET_PHOTOS_BUCKET": {
+       "Fn::ImportValue": "DonverShared-prod:ExportsOutputRefPetPhotosBucket146E40377706B8E9"
+      },
+      "COGNITO_USER_POOL_CLIENT_ID": {
+       "Fn::ImportValue": "DonverAuth-prod:ExportsOutputRefDonverUserPoolDonverWebClient55387986BD58B7AB"
+      }
+     }
+    },
+    "FunctionName": "donver-create-space-prod",
+    "Handler": "index.handler",
+    "LoggingConfig": {
+     "LogGroup": {
+      "Ref": "CreateSpaceFnLogsFE895366"
+     }
+    },
+    "MemorySize": 256,
+    "Role": {
+     "Fn::GetAtt": [
+      "CreateSpaceFnServiceRoleA5A18D56",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs20.x",
+    "Timeout": 15
+   },
+   "DependsOn": [
+    "CreateSpaceFnServiceRoleDefaultPolicy9F098FE9",
+    "CreateSpaceFnServiceRoleA5A18D56"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/CreateSpaceFn/Resource",
+    "aws:asset:path": "asset.1d46c58f61b4b57ae1e0b811c98d1e509043343d72d72f6a3e1de635cbc1d9ad",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "UpdateSpaceFnLogs8A9A1DD3": {
+   "Type": "AWS::Logs::LogGroup",
+   "Properties": {
+    "LogGroupName": "/aws/lambda/donver-update-space-prod",
+    "RetentionInDays": 7
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/UpdateSpaceFnLogs/Resource"
+   }
+  },
+  "UpdateSpaceFnServiceRoleB1C49FA3": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/UpdateSpaceFn/ServiceRole/Resource"
+   }
+  },
+  "UpdateSpaceFnServiceRoleDefaultPolicy4BE15D3A": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:ConditionCheckItem"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-core-prod"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-core-prod/index/*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "UpdateSpaceFnServiceRoleDefaultPolicy4BE15D3A",
+    "Roles": [
+     {
+      "Ref": "UpdateSpaceFnServiceRoleB1C49FA3"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/UpdateSpaceFn/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "UpdateSpaceFnFE64284A": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-donver-assets-183192606101-us-east-1",
+     "S3Key": "0cd13416f050674327b7165cbc34c7f53ba2b6bbeef26a2fe0c15b2511a5f975.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "DONVER_ENV": "prod",
+      "CORE_TABLE_NAME": "donver-core-prod",
+      "BOOKINGS_TABLE_NAME": "donver-bookings-prod",
+      "MESSAGING_TABLE_NAME": "donver-messaging-prod",
+      "SPACE_PHOTOS_BUCKET": {
+       "Fn::ImportValue": "DonverShared-prod:ExportsOutputRefSpacePhotosBucket9FD3EAE15F11F63D"
+      },
+      "PET_PHOTOS_BUCKET": {
+       "Fn::ImportValue": "DonverShared-prod:ExportsOutputRefPetPhotosBucket146E40377706B8E9"
+      },
+      "COGNITO_USER_POOL_CLIENT_ID": {
+       "Fn::ImportValue": "DonverAuth-prod:ExportsOutputRefDonverUserPoolDonverWebClient55387986BD58B7AB"
+      }
+     }
+    },
+    "FunctionName": "donver-update-space-prod",
+    "Handler": "index.handler",
+    "LoggingConfig": {
+     "LogGroup": {
+      "Ref": "UpdateSpaceFnLogs8A9A1DD3"
+     }
+    },
+    "MemorySize": 256,
+    "Role": {
+     "Fn::GetAtt": [
+      "UpdateSpaceFnServiceRoleB1C49FA3",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs20.x",
+    "Timeout": 15
+   },
+   "DependsOn": [
+    "UpdateSpaceFnServiceRoleDefaultPolicy4BE15D3A",
+    "UpdateSpaceFnServiceRoleB1C49FA3"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/UpdateSpaceFn/Resource",
+    "aws:asset:path": "asset.0cd13416f050674327b7165cbc34c7f53ba2b6bbeef26a2fe0c15b2511a5f975",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "ListPetsFnLogsDB621F2F": {
+   "Type": "AWS::Logs::LogGroup",
+   "Properties": {
+    "LogGroupName": "/aws/lambda/donver-list-pets-prod",
+    "RetentionInDays": 7
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/ListPetsFnLogs/Resource"
+   }
+  },
+  "ListPetsFnServiceRoleF8E3F4DA": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/ListPetsFn/ServiceRole/Resource"
+   }
+  },
+  "ListPetsFnServiceRoleDefaultPolicyC629961E": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:ConditionCheckItem"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-core-prod"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-core-prod/index/*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "ListPetsFnServiceRoleDefaultPolicyC629961E",
+    "Roles": [
+     {
+      "Ref": "ListPetsFnServiceRoleF8E3F4DA"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/ListPetsFn/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "ListPetsFn86059951": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-donver-assets-183192606101-us-east-1",
+     "S3Key": "bd483b12a03bd197d619c995780da0ba22ac13aa4b79227b1286b915bc91b25b.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "DONVER_ENV": "prod",
+      "CORE_TABLE_NAME": "donver-core-prod",
+      "BOOKINGS_TABLE_NAME": "donver-bookings-prod",
+      "MESSAGING_TABLE_NAME": "donver-messaging-prod",
+      "SPACE_PHOTOS_BUCKET": {
+       "Fn::ImportValue": "DonverShared-prod:ExportsOutputRefSpacePhotosBucket9FD3EAE15F11F63D"
+      },
+      "PET_PHOTOS_BUCKET": {
+       "Fn::ImportValue": "DonverShared-prod:ExportsOutputRefPetPhotosBucket146E40377706B8E9"
+      },
+      "COGNITO_USER_POOL_CLIENT_ID": {
+       "Fn::ImportValue": "DonverAuth-prod:ExportsOutputRefDonverUserPoolDonverWebClient55387986BD58B7AB"
+      }
+     }
+    },
+    "FunctionName": "donver-list-pets-prod",
+    "Handler": "index.handler",
+    "LoggingConfig": {
+     "LogGroup": {
+      "Ref": "ListPetsFnLogsDB621F2F"
+     }
+    },
+    "MemorySize": 256,
+    "Role": {
+     "Fn::GetAtt": [
+      "ListPetsFnServiceRoleF8E3F4DA",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs20.x",
+    "Timeout": 15
+   },
+   "DependsOn": [
+    "ListPetsFnServiceRoleDefaultPolicyC629961E",
+    "ListPetsFnServiceRoleF8E3F4DA"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/ListPetsFn/Resource",
+    "aws:asset:path": "asset.bd483b12a03bd197d619c995780da0ba22ac13aa4b79227b1286b915bc91b25b",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "CreatePetFnLogs1CDCB709": {
+   "Type": "AWS::Logs::LogGroup",
+   "Properties": {
+    "LogGroupName": "/aws/lambda/donver-create-pet-prod",
+    "RetentionInDays": 7
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/CreatePetFnLogs/Resource"
+   }
+  },
+  "CreatePetFnServiceRole1E8F302B": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/CreatePetFn/ServiceRole/Resource"
+   }
+  },
+  "CreatePetFnServiceRoleDefaultPolicy066A9EFE": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:ConditionCheckItem"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-core-prod"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-core-prod/index/*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "CreatePetFnServiceRoleDefaultPolicy066A9EFE",
+    "Roles": [
+     {
+      "Ref": "CreatePetFnServiceRole1E8F302B"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/CreatePetFn/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "CreatePetFn4E8DD9B6": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-donver-assets-183192606101-us-east-1",
+     "S3Key": "46b61eea2c0dc45d2e360401bd564c3e606837b3f6885d966325e3113e9edac3.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "DONVER_ENV": "prod",
+      "CORE_TABLE_NAME": "donver-core-prod",
+      "BOOKINGS_TABLE_NAME": "donver-bookings-prod",
+      "MESSAGING_TABLE_NAME": "donver-messaging-prod",
+      "SPACE_PHOTOS_BUCKET": {
+       "Fn::ImportValue": "DonverShared-prod:ExportsOutputRefSpacePhotosBucket9FD3EAE15F11F63D"
+      },
+      "PET_PHOTOS_BUCKET": {
+       "Fn::ImportValue": "DonverShared-prod:ExportsOutputRefPetPhotosBucket146E40377706B8E9"
+      },
+      "COGNITO_USER_POOL_CLIENT_ID": {
+       "Fn::ImportValue": "DonverAuth-prod:ExportsOutputRefDonverUserPoolDonverWebClient55387986BD58B7AB"
+      }
+     }
+    },
+    "FunctionName": "donver-create-pet-prod",
+    "Handler": "index.handler",
+    "LoggingConfig": {
+     "LogGroup": {
+      "Ref": "CreatePetFnLogs1CDCB709"
+     }
+    },
+    "MemorySize": 256,
+    "Role": {
+     "Fn::GetAtt": [
+      "CreatePetFnServiceRole1E8F302B",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs20.x",
+    "Timeout": 15
+   },
+   "DependsOn": [
+    "CreatePetFnServiceRoleDefaultPolicy066A9EFE",
+    "CreatePetFnServiceRole1E8F302B"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/CreatePetFn/Resource",
+    "aws:asset:path": "asset.46b61eea2c0dc45d2e360401bd564c3e606837b3f6885d966325e3113e9edac3",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "UpdatePetFnLogs76931AFB": {
+   "Type": "AWS::Logs::LogGroup",
+   "Properties": {
+    "LogGroupName": "/aws/lambda/donver-update-pet-prod",
+    "RetentionInDays": 7
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/UpdatePetFnLogs/Resource"
+   }
+  },
+  "UpdatePetFnServiceRoleDC708176": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/UpdatePetFn/ServiceRole/Resource"
+   }
+  },
+  "UpdatePetFnServiceRoleDefaultPolicyE13F3D73": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:ConditionCheckItem"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-core-prod"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-core-prod/index/*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "UpdatePetFnServiceRoleDefaultPolicyE13F3D73",
+    "Roles": [
+     {
+      "Ref": "UpdatePetFnServiceRoleDC708176"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/UpdatePetFn/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "UpdatePetFn9AEAF6B5": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-donver-assets-183192606101-us-east-1",
+     "S3Key": "eebc455602ac7d90e75ce0ce976f60591f2ae462a38832d0159304ff029ac58c.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "DONVER_ENV": "prod",
+      "CORE_TABLE_NAME": "donver-core-prod",
+      "BOOKINGS_TABLE_NAME": "donver-bookings-prod",
+      "MESSAGING_TABLE_NAME": "donver-messaging-prod",
+      "SPACE_PHOTOS_BUCKET": {
+       "Fn::ImportValue": "DonverShared-prod:ExportsOutputRefSpacePhotosBucket9FD3EAE15F11F63D"
+      },
+      "PET_PHOTOS_BUCKET": {
+       "Fn::ImportValue": "DonverShared-prod:ExportsOutputRefPetPhotosBucket146E40377706B8E9"
+      },
+      "COGNITO_USER_POOL_CLIENT_ID": {
+       "Fn::ImportValue": "DonverAuth-prod:ExportsOutputRefDonverUserPoolDonverWebClient55387986BD58B7AB"
+      }
+     }
+    },
+    "FunctionName": "donver-update-pet-prod",
+    "Handler": "index.handler",
+    "LoggingConfig": {
+     "LogGroup": {
+      "Ref": "UpdatePetFnLogs76931AFB"
+     }
+    },
+    "MemorySize": 256,
+    "Role": {
+     "Fn::GetAtt": [
+      "UpdatePetFnServiceRoleDC708176",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs20.x",
+    "Timeout": 15
+   },
+   "DependsOn": [
+    "UpdatePetFnServiceRoleDefaultPolicyE13F3D73",
+    "UpdatePetFnServiceRoleDC708176"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/UpdatePetFn/Resource",
+    "aws:asset:path": "asset.eebc455602ac7d90e75ce0ce976f60591f2ae462a38832d0159304ff029ac58c",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "DeletePetFnLogs4F552235": {
+   "Type": "AWS::Logs::LogGroup",
+   "Properties": {
+    "LogGroupName": "/aws/lambda/donver-delete-pet-prod",
+    "RetentionInDays": 7
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DeletePetFnLogs/Resource"
+   }
+  },
+  "DeletePetFnServiceRoleEE05E6D6": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DeletePetFn/ServiceRole/Resource"
+   }
+  },
+  "DeletePetFnServiceRoleDefaultPolicyE9717971": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:ConditionCheckItem"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-core-prod"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-core-prod/index/*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "DeletePetFnServiceRoleDefaultPolicyE9717971",
+    "Roles": [
+     {
+      "Ref": "DeletePetFnServiceRoleEE05E6D6"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DeletePetFn/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "DeletePetFn8582A5B3": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-donver-assets-183192606101-us-east-1",
+     "S3Key": "296d9484b34bee4be0e06e15233fde32b3d7c92f9d598ab927be6f0a5c96b4f0.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "DONVER_ENV": "prod",
+      "CORE_TABLE_NAME": "donver-core-prod",
+      "BOOKINGS_TABLE_NAME": "donver-bookings-prod",
+      "MESSAGING_TABLE_NAME": "donver-messaging-prod",
+      "SPACE_PHOTOS_BUCKET": {
+       "Fn::ImportValue": "DonverShared-prod:ExportsOutputRefSpacePhotosBucket9FD3EAE15F11F63D"
+      },
+      "PET_PHOTOS_BUCKET": {
+       "Fn::ImportValue": "DonverShared-prod:ExportsOutputRefPetPhotosBucket146E40377706B8E9"
+      },
+      "COGNITO_USER_POOL_CLIENT_ID": {
+       "Fn::ImportValue": "DonverAuth-prod:ExportsOutputRefDonverUserPoolDonverWebClient55387986BD58B7AB"
+      }
+     }
+    },
+    "FunctionName": "donver-delete-pet-prod",
+    "Handler": "index.handler",
+    "LoggingConfig": {
+     "LogGroup": {
+      "Ref": "DeletePetFnLogs4F552235"
+     }
+    },
+    "MemorySize": 256,
+    "Role": {
+     "Fn::GetAtt": [
+      "DeletePetFnServiceRoleEE05E6D6",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs20.x",
+    "Timeout": 15
+   },
+   "DependsOn": [
+    "DeletePetFnServiceRoleDefaultPolicyE9717971",
+    "DeletePetFnServiceRoleEE05E6D6"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DeletePetFn/Resource",
+    "aws:asset:path": "asset.296d9484b34bee4be0e06e15233fde32b3d7c92f9d598ab927be6f0a5c96b4f0",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "ListOwnerBookingsFnLogs8C96D2E4": {
+   "Type": "AWS::Logs::LogGroup",
+   "Properties": {
+    "LogGroupName": "/aws/lambda/donver-list-owner-bookings-prod",
+    "RetentionInDays": 7
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/ListOwnerBookingsFnLogs/Resource"
+   }
+  },
+  "ListOwnerBookingsFnServiceRole0C4DC9CA": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/ListOwnerBookingsFn/ServiceRole/Resource"
+   }
+  },
+  "ListOwnerBookingsFnServiceRoleDefaultPolicy5D6059CC": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:ConditionCheckItem"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-bookings-prod"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-bookings-prod/index/*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": "dynamodb:GetItem",
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-core-prod"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-core-prod/index/*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "ListOwnerBookingsFnServiceRoleDefaultPolicy5D6059CC",
+    "Roles": [
+     {
+      "Ref": "ListOwnerBookingsFnServiceRole0C4DC9CA"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/ListOwnerBookingsFn/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "ListOwnerBookingsFnF00BFDDC": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-donver-assets-183192606101-us-east-1",
+     "S3Key": "522b4cd65c561a6c2b24681e7986eb416c7ecd406ee342bf6e23175deac3f509.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "DONVER_ENV": "prod",
+      "CORE_TABLE_NAME": "donver-core-prod",
+      "BOOKINGS_TABLE_NAME": "donver-bookings-prod",
+      "MESSAGING_TABLE_NAME": "donver-messaging-prod",
+      "SPACE_PHOTOS_BUCKET": {
+       "Fn::ImportValue": "DonverShared-prod:ExportsOutputRefSpacePhotosBucket9FD3EAE15F11F63D"
+      },
+      "PET_PHOTOS_BUCKET": {
+       "Fn::ImportValue": "DonverShared-prod:ExportsOutputRefPetPhotosBucket146E40377706B8E9"
+      },
+      "COGNITO_USER_POOL_CLIENT_ID": {
+       "Fn::ImportValue": "DonverAuth-prod:ExportsOutputRefDonverUserPoolDonverWebClient55387986BD58B7AB"
+      }
+     }
+    },
+    "FunctionName": "donver-list-owner-bookings-prod",
+    "Handler": "index.handler",
+    "LoggingConfig": {
+     "LogGroup": {
+      "Ref": "ListOwnerBookingsFnLogs8C96D2E4"
+     }
+    },
+    "MemorySize": 256,
+    "Role": {
+     "Fn::GetAtt": [
+      "ListOwnerBookingsFnServiceRole0C4DC9CA",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs20.x",
+    "Timeout": 15
+   },
+   "DependsOn": [
+    "ListOwnerBookingsFnServiceRoleDefaultPolicy5D6059CC",
+    "ListOwnerBookingsFnServiceRole0C4DC9CA"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/ListOwnerBookingsFn/Resource",
+    "aws:asset:path": "asset.522b4cd65c561a6c2b24681e7986eb416c7ecd406ee342bf6e23175deac3f509",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "ListCgBookingsFnLogs6127F04E": {
+   "Type": "AWS::Logs::LogGroup",
+   "Properties": {
+    "LogGroupName": "/aws/lambda/donver-list-caregiver-bookings-prod",
+    "RetentionInDays": 7
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/ListCgBookingsFnLogs/Resource"
+   }
+  },
+  "ListCgBookingsFnServiceRoleA3F6D0B6": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/ListCgBookingsFn/ServiceRole/Resource"
+   }
+  },
+  "ListCgBookingsFnServiceRoleDefaultPolicyB69D2492": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:ConditionCheckItem"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-core-prod"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-core-prod/index/*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": [
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:ConditionCheckItem"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-bookings-prod"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-bookings-prod/index/*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "ListCgBookingsFnServiceRoleDefaultPolicyB69D2492",
+    "Roles": [
+     {
+      "Ref": "ListCgBookingsFnServiceRoleA3F6D0B6"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/ListCgBookingsFn/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "ListCgBookingsFn856CFA41": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-donver-assets-183192606101-us-east-1",
+     "S3Key": "4108b020451e0a581a9ba7a6b64852e4f98c957151bf7303125493e5a408b606.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "DONVER_ENV": "prod",
+      "CORE_TABLE_NAME": "donver-core-prod",
+      "BOOKINGS_TABLE_NAME": "donver-bookings-prod",
+      "MESSAGING_TABLE_NAME": "donver-messaging-prod",
+      "SPACE_PHOTOS_BUCKET": {
+       "Fn::ImportValue": "DonverShared-prod:ExportsOutputRefSpacePhotosBucket9FD3EAE15F11F63D"
+      },
+      "PET_PHOTOS_BUCKET": {
+       "Fn::ImportValue": "DonverShared-prod:ExportsOutputRefPetPhotosBucket146E40377706B8E9"
+      },
+      "COGNITO_USER_POOL_CLIENT_ID": {
+       "Fn::ImportValue": "DonverAuth-prod:ExportsOutputRefDonverUserPoolDonverWebClient55387986BD58B7AB"
+      }
+     }
+    },
+    "FunctionName": "donver-list-caregiver-bookings-prod",
+    "Handler": "index.handler",
+    "LoggingConfig": {
+     "LogGroup": {
+      "Ref": "ListCgBookingsFnLogs6127F04E"
+     }
+    },
+    "MemorySize": 256,
+    "Role": {
+     "Fn::GetAtt": [
+      "ListCgBookingsFnServiceRoleA3F6D0B6",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs20.x",
+    "Timeout": 15
+   },
+   "DependsOn": [
+    "ListCgBookingsFnServiceRoleDefaultPolicyB69D2492",
+    "ListCgBookingsFnServiceRoleA3F6D0B6"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/ListCgBookingsFn/Resource",
+    "aws:asset:path": "asset.4108b020451e0a581a9ba7a6b64852e4f98c957151bf7303125493e5a408b606",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "GetBookingDetailFnLogs42062B9D": {
+   "Type": "AWS::Logs::LogGroup",
+   "Properties": {
+    "LogGroupName": "/aws/lambda/donver-get-booking-detail-prod",
+    "RetentionInDays": 7
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/GetBookingDetailFnLogs/Resource"
+   }
+  },
+  "GetBookingDetailFnServiceRole75888085": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/GetBookingDetailFn/ServiceRole/Resource"
+   }
+  },
+  "GetBookingDetailFnServiceRoleDefaultPolicy80F42EA6": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "dynamodb:GetItem",
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-bookings-prod"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-bookings-prod/index/*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": "dynamodb:GetItem",
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-core-prod"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-core-prod/index/*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "GetBookingDetailFnServiceRoleDefaultPolicy80F42EA6",
+    "Roles": [
+     {
+      "Ref": "GetBookingDetailFnServiceRole75888085"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/GetBookingDetailFn/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "GetBookingDetailFnD51BD946": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-donver-assets-183192606101-us-east-1",
+     "S3Key": "045170396b35dec2b81035773f63b57faae566868b5d6dc93a59d23c0c3ed209.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "DONVER_ENV": "prod",
+      "CORE_TABLE_NAME": "donver-core-prod",
+      "BOOKINGS_TABLE_NAME": "donver-bookings-prod",
+      "MESSAGING_TABLE_NAME": "donver-messaging-prod",
+      "SPACE_PHOTOS_BUCKET": {
+       "Fn::ImportValue": "DonverShared-prod:ExportsOutputRefSpacePhotosBucket9FD3EAE15F11F63D"
+      },
+      "PET_PHOTOS_BUCKET": {
+       "Fn::ImportValue": "DonverShared-prod:ExportsOutputRefPetPhotosBucket146E40377706B8E9"
+      },
+      "COGNITO_USER_POOL_CLIENT_ID": {
+       "Fn::ImportValue": "DonverAuth-prod:ExportsOutputRefDonverUserPoolDonverWebClient55387986BD58B7AB"
+      }
+     }
+    },
+    "FunctionName": "donver-get-booking-detail-prod",
+    "Handler": "index.handler",
+    "LoggingConfig": {
+     "LogGroup": {
+      "Ref": "GetBookingDetailFnLogs42062B9D"
+     }
+    },
+    "MemorySize": 256,
+    "Role": {
+     "Fn::GetAtt": [
+      "GetBookingDetailFnServiceRole75888085",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs20.x",
+    "Timeout": 15
+   },
+   "DependsOn": [
+    "GetBookingDetailFnServiceRoleDefaultPolicy80F42EA6",
+    "GetBookingDetailFnServiceRole75888085"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/GetBookingDetailFn/Resource",
+    "aws:asset:path": "asset.045170396b35dec2b81035773f63b57faae566868b5d6dc93a59d23c0c3ed209",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "CreateBookingFnLogs98A09054": {
+   "Type": "AWS::Logs::LogGroup",
+   "Properties": {
+    "LogGroupName": "/aws/lambda/donver-create-booking-prod",
+    "RetentionInDays": 7
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/CreateBookingFnLogs/Resource"
+   }
+  },
+  "CreateBookingFnServiceRole2A6D32F4": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/CreateBookingFn/ServiceRole/Resource"
+   }
+  },
+  "CreateBookingFnServiceRoleDefaultPolicyCCAF2DD1": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:ConditionCheckItem"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-core-prod"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-core-prod/index/*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": [
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:ConditionCheckItem"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-bookings-prod"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-bookings-prod/index/*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "CreateBookingFnServiceRoleDefaultPolicyCCAF2DD1",
+    "Roles": [
+     {
+      "Ref": "CreateBookingFnServiceRole2A6D32F4"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/CreateBookingFn/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "CreateBookingFn2E139998": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-donver-assets-183192606101-us-east-1",
+     "S3Key": "57168335c825251c20c9fbea74e2a1da170018e6d1fce42d73e26441b4415197.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "DONVER_ENV": "prod",
+      "CORE_TABLE_NAME": "donver-core-prod",
+      "BOOKINGS_TABLE_NAME": "donver-bookings-prod",
+      "MESSAGING_TABLE_NAME": "donver-messaging-prod",
+      "SPACE_PHOTOS_BUCKET": {
+       "Fn::ImportValue": "DonverShared-prod:ExportsOutputRefSpacePhotosBucket9FD3EAE15F11F63D"
+      },
+      "PET_PHOTOS_BUCKET": {
+       "Fn::ImportValue": "DonverShared-prod:ExportsOutputRefPetPhotosBucket146E40377706B8E9"
+      },
+      "COGNITO_USER_POOL_CLIENT_ID": {
+       "Fn::ImportValue": "DonverAuth-prod:ExportsOutputRefDonverUserPoolDonverWebClient55387986BD58B7AB"
+      }
+     }
+    },
+    "FunctionName": "donver-create-booking-prod",
+    "Handler": "index.handler",
+    "LoggingConfig": {
+     "LogGroup": {
+      "Ref": "CreateBookingFnLogs98A09054"
+     }
+    },
+    "MemorySize": 256,
+    "Role": {
+     "Fn::GetAtt": [
+      "CreateBookingFnServiceRole2A6D32F4",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs20.x",
+    "Timeout": 15
+   },
+   "DependsOn": [
+    "CreateBookingFnServiceRoleDefaultPolicyCCAF2DD1",
+    "CreateBookingFnServiceRole2A6D32F4"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/CreateBookingFn/Resource",
+    "aws:asset:path": "asset.57168335c825251c20c9fbea74e2a1da170018e6d1fce42d73e26441b4415197",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "ConfirmBookingFnLogsFB1D6D3F": {
+   "Type": "AWS::Logs::LogGroup",
+   "Properties": {
+    "LogGroupName": "/aws/lambda/donver-confirm-booking-prod",
+    "RetentionInDays": 7
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/ConfirmBookingFnLogs/Resource"
+   }
+  },
+  "ConfirmBookingFnServiceRoleBE6B217A": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/ConfirmBookingFn/ServiceRole/Resource"
+   }
+  },
+  "ConfirmBookingFnServiceRoleDefaultPolicyFC52788F": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:ConditionCheckItem"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-bookings-prod"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-bookings-prod/index/*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "ConfirmBookingFnServiceRoleDefaultPolicyFC52788F",
+    "Roles": [
+     {
+      "Ref": "ConfirmBookingFnServiceRoleBE6B217A"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/ConfirmBookingFn/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "ConfirmBookingFnCE71731F": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-donver-assets-183192606101-us-east-1",
+     "S3Key": "af897a821729ec53b22e0e8f8399f13d8c9b90509a647123b3dbc772e7c9f820.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "DONVER_ENV": "prod",
+      "CORE_TABLE_NAME": "donver-core-prod",
+      "BOOKINGS_TABLE_NAME": "donver-bookings-prod",
+      "MESSAGING_TABLE_NAME": "donver-messaging-prod",
+      "SPACE_PHOTOS_BUCKET": {
+       "Fn::ImportValue": "DonverShared-prod:ExportsOutputRefSpacePhotosBucket9FD3EAE15F11F63D"
+      },
+      "PET_PHOTOS_BUCKET": {
+       "Fn::ImportValue": "DonverShared-prod:ExportsOutputRefPetPhotosBucket146E40377706B8E9"
+      },
+      "COGNITO_USER_POOL_CLIENT_ID": {
+       "Fn::ImportValue": "DonverAuth-prod:ExportsOutputRefDonverUserPoolDonverWebClient55387986BD58B7AB"
+      }
+     }
+    },
+    "FunctionName": "donver-confirm-booking-prod",
+    "Handler": "index.handler",
+    "LoggingConfig": {
+     "LogGroup": {
+      "Ref": "ConfirmBookingFnLogsFB1D6D3F"
+     }
+    },
+    "MemorySize": 256,
+    "Role": {
+     "Fn::GetAtt": [
+      "ConfirmBookingFnServiceRoleBE6B217A",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs20.x",
+    "Timeout": 15
+   },
+   "DependsOn": [
+    "ConfirmBookingFnServiceRoleDefaultPolicyFC52788F",
+    "ConfirmBookingFnServiceRoleBE6B217A"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/ConfirmBookingFn/Resource",
+    "aws:asset:path": "asset.af897a821729ec53b22e0e8f8399f13d8c9b90509a647123b3dbc772e7c9f820",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "CancelBookingFnLogsB48E74A4": {
+   "Type": "AWS::Logs::LogGroup",
+   "Properties": {
+    "LogGroupName": "/aws/lambda/donver-cancel-booking-prod",
+    "RetentionInDays": 7
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/CancelBookingFnLogs/Resource"
+   }
+  },
+  "CancelBookingFnServiceRoleC702E58E": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/CancelBookingFn/ServiceRole/Resource"
+   }
+  },
+  "CancelBookingFnServiceRoleDefaultPolicy06329049": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:ConditionCheckItem"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-bookings-prod"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-bookings-prod/index/*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "CancelBookingFnServiceRoleDefaultPolicy06329049",
+    "Roles": [
+     {
+      "Ref": "CancelBookingFnServiceRoleC702E58E"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/CancelBookingFn/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "CancelBookingFnFA83E4FA": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-donver-assets-183192606101-us-east-1",
+     "S3Key": "882bb8ad8867e52a7e89de2e00d79c5233881beb12d3f1b31df1638fc11a9f59.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "DONVER_ENV": "prod",
+      "CORE_TABLE_NAME": "donver-core-prod",
+      "BOOKINGS_TABLE_NAME": "donver-bookings-prod",
+      "MESSAGING_TABLE_NAME": "donver-messaging-prod",
+      "SPACE_PHOTOS_BUCKET": {
+       "Fn::ImportValue": "DonverShared-prod:ExportsOutputRefSpacePhotosBucket9FD3EAE15F11F63D"
+      },
+      "PET_PHOTOS_BUCKET": {
+       "Fn::ImportValue": "DonverShared-prod:ExportsOutputRefPetPhotosBucket146E40377706B8E9"
+      },
+      "COGNITO_USER_POOL_CLIENT_ID": {
+       "Fn::ImportValue": "DonverAuth-prod:ExportsOutputRefDonverUserPoolDonverWebClient55387986BD58B7AB"
+      }
+     }
+    },
+    "FunctionName": "donver-cancel-booking-prod",
+    "Handler": "index.handler",
+    "LoggingConfig": {
+     "LogGroup": {
+      "Ref": "CancelBookingFnLogsB48E74A4"
+     }
+    },
+    "MemorySize": 256,
+    "Role": {
+     "Fn::GetAtt": [
+      "CancelBookingFnServiceRoleC702E58E",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs20.x",
+    "Timeout": 15
+   },
+   "DependsOn": [
+    "CancelBookingFnServiceRoleDefaultPolicy06329049",
+    "CancelBookingFnServiceRoleC702E58E"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/CancelBookingFn/Resource",
+    "aws:asset:path": "asset.882bb8ad8867e52a7e89de2e00d79c5233881beb12d3f1b31df1638fc11a9f59",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "CreateBlockedDateFnLogsD5C7D66A": {
+   "Type": "AWS::Logs::LogGroup",
+   "Properties": {
+    "LogGroupName": "/aws/lambda/donver-create-blocked-date-prod",
+    "RetentionInDays": 7
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/CreateBlockedDateFnLogs/Resource"
+   }
+  },
+  "CreateBlockedDateFnServiceRole9B4C7FFF": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/CreateBlockedDateFn/ServiceRole/Resource"
+   }
+  },
+  "CreateBlockedDateFnServiceRoleDefaultPolicy702D0D60": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:ConditionCheckItem"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-bookings-prod"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-bookings-prod/index/*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": "dynamodb:GetItem",
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-core-prod"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-core-prod/index/*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "CreateBlockedDateFnServiceRoleDefaultPolicy702D0D60",
+    "Roles": [
+     {
+      "Ref": "CreateBlockedDateFnServiceRole9B4C7FFF"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/CreateBlockedDateFn/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "CreateBlockedDateFn339D739E": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-donver-assets-183192606101-us-east-1",
+     "S3Key": "588ebe9092aa70be655f7850c4f3eacac9a13e87e66280092ff3bfa6f13bd957.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "DONVER_ENV": "prod",
+      "CORE_TABLE_NAME": "donver-core-prod",
+      "BOOKINGS_TABLE_NAME": "donver-bookings-prod",
+      "MESSAGING_TABLE_NAME": "donver-messaging-prod",
+      "SPACE_PHOTOS_BUCKET": {
+       "Fn::ImportValue": "DonverShared-prod:ExportsOutputRefSpacePhotosBucket9FD3EAE15F11F63D"
+      },
+      "PET_PHOTOS_BUCKET": {
+       "Fn::ImportValue": "DonverShared-prod:ExportsOutputRefPetPhotosBucket146E40377706B8E9"
+      },
+      "COGNITO_USER_POOL_CLIENT_ID": {
+       "Fn::ImportValue": "DonverAuth-prod:ExportsOutputRefDonverUserPoolDonverWebClient55387986BD58B7AB"
+      }
+     }
+    },
+    "FunctionName": "donver-create-blocked-date-prod",
+    "Handler": "index.handler",
+    "LoggingConfig": {
+     "LogGroup": {
+      "Ref": "CreateBlockedDateFnLogsD5C7D66A"
+     }
+    },
+    "MemorySize": 256,
+    "Role": {
+     "Fn::GetAtt": [
+      "CreateBlockedDateFnServiceRole9B4C7FFF",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs20.x",
+    "Timeout": 15
+   },
+   "DependsOn": [
+    "CreateBlockedDateFnServiceRoleDefaultPolicy702D0D60",
+    "CreateBlockedDateFnServiceRole9B4C7FFF"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/CreateBlockedDateFn/Resource",
+    "aws:asset:path": "asset.588ebe9092aa70be655f7850c4f3eacac9a13e87e66280092ff3bfa6f13bd957",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "DeleteBlockedDateFnLogs943B2A28": {
+   "Type": "AWS::Logs::LogGroup",
+   "Properties": {
+    "LogGroupName": "/aws/lambda/donver-delete-blocked-date-prod",
+    "RetentionInDays": 7
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DeleteBlockedDateFnLogs/Resource"
+   }
+  },
+  "DeleteBlockedDateFnServiceRoleD2F37CD3": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DeleteBlockedDateFn/ServiceRole/Resource"
+   }
+  },
+  "DeleteBlockedDateFnServiceRoleDefaultPolicy8689D5D6": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:ConditionCheckItem"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-bookings-prod"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-bookings-prod/index/*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": "dynamodb:GetItem",
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-core-prod"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-core-prod/index/*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "DeleteBlockedDateFnServiceRoleDefaultPolicy8689D5D6",
+    "Roles": [
+     {
+      "Ref": "DeleteBlockedDateFnServiceRoleD2F37CD3"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DeleteBlockedDateFn/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "DeleteBlockedDateFnB264CC3D": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-donver-assets-183192606101-us-east-1",
+     "S3Key": "efba11c07c861a7b3c36efbda504961ea196e36dbea6b75d5ef119ea959631fe.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "DONVER_ENV": "prod",
+      "CORE_TABLE_NAME": "donver-core-prod",
+      "BOOKINGS_TABLE_NAME": "donver-bookings-prod",
+      "MESSAGING_TABLE_NAME": "donver-messaging-prod",
+      "SPACE_PHOTOS_BUCKET": {
+       "Fn::ImportValue": "DonverShared-prod:ExportsOutputRefSpacePhotosBucket9FD3EAE15F11F63D"
+      },
+      "PET_PHOTOS_BUCKET": {
+       "Fn::ImportValue": "DonverShared-prod:ExportsOutputRefPetPhotosBucket146E40377706B8E9"
+      },
+      "COGNITO_USER_POOL_CLIENT_ID": {
+       "Fn::ImportValue": "DonverAuth-prod:ExportsOutputRefDonverUserPoolDonverWebClient55387986BD58B7AB"
+      }
+     }
+    },
+    "FunctionName": "donver-delete-blocked-date-prod",
+    "Handler": "index.handler",
+    "LoggingConfig": {
+     "LogGroup": {
+      "Ref": "DeleteBlockedDateFnLogs943B2A28"
+     }
+    },
+    "MemorySize": 256,
+    "Role": {
+     "Fn::GetAtt": [
+      "DeleteBlockedDateFnServiceRoleD2F37CD3",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs20.x",
+    "Timeout": 15
+   },
+   "DependsOn": [
+    "DeleteBlockedDateFnServiceRoleDefaultPolicy8689D5D6",
+    "DeleteBlockedDateFnServiceRoleD2F37CD3"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DeleteBlockedDateFn/Resource",
+    "aws:asset:path": "asset.efba11c07c861a7b3c36efbda504961ea196e36dbea6b75d5ef119ea959631fe",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "CaregiverOnboardingFnLogs67B06372": {
+   "Type": "AWS::Logs::LogGroup",
+   "Properties": {
+    "LogGroupName": "/aws/lambda/donver-caregiver-onboarding-prod",
+    "RetentionInDays": 7
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/CaregiverOnboardingFnLogs/Resource"
+   }
+  },
+  "CaregiverOnboardingFnServiceRoleA96E95BF": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/CaregiverOnboardingFn/ServiceRole/Resource"
+   }
+  },
+  "CaregiverOnboardingFnServiceRoleDefaultPolicy0E9FBD10": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:ConditionCheckItem"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-core-prod"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-core-prod/index/*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "CaregiverOnboardingFnServiceRoleDefaultPolicy0E9FBD10",
+    "Roles": [
+     {
+      "Ref": "CaregiverOnboardingFnServiceRoleA96E95BF"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/CaregiverOnboardingFn/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "CaregiverOnboardingFn9037866F": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-donver-assets-183192606101-us-east-1",
+     "S3Key": "28e65e213317a102b29f9439001c8853c3820a0e7d7ec79ee752f2b4fee1e43c.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "DONVER_ENV": "prod",
+      "CORE_TABLE_NAME": "donver-core-prod",
+      "BOOKINGS_TABLE_NAME": "donver-bookings-prod",
+      "MESSAGING_TABLE_NAME": "donver-messaging-prod",
+      "SPACE_PHOTOS_BUCKET": {
+       "Fn::ImportValue": "DonverShared-prod:ExportsOutputRefSpacePhotosBucket9FD3EAE15F11F63D"
+      },
+      "PET_PHOTOS_BUCKET": {
+       "Fn::ImportValue": "DonverShared-prod:ExportsOutputRefPetPhotosBucket146E40377706B8E9"
+      },
+      "COGNITO_USER_POOL_CLIENT_ID": {
+       "Fn::ImportValue": "DonverAuth-prod:ExportsOutputRefDonverUserPoolDonverWebClient55387986BD58B7AB"
+      }
+     }
+    },
+    "FunctionName": "donver-caregiver-onboarding-prod",
+    "Handler": "index.handler",
+    "LoggingConfig": {
+     "LogGroup": {
+      "Ref": "CaregiverOnboardingFnLogs67B06372"
+     }
+    },
+    "MemorySize": 256,
+    "Role": {
+     "Fn::GetAtt": [
+      "CaregiverOnboardingFnServiceRoleA96E95BF",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs20.x",
+    "Timeout": 15
+   },
+   "DependsOn": [
+    "CaregiverOnboardingFnServiceRoleDefaultPolicy0E9FBD10",
+    "CaregiverOnboardingFnServiceRoleA96E95BF"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/CaregiverOnboardingFn/Resource",
+    "aws:asset:path": "asset.28e65e213317a102b29f9439001c8853c3820a0e7d7ec79ee752f2b4fee1e43c",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "ListReviewsFnLogsDC050EF0": {
+   "Type": "AWS::Logs::LogGroup",
+   "Properties": {
+    "LogGroupName": "/aws/lambda/donver-list-reviews-prod",
+    "RetentionInDays": 7
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/ListReviewsFnLogs/Resource"
+   }
+  },
+  "ListReviewsFnServiceRole9160381F": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/ListReviewsFn/ServiceRole/Resource"
+   }
+  },
+  "ListReviewsFnServiceRoleDefaultPolicy01F55E5E": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:ConditionCheckItem"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-core-prod"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-core-prod/index/*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "ListReviewsFnServiceRoleDefaultPolicy01F55E5E",
+    "Roles": [
+     {
+      "Ref": "ListReviewsFnServiceRole9160381F"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/ListReviewsFn/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "ListReviewsFn39F49A4B": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-donver-assets-183192606101-us-east-1",
+     "S3Key": "604e1cb6b6fc1bb0558373277d26708d989cd7eaf4cffca3490c6726f5e5d2f1.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "DONVER_ENV": "prod",
+      "CORE_TABLE_NAME": "donver-core-prod",
+      "BOOKINGS_TABLE_NAME": "donver-bookings-prod",
+      "MESSAGING_TABLE_NAME": "donver-messaging-prod",
+      "SPACE_PHOTOS_BUCKET": {
+       "Fn::ImportValue": "DonverShared-prod:ExportsOutputRefSpacePhotosBucket9FD3EAE15F11F63D"
+      },
+      "PET_PHOTOS_BUCKET": {
+       "Fn::ImportValue": "DonverShared-prod:ExportsOutputRefPetPhotosBucket146E40377706B8E9"
+      },
+      "COGNITO_USER_POOL_CLIENT_ID": {
+       "Fn::ImportValue": "DonverAuth-prod:ExportsOutputRefDonverUserPoolDonverWebClient55387986BD58B7AB"
+      }
+     }
+    },
+    "FunctionName": "donver-list-reviews-prod",
+    "Handler": "index.handler",
+    "LoggingConfig": {
+     "LogGroup": {
+      "Ref": "ListReviewsFnLogsDC050EF0"
+     }
+    },
+    "MemorySize": 256,
+    "Role": {
+     "Fn::GetAtt": [
+      "ListReviewsFnServiceRole9160381F",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs20.x",
+    "Timeout": 15
+   },
+   "DependsOn": [
+    "ListReviewsFnServiceRoleDefaultPolicy01F55E5E",
+    "ListReviewsFnServiceRole9160381F"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/ListReviewsFn/Resource",
+    "aws:asset:path": "asset.604e1cb6b6fc1bb0558373277d26708d989cd7eaf4cffca3490c6726f5e5d2f1",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "CreateReviewFnLogs06BD4833": {
+   "Type": "AWS::Logs::LogGroup",
+   "Properties": {
+    "LogGroupName": "/aws/lambda/donver-create-review-prod",
+    "RetentionInDays": 7
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/CreateReviewFnLogs/Resource"
+   }
+  },
+  "CreateReviewFnServiceRole91B4E4BA": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/CreateReviewFn/ServiceRole/Resource"
+   }
+  },
+  "CreateReviewFnServiceRoleDefaultPolicy04A15F56": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:ConditionCheckItem"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-core-prod"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-core-prod/index/*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": [
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:ConditionCheckItem"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-bookings-prod"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-bookings-prod/index/*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "CreateReviewFnServiceRoleDefaultPolicy04A15F56",
+    "Roles": [
+     {
+      "Ref": "CreateReviewFnServiceRole91B4E4BA"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/CreateReviewFn/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "CreateReviewFn0922C7A2": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-donver-assets-183192606101-us-east-1",
+     "S3Key": "233111106f76e055a6b8f31c98ddc2a9fac971c074b9fc8af87a27546e3e119c.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "DONVER_ENV": "prod",
+      "CORE_TABLE_NAME": "donver-core-prod",
+      "BOOKINGS_TABLE_NAME": "donver-bookings-prod",
+      "MESSAGING_TABLE_NAME": "donver-messaging-prod",
+      "SPACE_PHOTOS_BUCKET": {
+       "Fn::ImportValue": "DonverShared-prod:ExportsOutputRefSpacePhotosBucket9FD3EAE15F11F63D"
+      },
+      "PET_PHOTOS_BUCKET": {
+       "Fn::ImportValue": "DonverShared-prod:ExportsOutputRefPetPhotosBucket146E40377706B8E9"
+      },
+      "COGNITO_USER_POOL_CLIENT_ID": {
+       "Fn::ImportValue": "DonverAuth-prod:ExportsOutputRefDonverUserPoolDonverWebClient55387986BD58B7AB"
+      }
+     }
+    },
+    "FunctionName": "donver-create-review-prod",
+    "Handler": "index.handler",
+    "LoggingConfig": {
+     "LogGroup": {
+      "Ref": "CreateReviewFnLogs06BD4833"
+     }
+    },
+    "MemorySize": 256,
+    "Role": {
+     "Fn::GetAtt": [
+      "CreateReviewFnServiceRole91B4E4BA",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs20.x",
+    "Timeout": 15
+   },
+   "DependsOn": [
+    "CreateReviewFnServiceRoleDefaultPolicy04A15F56",
+    "CreateReviewFnServiceRole91B4E4BA"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/CreateReviewFn/Resource",
+    "aws:asset:path": "asset.233111106f76e055a6b8f31c98ddc2a9fac971c074b9fc8af87a27546e3e119c",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "CreateUploadUrlFnLogs30FEAE5B": {
+   "Type": "AWS::Logs::LogGroup",
+   "Properties": {
+    "LogGroupName": "/aws/lambda/donver-create-upload-url-prod",
+    "RetentionInDays": 7
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/CreateUploadUrlFnLogs/Resource"
+   }
+  },
+  "CreateUploadUrlFnServiceRole62A02E0B": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/CreateUploadUrlFn/ServiceRole/Resource"
+   }
+  },
+  "CreateUploadUrlFnServiceRoleDefaultPolicyABA3ED25": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "s3:PutObject",
+        "s3:PutObjectLegalHold",
+        "s3:PutObjectRetention",
+        "s3:PutObjectTagging",
+        "s3:PutObjectVersionTagging",
+        "s3:Abort*"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          {
+           "Fn::ImportValue": "DonverShared-prod:ExportsOutputFnGetAttSpacePhotosBucket9FD3EAE1ArnA61BB112"
+          },
+          "/*"
+         ]
+        ]
+       }
+      },
+      {
+       "Action": [
+        "s3:PutObject",
+        "s3:PutObjectLegalHold",
+        "s3:PutObjectRetention",
+        "s3:PutObjectTagging",
+        "s3:PutObjectVersionTagging",
+        "s3:Abort*"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          {
+           "Fn::ImportValue": "DonverShared-prod:ExportsOutputFnGetAttPetPhotosBucket146E4037ArnC184780F"
+          },
+          "/*"
+         ]
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "CreateUploadUrlFnServiceRoleDefaultPolicyABA3ED25",
+    "Roles": [
+     {
+      "Ref": "CreateUploadUrlFnServiceRole62A02E0B"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/CreateUploadUrlFn/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "CreateUploadUrlFn400256AD": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-donver-assets-183192606101-us-east-1",
+     "S3Key": "8c0bd636007ed4394acd24d1041d9861f734aece83eb2a88e36dade9b85bcfe8.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "DONVER_ENV": "prod",
+      "CORE_TABLE_NAME": "donver-core-prod",
+      "BOOKINGS_TABLE_NAME": "donver-bookings-prod",
+      "MESSAGING_TABLE_NAME": "donver-messaging-prod",
+      "SPACE_PHOTOS_BUCKET": {
+       "Fn::ImportValue": "DonverShared-prod:ExportsOutputRefSpacePhotosBucket9FD3EAE15F11F63D"
+      },
+      "PET_PHOTOS_BUCKET": {
+       "Fn::ImportValue": "DonverShared-prod:ExportsOutputRefPetPhotosBucket146E40377706B8E9"
+      },
+      "COGNITO_USER_POOL_CLIENT_ID": {
+       "Fn::ImportValue": "DonverAuth-prod:ExportsOutputRefDonverUserPoolDonverWebClient55387986BD58B7AB"
+      }
+     }
+    },
+    "FunctionName": "donver-create-upload-url-prod",
+    "Handler": "index.handler",
+    "LoggingConfig": {
+     "LogGroup": {
+      "Ref": "CreateUploadUrlFnLogs30FEAE5B"
+     }
+    },
+    "MemorySize": 256,
+    "Role": {
+     "Fn::GetAtt": [
+      "CreateUploadUrlFnServiceRole62A02E0B",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs20.x",
+    "Timeout": 15
+   },
+   "DependsOn": [
+    "CreateUploadUrlFnServiceRoleDefaultPolicyABA3ED25",
+    "CreateUploadUrlFnServiceRole62A02E0B"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/CreateUploadUrlFn/Resource",
+    "aws:asset:path": "asset.8c0bd636007ed4394acd24d1041d9861f734aece83eb2a88e36dade9b85bcfe8",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "ListConvsFnLogs4505E587": {
+   "Type": "AWS::Logs::LogGroup",
+   "Properties": {
+    "LogGroupName": "/aws/lambda/donver-list-conversations-prod",
+    "RetentionInDays": 7
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/ListConvsFnLogs/Resource"
+   }
+  },
+  "ListConvsFnServiceRole340A6E65": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/ListConvsFn/ServiceRole/Resource"
+   }
+  },
+  "ListConvsFnServiceRoleDefaultPolicyCF0FF4F7": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:ConditionCheckItem"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-messaging-prod"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-messaging-prod/index/*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "ListConvsFnServiceRoleDefaultPolicyCF0FF4F7",
+    "Roles": [
+     {
+      "Ref": "ListConvsFnServiceRole340A6E65"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/ListConvsFn/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "ListConvsFn6BD3C94F": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-donver-assets-183192606101-us-east-1",
+     "S3Key": "168c1c558de05ea58d274d1e085757aee03da76ea34519ce5697731f71c3d4d2.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "DONVER_ENV": "prod",
+      "CORE_TABLE_NAME": "donver-core-prod",
+      "BOOKINGS_TABLE_NAME": "donver-bookings-prod",
+      "MESSAGING_TABLE_NAME": "donver-messaging-prod",
+      "SPACE_PHOTOS_BUCKET": {
+       "Fn::ImportValue": "DonverShared-prod:ExportsOutputRefSpacePhotosBucket9FD3EAE15F11F63D"
+      },
+      "PET_PHOTOS_BUCKET": {
+       "Fn::ImportValue": "DonverShared-prod:ExportsOutputRefPetPhotosBucket146E40377706B8E9"
+      },
+      "COGNITO_USER_POOL_CLIENT_ID": {
+       "Fn::ImportValue": "DonverAuth-prod:ExportsOutputRefDonverUserPoolDonverWebClient55387986BD58B7AB"
+      }
+     }
+    },
+    "FunctionName": "donver-list-conversations-prod",
+    "Handler": "index.handler",
+    "LoggingConfig": {
+     "LogGroup": {
+      "Ref": "ListConvsFnLogs4505E587"
+     }
+    },
+    "MemorySize": 256,
+    "Role": {
+     "Fn::GetAtt": [
+      "ListConvsFnServiceRole340A6E65",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs20.x",
+    "Timeout": 15
+   },
+   "DependsOn": [
+    "ListConvsFnServiceRoleDefaultPolicyCF0FF4F7",
+    "ListConvsFnServiceRole340A6E65"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/ListConvsFn/Resource",
+    "aws:asset:path": "asset.168c1c558de05ea58d274d1e085757aee03da76ea34519ce5697731f71c3d4d2",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "ListMessagesFnLogs52A7B197": {
+   "Type": "AWS::Logs::LogGroup",
+   "Properties": {
+    "LogGroupName": "/aws/lambda/donver-list-messages-prod",
+    "RetentionInDays": 7
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/ListMessagesFnLogs/Resource"
+   }
+  },
+  "ListMessagesFnServiceRole08AD6C06": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/ListMessagesFn/ServiceRole/Resource"
+   }
+  },
+  "ListMessagesFnServiceRoleDefaultPolicyAD70552F": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:ConditionCheckItem"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-messaging-prod"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-messaging-prod/index/*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "ListMessagesFnServiceRoleDefaultPolicyAD70552F",
+    "Roles": [
+     {
+      "Ref": "ListMessagesFnServiceRole08AD6C06"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/ListMessagesFn/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "ListMessagesFnD6515307": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-donver-assets-183192606101-us-east-1",
+     "S3Key": "3a8109f5e74a0d9cd59bc81381441ce2358f4795a158d91f542ae4d954cb6eda.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "DONVER_ENV": "prod",
+      "CORE_TABLE_NAME": "donver-core-prod",
+      "BOOKINGS_TABLE_NAME": "donver-bookings-prod",
+      "MESSAGING_TABLE_NAME": "donver-messaging-prod",
+      "SPACE_PHOTOS_BUCKET": {
+       "Fn::ImportValue": "DonverShared-prod:ExportsOutputRefSpacePhotosBucket9FD3EAE15F11F63D"
+      },
+      "PET_PHOTOS_BUCKET": {
+       "Fn::ImportValue": "DonverShared-prod:ExportsOutputRefPetPhotosBucket146E40377706B8E9"
+      },
+      "COGNITO_USER_POOL_CLIENT_ID": {
+       "Fn::ImportValue": "DonverAuth-prod:ExportsOutputRefDonverUserPoolDonverWebClient55387986BD58B7AB"
+      }
+     }
+    },
+    "FunctionName": "donver-list-messages-prod",
+    "Handler": "index.handler",
+    "LoggingConfig": {
+     "LogGroup": {
+      "Ref": "ListMessagesFnLogs52A7B197"
+     }
+    },
+    "MemorySize": 256,
+    "Role": {
+     "Fn::GetAtt": [
+      "ListMessagesFnServiceRole08AD6C06",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs20.x",
+    "Timeout": 15
+   },
+   "DependsOn": [
+    "ListMessagesFnServiceRoleDefaultPolicyAD70552F",
+    "ListMessagesFnServiceRole08AD6C06"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/ListMessagesFn/Resource",
+    "aws:asset:path": "asset.3a8109f5e74a0d9cd59bc81381441ce2358f4795a158d91f542ae4d954cb6eda",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "WsConnectFnLogs006A22CB": {
+   "Type": "AWS::Logs::LogGroup",
+   "Properties": {
+    "LogGroupName": "/aws/lambda/donver-ws-connect-prod",
+    "RetentionInDays": 7
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/WsConnectFnLogs/Resource"
+   }
+  },
+  "WsConnectFnServiceRole749353A4": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/WsConnectFn/ServiceRole/Resource"
+   }
+  },
+  "WsConnectFnServiceRoleDefaultPolicyE8538EDC": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:ConditionCheckItem"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-messaging-prod"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-messaging-prod/index/*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "WsConnectFnServiceRoleDefaultPolicyE8538EDC",
+    "Roles": [
+     {
+      "Ref": "WsConnectFnServiceRole749353A4"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/WsConnectFn/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "WsConnectFnB17D99F3": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-donver-assets-183192606101-us-east-1",
+     "S3Key": "1d38129539e82ce0a5b7177f3ebcdeccee1b23013274630a86d4b156b7e1ad16.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "DONVER_ENV": "prod",
+      "CORE_TABLE_NAME": "donver-core-prod",
+      "BOOKINGS_TABLE_NAME": "donver-bookings-prod",
+      "MESSAGING_TABLE_NAME": "donver-messaging-prod",
+      "SPACE_PHOTOS_BUCKET": {
+       "Fn::ImportValue": "DonverShared-prod:ExportsOutputRefSpacePhotosBucket9FD3EAE15F11F63D"
+      },
+      "PET_PHOTOS_BUCKET": {
+       "Fn::ImportValue": "DonverShared-prod:ExportsOutputRefPetPhotosBucket146E40377706B8E9"
+      },
+      "COGNITO_USER_POOL_CLIENT_ID": {
+       "Fn::ImportValue": "DonverAuth-prod:ExportsOutputRefDonverUserPoolDonverWebClient55387986BD58B7AB"
+      }
+     }
+    },
+    "FunctionName": "donver-ws-connect-prod",
+    "Handler": "index.handler",
+    "LoggingConfig": {
+     "LogGroup": {
+      "Ref": "WsConnectFnLogs006A22CB"
+     }
+    },
+    "MemorySize": 256,
+    "Role": {
+     "Fn::GetAtt": [
+      "WsConnectFnServiceRole749353A4",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs20.x",
+    "Timeout": 15
+   },
+   "DependsOn": [
+    "WsConnectFnServiceRoleDefaultPolicyE8538EDC",
+    "WsConnectFnServiceRole749353A4"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/WsConnectFn/Resource",
+    "aws:asset:path": "asset.1d38129539e82ce0a5b7177f3ebcdeccee1b23013274630a86d4b156b7e1ad16",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "WsDisconnectFnLogsF1C2D440": {
+   "Type": "AWS::Logs::LogGroup",
+   "Properties": {
+    "LogGroupName": "/aws/lambda/donver-ws-disconnect-prod",
+    "RetentionInDays": 7
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/WsDisconnectFnLogs/Resource"
+   }
+  },
+  "WsDisconnectFnServiceRoleF36033AD": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/WsDisconnectFn/ServiceRole/Resource"
+   }
+  },
+  "WsDisconnectFnServiceRoleDefaultPolicy76179A14": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:ConditionCheckItem"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-messaging-prod"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-messaging-prod/index/*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "WsDisconnectFnServiceRoleDefaultPolicy76179A14",
+    "Roles": [
+     {
+      "Ref": "WsDisconnectFnServiceRoleF36033AD"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/WsDisconnectFn/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "WsDisconnectFn9523C1B1": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-donver-assets-183192606101-us-east-1",
+     "S3Key": "6d7ff859092487bfcc36fd1460fef5a163f3efad05b0a83a495fcf793f7d9c2e.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "DONVER_ENV": "prod",
+      "CORE_TABLE_NAME": "donver-core-prod",
+      "BOOKINGS_TABLE_NAME": "donver-bookings-prod",
+      "MESSAGING_TABLE_NAME": "donver-messaging-prod",
+      "SPACE_PHOTOS_BUCKET": {
+       "Fn::ImportValue": "DonverShared-prod:ExportsOutputRefSpacePhotosBucket9FD3EAE15F11F63D"
+      },
+      "PET_PHOTOS_BUCKET": {
+       "Fn::ImportValue": "DonverShared-prod:ExportsOutputRefPetPhotosBucket146E40377706B8E9"
+      },
+      "COGNITO_USER_POOL_CLIENT_ID": {
+       "Fn::ImportValue": "DonverAuth-prod:ExportsOutputRefDonverUserPoolDonverWebClient55387986BD58B7AB"
+      }
+     }
+    },
+    "FunctionName": "donver-ws-disconnect-prod",
+    "Handler": "index.handler",
+    "LoggingConfig": {
+     "LogGroup": {
+      "Ref": "WsDisconnectFnLogsF1C2D440"
+     }
+    },
+    "MemorySize": 256,
+    "Role": {
+     "Fn::GetAtt": [
+      "WsDisconnectFnServiceRoleF36033AD",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs20.x",
+    "Timeout": 15
+   },
+   "DependsOn": [
+    "WsDisconnectFnServiceRoleDefaultPolicy76179A14",
+    "WsDisconnectFnServiceRoleF36033AD"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/WsDisconnectFn/Resource",
+    "aws:asset:path": "asset.6d7ff859092487bfcc36fd1460fef5a163f3efad05b0a83a495fcf793f7d9c2e",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "WsSendMessageFnLogs3824CD5F": {
+   "Type": "AWS::Logs::LogGroup",
+   "Properties": {
+    "LogGroupName": "/aws/lambda/donver-ws-send-message-prod",
+    "RetentionInDays": 7
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/WsSendMessageFnLogs/Resource"
+   }
+  },
+  "WsSendMessageFnServiceRole402D7D23": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/WsSendMessageFn/ServiceRole/Resource"
+   }
+  },
+  "WsSendMessageFnServiceRoleDefaultPolicy11820FA4": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:ConditionCheckItem"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-messaging-prod"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":dynamodb:us-east-1:183192606101:table/donver-messaging-prod/index/*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": "execute-api:ManageConnections",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:aws:execute-api:us-east-1:183192606101:",
+          {
+           "Ref": "DonverWebSocketApiBA9543F3"
+          },
+          "/prod/POST/@connections/*"
+         ]
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "WsSendMessageFnServiceRoleDefaultPolicy11820FA4",
+    "Roles": [
+     {
+      "Ref": "WsSendMessageFnServiceRole402D7D23"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/WsSendMessageFn/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "WsSendMessageFn00921F75": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-donver-assets-183192606101-us-east-1",
+     "S3Key": "079f20ea010e7fd91f1777fe80578a0900cdc11df2303b6e22803d8750aee496.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "DONVER_ENV": "prod",
+      "CORE_TABLE_NAME": "donver-core-prod",
+      "BOOKINGS_TABLE_NAME": "donver-bookings-prod",
+      "MESSAGING_TABLE_NAME": "donver-messaging-prod",
+      "SPACE_PHOTOS_BUCKET": {
+       "Fn::ImportValue": "DonverShared-prod:ExportsOutputRefSpacePhotosBucket9FD3EAE15F11F63D"
+      },
+      "PET_PHOTOS_BUCKET": {
+       "Fn::ImportValue": "DonverShared-prod:ExportsOutputRefPetPhotosBucket146E40377706B8E9"
+      },
+      "COGNITO_USER_POOL_CLIENT_ID": {
+       "Fn::ImportValue": "DonverAuth-prod:ExportsOutputRefDonverUserPoolDonverWebClient55387986BD58B7AB"
+      }
+     }
+    },
+    "FunctionName": "donver-ws-send-message-prod",
+    "Handler": "index.handler",
+    "LoggingConfig": {
+     "LogGroup": {
+      "Ref": "WsSendMessageFnLogs3824CD5F"
+     }
+    },
+    "MemorySize": 256,
+    "Role": {
+     "Fn::GetAtt": [
+      "WsSendMessageFnServiceRole402D7D23",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs20.x",
+    "Timeout": 15
+   },
+   "DependsOn": [
+    "WsSendMessageFnServiceRoleDefaultPolicy11820FA4",
+    "WsSendMessageFnServiceRole402D7D23"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/WsSendMessageFn/Resource",
+    "aws:asset:path": "asset.079f20ea010e7fd91f1777fe80578a0900cdc11df2303b6e22803d8750aee496",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "DonverHttpApiDB0970D0": {
+   "Type": "AWS::ApiGatewayV2::Api",
+   "Properties": {
+    "CorsConfiguration": {
+     "AllowCredentials": true,
+     "AllowHeaders": [
+      "authorization",
+      "content-type",
+      "x-requested-with"
+     ],
+     "AllowMethods": [
+      "GET",
+      "POST",
+      "PUT",
+      "PATCH",
+      "DELETE",
+      "OPTIONS"
+     ],
+     "AllowOrigins": [
+      "http://localhost:5173",
+      "http://localhost:4173",
+      "http://127.0.0.1:5173",
+      "http://127.0.0.1:4173",
+      "https://app.donver.cr"
+     ]
+    },
+    "Name": "donver-http-api-prod",
+    "ProtocolType": "HTTP"
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/Resource"
+   }
+  },
+  "DonverHttpApiDefaultStage32C950B4": {
+   "Type": "AWS::ApiGatewayV2::Stage",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverHttpApiDB0970D0"
+    },
+    "AutoDeploy": true,
+    "StageName": "$default"
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/DefaultStage/Resource"
+   }
+  },
+  "DonverHttpApiPOSTauthregisterAuthRegister8C3F3D8D": {
+   "Type": "AWS::ApiGatewayV2::Integration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverHttpApiDB0970D0"
+    },
+    "IntegrationType": "AWS_PROXY",
+    "IntegrationUri": {
+     "Fn::GetAtt": [
+      "AuthRegisterFnA61FDC02",
+      "Arn"
+     ]
+    },
+    "PayloadFormatVersion": "2.0"
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/POST--auth--register/AuthRegister/Resource"
+   }
+  },
+  "DonverHttpApiPOSTauthregisterAuthRegisterPermissionF6D8F567": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "AuthRegisterFnA61FDC02",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:183192606101:",
+       {
+        "Ref": "DonverHttpApiDB0970D0"
+       },
+       "/*/*/auth/register"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/POST--auth--register/AuthRegister-Permission"
+   }
+  },
+  "DonverHttpApiPOSTauthregisterE99D02C0": {
+   "Type": "AWS::ApiGatewayV2::Route",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverHttpApiDB0970D0"
+    },
+    "AuthorizationType": "NONE",
+    "RouteKey": "POST /auth/register",
+    "Target": {
+     "Fn::Join": [
+      "",
+      [
+       "integrations/",
+       {
+        "Ref": "DonverHttpApiPOSTauthregisterAuthRegister8C3F3D8D"
+       }
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/POST--auth--register/Resource"
+   }
+  },
+  "DonverHttpApiPOSTauthbootstrapAuthBootstrap186899C8": {
+   "Type": "AWS::ApiGatewayV2::Integration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverHttpApiDB0970D0"
+    },
+    "IntegrationType": "AWS_PROXY",
+    "IntegrationUri": {
+     "Fn::GetAtt": [
+      "AuthBootstrapFn03BDFDDA",
+      "Arn"
+     ]
+    },
+    "PayloadFormatVersion": "2.0"
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/POST--auth--bootstrap/AuthBootstrap/Resource"
+   }
+  },
+  "DonverHttpApiPOSTauthbootstrapAuthBootstrapPermission42ECF05A": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "AuthBootstrapFn03BDFDDA",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:183192606101:",
+       {
+        "Ref": "DonverHttpApiDB0970D0"
+       },
+       "/*/*/auth/bootstrap"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/POST--auth--bootstrap/AuthBootstrap-Permission"
+   }
+  },
+  "DonverHttpApiPOSTauthbootstrapE334D075": {
+   "Type": "AWS::ApiGatewayV2::Route",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverHttpApiDB0970D0"
+    },
+    "AuthorizationType": "JWT",
+    "AuthorizerId": {
+     "Ref": "DonverHttpApiDonverJwtAuthorizer96D37763"
+    },
+    "RouteKey": "POST /auth/bootstrap",
+    "Target": {
+     "Fn::Join": [
+      "",
+      [
+       "integrations/",
+       {
+        "Ref": "DonverHttpApiPOSTauthbootstrapAuthBootstrap186899C8"
+       }
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/POST--auth--bootstrap/Resource"
+   }
+  },
+  "DonverHttpApiDonverJwtAuthorizer96D37763": {
+   "Type": "AWS::ApiGatewayV2::Authorizer",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverHttpApiDB0970D0"
+    },
+    "AuthorizerType": "JWT",
+    "IdentitySource": [
+     "$request.header.Authorization"
+    ],
+    "JwtConfiguration": {
+     "Audience": [
+      {
+       "Fn::ImportValue": "DonverAuth-prod:ExportsOutputRefDonverUserPoolDonverWebClient55387986BD58B7AB"
+      }
+     ],
+     "Issuer": {
+      "Fn::Join": [
+       "",
+       [
+        "https://cognito-idp.us-east-1.amazonaws.com/",
+        {
+         "Fn::ImportValue": "DonverAuth-prod:ExportsOutputRefDonverUserPool69F4E0B32DDB3652"
+        }
+       ]
+      ]
+     }
+    },
+    "Name": "DonverJwtAuthorizer"
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/DonverJwtAuthorizer/Resource"
+   }
+  },
+  "DonverHttpApiGETmeGetMe12BC5AA6": {
+   "Type": "AWS::ApiGatewayV2::Integration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverHttpApiDB0970D0"
+    },
+    "IntegrationType": "AWS_PROXY",
+    "IntegrationUri": {
+     "Fn::GetAtt": [
+      "GetMeFn9F44A8FA",
+      "Arn"
+     ]
+    },
+    "PayloadFormatVersion": "2.0"
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/GET--me/GetMe/Resource"
+   }
+  },
+  "DonverHttpApiGETmeGetMePermissionD154E66E": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "GetMeFn9F44A8FA",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:183192606101:",
+       {
+        "Ref": "DonverHttpApiDB0970D0"
+       },
+       "/*/*/me"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/GET--me/GetMe-Permission"
+   }
+  },
+  "DonverHttpApiGETme09CF37B4": {
+   "Type": "AWS::ApiGatewayV2::Route",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverHttpApiDB0970D0"
+    },
+    "AuthorizationType": "JWT",
+    "AuthorizerId": {
+     "Ref": "DonverHttpApiDonverJwtAuthorizer96D37763"
+    },
+    "RouteKey": "GET /me",
+    "Target": {
+     "Fn::Join": [
+      "",
+      [
+       "integrations/",
+       {
+        "Ref": "DonverHttpApiGETmeGetMe12BC5AA6"
+       }
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/GET--me/Resource"
+   }
+  },
+  "DonverHttpApiPUTmeprofileUpdateProfileE680229A": {
+   "Type": "AWS::ApiGatewayV2::Integration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverHttpApiDB0970D0"
+    },
+    "IntegrationType": "AWS_PROXY",
+    "IntegrationUri": {
+     "Fn::GetAtt": [
+      "UpdateProfileFnB789FCAD",
+      "Arn"
+     ]
+    },
+    "PayloadFormatVersion": "2.0"
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/PUT--me--profile/UpdateProfile/Resource"
+   }
+  },
+  "DonverHttpApiPUTmeprofileUpdateProfilePermissionA257780C": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "UpdateProfileFnB789FCAD",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:183192606101:",
+       {
+        "Ref": "DonverHttpApiDB0970D0"
+       },
+       "/*/*/me/profile"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/PUT--me--profile/UpdateProfile-Permission"
+   }
+  },
+  "DonverHttpApiPUTmeprofile8A98643A": {
+   "Type": "AWS::ApiGatewayV2::Route",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverHttpApiDB0970D0"
+    },
+    "AuthorizationType": "JWT",
+    "AuthorizerId": {
+     "Ref": "DonverHttpApiDonverJwtAuthorizer96D37763"
+    },
+    "RouteKey": "PUT /me/profile",
+    "Target": {
+     "Fn::Join": [
+      "",
+      [
+       "integrations/",
+       {
+        "Ref": "DonverHttpApiPUTmeprofileUpdateProfileE680229A"
+       }
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/PUT--me--profile/Resource"
+   }
+  },
+  "DonverHttpApiPOSTprofileactivateownerActivateOwnerProfile3D81B99F": {
+   "Type": "AWS::ApiGatewayV2::Integration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverHttpApiDB0970D0"
+    },
+    "IntegrationType": "AWS_PROXY",
+    "IntegrationUri": {
+     "Fn::GetAtt": [
+      "ActivateOwnerProfileFnE5BB280D",
+      "Arn"
+     ]
+    },
+    "PayloadFormatVersion": "2.0"
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/POST--profile--activate-owner/ActivateOwnerProfile/Resource"
+   }
+  },
+  "DonverHttpApiPOSTprofileactivateownerActivateOwnerProfilePermission518D8156": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "ActivateOwnerProfileFnE5BB280D",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:183192606101:",
+       {
+        "Ref": "DonverHttpApiDB0970D0"
+       },
+       "/*/*/profile/activate-owner"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/POST--profile--activate-owner/ActivateOwnerProfile-Permission"
+   }
+  },
+  "DonverHttpApiPOSTprofileactivateownerCA79541A": {
+   "Type": "AWS::ApiGatewayV2::Route",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverHttpApiDB0970D0"
+    },
+    "AuthorizationType": "JWT",
+    "AuthorizerId": {
+     "Ref": "DonverHttpApiDonverJwtAuthorizer96D37763"
+    },
+    "RouteKey": "POST /profile/activate-owner",
+    "Target": {
+     "Fn::Join": [
+      "",
+      [
+       "integrations/",
+       {
+        "Ref": "DonverHttpApiPOSTprofileactivateownerActivateOwnerProfile3D81B99F"
+       }
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/POST--profile--activate-owner/Resource"
+   }
+  },
+  "DonverHttpApiPOSTcaregiveronboardingCaregiverOnboarding008DD9E1": {
+   "Type": "AWS::ApiGatewayV2::Integration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverHttpApiDB0970D0"
+    },
+    "IntegrationType": "AWS_PROXY",
+    "IntegrationUri": {
+     "Fn::GetAtt": [
+      "CaregiverOnboardingFn9037866F",
+      "Arn"
+     ]
+    },
+    "PayloadFormatVersion": "2.0"
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/POST--caregiver--onboarding/CaregiverOnboarding/Resource"
+   }
+  },
+  "DonverHttpApiPOSTcaregiveronboardingCaregiverOnboardingPermission07EB1038": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "CaregiverOnboardingFn9037866F",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:183192606101:",
+       {
+        "Ref": "DonverHttpApiDB0970D0"
+       },
+       "/*/*/caregiver/onboarding"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/POST--caregiver--onboarding/CaregiverOnboarding-Permission"
+   }
+  },
+  "DonverHttpApiPOSTcaregiveronboarding54302546": {
+   "Type": "AWS::ApiGatewayV2::Route",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverHttpApiDB0970D0"
+    },
+    "AuthorizationType": "JWT",
+    "AuthorizerId": {
+     "Ref": "DonverHttpApiDonverJwtAuthorizer96D37763"
+    },
+    "RouteKey": "POST /caregiver/onboarding",
+    "Target": {
+     "Fn::Join": [
+      "",
+      [
+       "integrations/",
+       {
+        "Ref": "DonverHttpApiPOSTcaregiveronboardingCaregiverOnboarding008DD9E1"
+       }
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/POST--caregiver--onboarding/Resource"
+   }
+  },
+  "DonverHttpApiGETspacesListSpaces0B32B6AD": {
+   "Type": "AWS::ApiGatewayV2::Integration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverHttpApiDB0970D0"
+    },
+    "IntegrationType": "AWS_PROXY",
+    "IntegrationUri": {
+     "Fn::GetAtt": [
+      "ListSpacesFn4CFA17FB",
+      "Arn"
+     ]
+    },
+    "PayloadFormatVersion": "2.0"
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/GET--spaces/ListSpaces/Resource"
+   }
+  },
+  "DonverHttpApiGETspacesListSpacesPermission18EA1891": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "ListSpacesFn4CFA17FB",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:183192606101:",
+       {
+        "Ref": "DonverHttpApiDB0970D0"
+       },
+       "/*/*/spaces"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/GET--spaces/ListSpaces-Permission"
+   }
+  },
+  "DonverHttpApiGETspacesF7C54592": {
+   "Type": "AWS::ApiGatewayV2::Route",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverHttpApiDB0970D0"
+    },
+    "AuthorizationType": "NONE",
+    "RouteKey": "GET /spaces",
+    "Target": {
+     "Fn::Join": [
+      "",
+      [
+       "integrations/",
+       {
+        "Ref": "DonverHttpApiGETspacesListSpaces0B32B6AD"
+       }
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/GET--spaces/Resource"
+   }
+  },
+  "DonverHttpApiGETspacesidGetSpaceDetail8ED0FFA9": {
+   "Type": "AWS::ApiGatewayV2::Integration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverHttpApiDB0970D0"
+    },
+    "IntegrationType": "AWS_PROXY",
+    "IntegrationUri": {
+     "Fn::GetAtt": [
+      "GetSpaceDetailFnA4B11542",
+      "Arn"
+     ]
+    },
+    "PayloadFormatVersion": "2.0"
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/GET--spaces--{id}/GetSpaceDetail/Resource"
+   }
+  },
+  "DonverHttpApiGETspacesidGetSpaceDetailPermission53561D1B": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "GetSpaceDetailFnA4B11542",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:183192606101:",
+       {
+        "Ref": "DonverHttpApiDB0970D0"
+       },
+       "/*/*/spaces/{id}"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/GET--spaces--{id}/GetSpaceDetail-Permission"
+   }
+  },
+  "DonverHttpApiGETspacesid4BB03B1B": {
+   "Type": "AWS::ApiGatewayV2::Route",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverHttpApiDB0970D0"
+    },
+    "AuthorizationType": "NONE",
+    "RouteKey": "GET /spaces/{id}",
+    "Target": {
+     "Fn::Join": [
+      "",
+      [
+       "integrations/",
+       {
+        "Ref": "DonverHttpApiGETspacesidGetSpaceDetail8ED0FFA9"
+       }
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/GET--spaces--{id}/Resource"
+   }
+  },
+  "DonverHttpApiGETspacesidreviewsListReviews2D944548": {
+   "Type": "AWS::ApiGatewayV2::Integration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverHttpApiDB0970D0"
+    },
+    "IntegrationType": "AWS_PROXY",
+    "IntegrationUri": {
+     "Fn::GetAtt": [
+      "ListReviewsFn39F49A4B",
+      "Arn"
+     ]
+    },
+    "PayloadFormatVersion": "2.0"
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/GET--spaces--{id}--reviews/ListReviews/Resource"
+   }
+  },
+  "DonverHttpApiGETspacesidreviewsListReviewsPermissionC980A9EF": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "ListReviewsFn39F49A4B",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:183192606101:",
+       {
+        "Ref": "DonverHttpApiDB0970D0"
+       },
+       "/*/*/spaces/{id}/reviews"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/GET--spaces--{id}--reviews/ListReviews-Permission"
+   }
+  },
+  "DonverHttpApiGETspacesidreviews31C68BE1": {
+   "Type": "AWS::ApiGatewayV2::Route",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverHttpApiDB0970D0"
+    },
+    "AuthorizationType": "NONE",
+    "RouteKey": "GET /spaces/{id}/reviews",
+    "Target": {
+     "Fn::Join": [
+      "",
+      [
+       "integrations/",
+       {
+        "Ref": "DonverHttpApiGETspacesidreviewsListReviews2D944548"
+       }
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/GET--spaces--{id}--reviews/Resource"
+   }
+  },
+  "DonverHttpApiPOSTspacesidreviewsCreateReviewC6F6302D": {
+   "Type": "AWS::ApiGatewayV2::Integration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverHttpApiDB0970D0"
+    },
+    "IntegrationType": "AWS_PROXY",
+    "IntegrationUri": {
+     "Fn::GetAtt": [
+      "CreateReviewFn0922C7A2",
+      "Arn"
+     ]
+    },
+    "PayloadFormatVersion": "2.0"
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/POST--spaces--{id}--reviews/CreateReview/Resource"
+   }
+  },
+  "DonverHttpApiPOSTspacesidreviewsCreateReviewPermissionBB008AD4": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "CreateReviewFn0922C7A2",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:183192606101:",
+       {
+        "Ref": "DonverHttpApiDB0970D0"
+       },
+       "/*/*/spaces/{id}/reviews"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/POST--spaces--{id}--reviews/CreateReview-Permission"
+   }
+  },
+  "DonverHttpApiPOSTspacesidreviewsF89901B0": {
+   "Type": "AWS::ApiGatewayV2::Route",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverHttpApiDB0970D0"
+    },
+    "AuthorizationType": "JWT",
+    "AuthorizerId": {
+     "Ref": "DonverHttpApiDonverJwtAuthorizer96D37763"
+    },
+    "RouteKey": "POST /spaces/{id}/reviews",
+    "Target": {
+     "Fn::Join": [
+      "",
+      [
+       "integrations/",
+       {
+        "Ref": "DonverHttpApiPOSTspacesidreviewsCreateReviewC6F6302D"
+       }
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/POST--spaces--{id}--reviews/Resource"
+   }
+  },
+  "DonverHttpApiGETcaregiverspacesListMySpaces3EA4A1B5": {
+   "Type": "AWS::ApiGatewayV2::Integration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverHttpApiDB0970D0"
+    },
+    "IntegrationType": "AWS_PROXY",
+    "IntegrationUri": {
+     "Fn::GetAtt": [
+      "ListMySpacesFnE87DA6F1",
+      "Arn"
+     ]
+    },
+    "PayloadFormatVersion": "2.0"
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/GET--caregiver--spaces/ListMySpaces/Resource"
+   }
+  },
+  "DonverHttpApiGETcaregiverspacesListMySpacesPermission0AD9B764": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "ListMySpacesFnE87DA6F1",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:183192606101:",
+       {
+        "Ref": "DonverHttpApiDB0970D0"
+       },
+       "/*/*/caregiver/spaces"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/GET--caregiver--spaces/ListMySpaces-Permission"
+   }
+  },
+  "DonverHttpApiGETcaregiverspacesBBC6CF27": {
+   "Type": "AWS::ApiGatewayV2::Route",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverHttpApiDB0970D0"
+    },
+    "AuthorizationType": "JWT",
+    "AuthorizerId": {
+     "Ref": "DonverHttpApiDonverJwtAuthorizer96D37763"
+    },
+    "RouteKey": "GET /caregiver/spaces",
+    "Target": {
+     "Fn::Join": [
+      "",
+      [
+       "integrations/",
+       {
+        "Ref": "DonverHttpApiGETcaregiverspacesListMySpaces3EA4A1B5"
+       }
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/GET--caregiver--spaces/Resource"
+   }
+  },
+  "DonverHttpApiPOSTcaregiverspacesCreateSpace6A675C37": {
+   "Type": "AWS::ApiGatewayV2::Integration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverHttpApiDB0970D0"
+    },
+    "IntegrationType": "AWS_PROXY",
+    "IntegrationUri": {
+     "Fn::GetAtt": [
+      "CreateSpaceFn86A81536",
+      "Arn"
+     ]
+    },
+    "PayloadFormatVersion": "2.0"
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/POST--caregiver--spaces/CreateSpace/Resource"
+   }
+  },
+  "DonverHttpApiPOSTcaregiverspacesCreateSpacePermission22F15C44": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "CreateSpaceFn86A81536",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:183192606101:",
+       {
+        "Ref": "DonverHttpApiDB0970D0"
+       },
+       "/*/*/caregiver/spaces"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/POST--caregiver--spaces/CreateSpace-Permission"
+   }
+  },
+  "DonverHttpApiPOSTcaregiverspaces08CE5524": {
+   "Type": "AWS::ApiGatewayV2::Route",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverHttpApiDB0970D0"
+    },
+    "AuthorizationType": "JWT",
+    "AuthorizerId": {
+     "Ref": "DonverHttpApiDonverJwtAuthorizer96D37763"
+    },
+    "RouteKey": "POST /caregiver/spaces",
+    "Target": {
+     "Fn::Join": [
+      "",
+      [
+       "integrations/",
+       {
+        "Ref": "DonverHttpApiPOSTcaregiverspacesCreateSpace6A675C37"
+       }
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/POST--caregiver--spaces/Resource"
+   }
+  },
+  "DonverHttpApiPUTcaregiverspacesidUpdateSpaceDE3F4905": {
+   "Type": "AWS::ApiGatewayV2::Integration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverHttpApiDB0970D0"
+    },
+    "IntegrationType": "AWS_PROXY",
+    "IntegrationUri": {
+     "Fn::GetAtt": [
+      "UpdateSpaceFnFE64284A",
+      "Arn"
+     ]
+    },
+    "PayloadFormatVersion": "2.0"
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/PUT--caregiver--spaces--{id}/UpdateSpace/Resource"
+   }
+  },
+  "DonverHttpApiPUTcaregiverspacesidUpdateSpacePermission23553192": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "UpdateSpaceFnFE64284A",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:183192606101:",
+       {
+        "Ref": "DonverHttpApiDB0970D0"
+       },
+       "/*/*/caregiver/spaces/{id}"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/PUT--caregiver--spaces--{id}/UpdateSpace-Permission"
+   }
+  },
+  "DonverHttpApiPUTcaregiverspacesidF9896CAC": {
+   "Type": "AWS::ApiGatewayV2::Route",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverHttpApiDB0970D0"
+    },
+    "AuthorizationType": "JWT",
+    "AuthorizerId": {
+     "Ref": "DonverHttpApiDonverJwtAuthorizer96D37763"
+    },
+    "RouteKey": "PUT /caregiver/spaces/{id}",
+    "Target": {
+     "Fn::Join": [
+      "",
+      [
+       "integrations/",
+       {
+        "Ref": "DonverHttpApiPUTcaregiverspacesidUpdateSpaceDE3F4905"
+       }
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/PUT--caregiver--spaces--{id}/Resource"
+   }
+  },
+  "DonverHttpApiPOSTcaregiverspacesidblockeddatesCreateBlockedDate95CA7E7F": {
+   "Type": "AWS::ApiGatewayV2::Integration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverHttpApiDB0970D0"
+    },
+    "IntegrationType": "AWS_PROXY",
+    "IntegrationUri": {
+     "Fn::GetAtt": [
+      "CreateBlockedDateFn339D739E",
+      "Arn"
+     ]
+    },
+    "PayloadFormatVersion": "2.0"
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/POST--caregiver--spaces--{id}--blocked-dates/CreateBlockedDate/Resource"
+   }
+  },
+  "DonverHttpApiPOSTcaregiverspacesidblockeddatesCreateBlockedDatePermissionB00ACBAA": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "CreateBlockedDateFn339D739E",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:183192606101:",
+       {
+        "Ref": "DonverHttpApiDB0970D0"
+       },
+       "/*/*/caregiver/spaces/{id}/blocked-dates"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/POST--caregiver--spaces--{id}--blocked-dates/CreateBlockedDate-Permission"
+   }
+  },
+  "DonverHttpApiPOSTcaregiverspacesidblockeddates64BF41AC": {
+   "Type": "AWS::ApiGatewayV2::Route",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverHttpApiDB0970D0"
+    },
+    "AuthorizationType": "JWT",
+    "AuthorizerId": {
+     "Ref": "DonverHttpApiDonverJwtAuthorizer96D37763"
+    },
+    "RouteKey": "POST /caregiver/spaces/{id}/blocked-dates",
+    "Target": {
+     "Fn::Join": [
+      "",
+      [
+       "integrations/",
+       {
+        "Ref": "DonverHttpApiPOSTcaregiverspacesidblockeddatesCreateBlockedDate95CA7E7F"
+       }
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/POST--caregiver--spaces--{id}--blocked-dates/Resource"
+   }
+  },
+  "DonverHttpApiDELETEcaregiverspacesidblockeddatesblockedDateIdDeleteBlockedDateAFEC47A4": {
+   "Type": "AWS::ApiGatewayV2::Integration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverHttpApiDB0970D0"
+    },
+    "IntegrationType": "AWS_PROXY",
+    "IntegrationUri": {
+     "Fn::GetAtt": [
+      "DeleteBlockedDateFnB264CC3D",
+      "Arn"
+     ]
+    },
+    "PayloadFormatVersion": "2.0"
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/DELETE--caregiver--spaces--{id}--blocked-dates--{blockedDateId}/DeleteBlockedDate/Resource"
+   }
+  },
+  "DonverHttpApiDELETEcaregiverspacesidblockeddatesblockedDateIdDeleteBlockedDatePermission6F89DFDE": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "DeleteBlockedDateFnB264CC3D",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:183192606101:",
+       {
+        "Ref": "DonverHttpApiDB0970D0"
+       },
+       "/*/*/caregiver/spaces/{id}/blocked-dates/{blockedDateId}"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/DELETE--caregiver--spaces--{id}--blocked-dates--{blockedDateId}/DeleteBlockedDate-Permission"
+   }
+  },
+  "DonverHttpApiDELETEcaregiverspacesidblockeddatesblockedDateIdB579EC55": {
+   "Type": "AWS::ApiGatewayV2::Route",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverHttpApiDB0970D0"
+    },
+    "AuthorizationType": "JWT",
+    "AuthorizerId": {
+     "Ref": "DonverHttpApiDonverJwtAuthorizer96D37763"
+    },
+    "RouteKey": "DELETE /caregiver/spaces/{id}/blocked-dates/{blockedDateId}",
+    "Target": {
+     "Fn::Join": [
+      "",
+      [
+       "integrations/",
+       {
+        "Ref": "DonverHttpApiDELETEcaregiverspacesidblockeddatesblockedDateIdDeleteBlockedDateAFEC47A4"
+       }
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/DELETE--caregiver--spaces--{id}--blocked-dates--{blockedDateId}/Resource"
+   }
+  },
+  "DonverHttpApiGETcaregiverbookingsListCgBookings054712AA": {
+   "Type": "AWS::ApiGatewayV2::Integration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverHttpApiDB0970D0"
+    },
+    "IntegrationType": "AWS_PROXY",
+    "IntegrationUri": {
+     "Fn::GetAtt": [
+      "ListCgBookingsFn856CFA41",
+      "Arn"
+     ]
+    },
+    "PayloadFormatVersion": "2.0"
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/GET--caregiver--bookings/ListCgBookings/Resource"
+   }
+  },
+  "DonverHttpApiGETcaregiverbookingsListCgBookingsPermissionB78B817D": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "ListCgBookingsFn856CFA41",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:183192606101:",
+       {
+        "Ref": "DonverHttpApiDB0970D0"
+       },
+       "/*/*/caregiver/bookings"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/GET--caregiver--bookings/ListCgBookings-Permission"
+   }
+  },
+  "DonverHttpApiGETcaregiverbookings4EB7476E": {
+   "Type": "AWS::ApiGatewayV2::Route",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverHttpApiDB0970D0"
+    },
+    "AuthorizationType": "JWT",
+    "AuthorizerId": {
+     "Ref": "DonverHttpApiDonverJwtAuthorizer96D37763"
+    },
+    "RouteKey": "GET /caregiver/bookings",
+    "Target": {
+     "Fn::Join": [
+      "",
+      [
+       "integrations/",
+       {
+        "Ref": "DonverHttpApiGETcaregiverbookingsListCgBookings054712AA"
+       }
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/GET--caregiver--bookings/Resource"
+   }
+  },
+  "DonverHttpApiGETownerpetsListPets3E9A1EFA": {
+   "Type": "AWS::ApiGatewayV2::Integration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverHttpApiDB0970D0"
+    },
+    "IntegrationType": "AWS_PROXY",
+    "IntegrationUri": {
+     "Fn::GetAtt": [
+      "ListPetsFn86059951",
+      "Arn"
+     ]
+    },
+    "PayloadFormatVersion": "2.0"
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/GET--owner--pets/ListPets/Resource"
+   }
+  },
+  "DonverHttpApiGETownerpetsListPetsPermission7003812D": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "ListPetsFn86059951",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:183192606101:",
+       {
+        "Ref": "DonverHttpApiDB0970D0"
+       },
+       "/*/*/owner/pets"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/GET--owner--pets/ListPets-Permission"
+   }
+  },
+  "DonverHttpApiGETownerpets03FEC562": {
+   "Type": "AWS::ApiGatewayV2::Route",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverHttpApiDB0970D0"
+    },
+    "AuthorizationType": "JWT",
+    "AuthorizerId": {
+     "Ref": "DonverHttpApiDonverJwtAuthorizer96D37763"
+    },
+    "RouteKey": "GET /owner/pets",
+    "Target": {
+     "Fn::Join": [
+      "",
+      [
+       "integrations/",
+       {
+        "Ref": "DonverHttpApiGETownerpetsListPets3E9A1EFA"
+       }
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/GET--owner--pets/Resource"
+   }
+  },
+  "DonverHttpApiPOSTownerpetsCreatePetB3859CA9": {
+   "Type": "AWS::ApiGatewayV2::Integration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverHttpApiDB0970D0"
+    },
+    "IntegrationType": "AWS_PROXY",
+    "IntegrationUri": {
+     "Fn::GetAtt": [
+      "CreatePetFn4E8DD9B6",
+      "Arn"
+     ]
+    },
+    "PayloadFormatVersion": "2.0"
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/POST--owner--pets/CreatePet/Resource"
+   }
+  },
+  "DonverHttpApiPOSTownerpetsCreatePetPermission366103F4": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "CreatePetFn4E8DD9B6",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:183192606101:",
+       {
+        "Ref": "DonverHttpApiDB0970D0"
+       },
+       "/*/*/owner/pets"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/POST--owner--pets/CreatePet-Permission"
+   }
+  },
+  "DonverHttpApiPOSTownerpets5080B833": {
+   "Type": "AWS::ApiGatewayV2::Route",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverHttpApiDB0970D0"
+    },
+    "AuthorizationType": "JWT",
+    "AuthorizerId": {
+     "Ref": "DonverHttpApiDonverJwtAuthorizer96D37763"
+    },
+    "RouteKey": "POST /owner/pets",
+    "Target": {
+     "Fn::Join": [
+      "",
+      [
+       "integrations/",
+       {
+        "Ref": "DonverHttpApiPOSTownerpetsCreatePetB3859CA9"
+       }
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/POST--owner--pets/Resource"
+   }
+  },
+  "DonverHttpApiPUTownerpetsidUpdatePetAB375410": {
+   "Type": "AWS::ApiGatewayV2::Integration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverHttpApiDB0970D0"
+    },
+    "IntegrationType": "AWS_PROXY",
+    "IntegrationUri": {
+     "Fn::GetAtt": [
+      "UpdatePetFn9AEAF6B5",
+      "Arn"
+     ]
+    },
+    "PayloadFormatVersion": "2.0"
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/PUT--owner--pets--{id}/UpdatePet/Resource"
+   }
+  },
+  "DonverHttpApiPUTownerpetsidUpdatePetPermissionB9B2BCD0": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "UpdatePetFn9AEAF6B5",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:183192606101:",
+       {
+        "Ref": "DonverHttpApiDB0970D0"
+       },
+       "/*/*/owner/pets/{id}"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/PUT--owner--pets--{id}/UpdatePet-Permission"
+   }
+  },
+  "DonverHttpApiPUTownerpetsid98595617": {
+   "Type": "AWS::ApiGatewayV2::Route",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverHttpApiDB0970D0"
+    },
+    "AuthorizationType": "JWT",
+    "AuthorizerId": {
+     "Ref": "DonverHttpApiDonverJwtAuthorizer96D37763"
+    },
+    "RouteKey": "PUT /owner/pets/{id}",
+    "Target": {
+     "Fn::Join": [
+      "",
+      [
+       "integrations/",
+       {
+        "Ref": "DonverHttpApiPUTownerpetsidUpdatePetAB375410"
+       }
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/PUT--owner--pets--{id}/Resource"
+   }
+  },
+  "DonverHttpApiDELETEownerpetsidDeletePet49C23D30": {
+   "Type": "AWS::ApiGatewayV2::Integration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverHttpApiDB0970D0"
+    },
+    "IntegrationType": "AWS_PROXY",
+    "IntegrationUri": {
+     "Fn::GetAtt": [
+      "DeletePetFn8582A5B3",
+      "Arn"
+     ]
+    },
+    "PayloadFormatVersion": "2.0"
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/DELETE--owner--pets--{id}/DeletePet/Resource"
+   }
+  },
+  "DonverHttpApiDELETEownerpetsidDeletePetPermission06F72D2E": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "DeletePetFn8582A5B3",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:183192606101:",
+       {
+        "Ref": "DonverHttpApiDB0970D0"
+       },
+       "/*/*/owner/pets/{id}"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/DELETE--owner--pets--{id}/DeletePet-Permission"
+   }
+  },
+  "DonverHttpApiDELETEownerpetsidBE9F0350": {
+   "Type": "AWS::ApiGatewayV2::Route",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverHttpApiDB0970D0"
+    },
+    "AuthorizationType": "JWT",
+    "AuthorizerId": {
+     "Ref": "DonverHttpApiDonverJwtAuthorizer96D37763"
+    },
+    "RouteKey": "DELETE /owner/pets/{id}",
+    "Target": {
+     "Fn::Join": [
+      "",
+      [
+       "integrations/",
+       {
+        "Ref": "DonverHttpApiDELETEownerpetsidDeletePet49C23D30"
+       }
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/DELETE--owner--pets--{id}/Resource"
+   }
+  },
+  "DonverHttpApiGETownerbookingsListOwnerBookings5F19C43A": {
+   "Type": "AWS::ApiGatewayV2::Integration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverHttpApiDB0970D0"
+    },
+    "IntegrationType": "AWS_PROXY",
+    "IntegrationUri": {
+     "Fn::GetAtt": [
+      "ListOwnerBookingsFnF00BFDDC",
+      "Arn"
+     ]
+    },
+    "PayloadFormatVersion": "2.0"
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/GET--owner--bookings/ListOwnerBookings/Resource"
+   }
+  },
+  "DonverHttpApiGETownerbookingsListOwnerBookingsPermission8CDA93B6": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "ListOwnerBookingsFnF00BFDDC",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:183192606101:",
+       {
+        "Ref": "DonverHttpApiDB0970D0"
+       },
+       "/*/*/owner/bookings"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/GET--owner--bookings/ListOwnerBookings-Permission"
+   }
+  },
+  "DonverHttpApiGETownerbookings7E23BE28": {
+   "Type": "AWS::ApiGatewayV2::Route",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverHttpApiDB0970D0"
+    },
+    "AuthorizationType": "JWT",
+    "AuthorizerId": {
+     "Ref": "DonverHttpApiDonverJwtAuthorizer96D37763"
+    },
+    "RouteKey": "GET /owner/bookings",
+    "Target": {
+     "Fn::Join": [
+      "",
+      [
+       "integrations/",
+       {
+        "Ref": "DonverHttpApiGETownerbookingsListOwnerBookings5F19C43A"
+       }
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/GET--owner--bookings/Resource"
+   }
+  },
+  "DonverHttpApiGETbookingsidGetBookingDetail5D1DA6C7": {
+   "Type": "AWS::ApiGatewayV2::Integration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverHttpApiDB0970D0"
+    },
+    "IntegrationType": "AWS_PROXY",
+    "IntegrationUri": {
+     "Fn::GetAtt": [
+      "GetBookingDetailFnD51BD946",
+      "Arn"
+     ]
+    },
+    "PayloadFormatVersion": "2.0"
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/GET--bookings--{id}/GetBookingDetail/Resource"
+   }
+  },
+  "DonverHttpApiGETbookingsidGetBookingDetailPermission0935FB41": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "GetBookingDetailFnD51BD946",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:183192606101:",
+       {
+        "Ref": "DonverHttpApiDB0970D0"
+       },
+       "/*/*/bookings/{id}"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/GET--bookings--{id}/GetBookingDetail-Permission"
+   }
+  },
+  "DonverHttpApiGETbookingsid2B8C6666": {
+   "Type": "AWS::ApiGatewayV2::Route",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverHttpApiDB0970D0"
+    },
+    "AuthorizationType": "JWT",
+    "AuthorizerId": {
+     "Ref": "DonverHttpApiDonverJwtAuthorizer96D37763"
+    },
+    "RouteKey": "GET /bookings/{id}",
+    "Target": {
+     "Fn::Join": [
+      "",
+      [
+       "integrations/",
+       {
+        "Ref": "DonverHttpApiGETbookingsidGetBookingDetail5D1DA6C7"
+       }
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/GET--bookings--{id}/Resource"
+   }
+  },
+  "DonverHttpApiPOSTbookingsCreateBookingF4D90EA7": {
+   "Type": "AWS::ApiGatewayV2::Integration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverHttpApiDB0970D0"
+    },
+    "IntegrationType": "AWS_PROXY",
+    "IntegrationUri": {
+     "Fn::GetAtt": [
+      "CreateBookingFn2E139998",
+      "Arn"
+     ]
+    },
+    "PayloadFormatVersion": "2.0"
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/POST--bookings/CreateBooking/Resource"
+   }
+  },
+  "DonverHttpApiPOSTbookingsCreateBookingPermission2E17E740": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "CreateBookingFn2E139998",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:183192606101:",
+       {
+        "Ref": "DonverHttpApiDB0970D0"
+       },
+       "/*/*/bookings"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/POST--bookings/CreateBooking-Permission"
+   }
+  },
+  "DonverHttpApiPOSTbookings46B27965": {
+   "Type": "AWS::ApiGatewayV2::Route",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverHttpApiDB0970D0"
+    },
+    "AuthorizationType": "JWT",
+    "AuthorizerId": {
+     "Ref": "DonverHttpApiDonverJwtAuthorizer96D37763"
+    },
+    "RouteKey": "POST /bookings",
+    "Target": {
+     "Fn::Join": [
+      "",
+      [
+       "integrations/",
+       {
+        "Ref": "DonverHttpApiPOSTbookingsCreateBookingF4D90EA7"
+       }
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/POST--bookings/Resource"
+   }
+  },
+  "DonverHttpApiPOSTbookingsidconfirmConfirmBookingF6FCA505": {
+   "Type": "AWS::ApiGatewayV2::Integration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverHttpApiDB0970D0"
+    },
+    "IntegrationType": "AWS_PROXY",
+    "IntegrationUri": {
+     "Fn::GetAtt": [
+      "ConfirmBookingFnCE71731F",
+      "Arn"
+     ]
+    },
+    "PayloadFormatVersion": "2.0"
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/POST--bookings--{id}--confirm/ConfirmBooking/Resource"
+   }
+  },
+  "DonverHttpApiPOSTbookingsidconfirmConfirmBookingPermission3C600815": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "ConfirmBookingFnCE71731F",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:183192606101:",
+       {
+        "Ref": "DonverHttpApiDB0970D0"
+       },
+       "/*/*/bookings/{id}/confirm"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/POST--bookings--{id}--confirm/ConfirmBooking-Permission"
+   }
+  },
+  "DonverHttpApiPOSTbookingsidconfirm7DBA8DA9": {
+   "Type": "AWS::ApiGatewayV2::Route",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverHttpApiDB0970D0"
+    },
+    "AuthorizationType": "JWT",
+    "AuthorizerId": {
+     "Ref": "DonverHttpApiDonverJwtAuthorizer96D37763"
+    },
+    "RouteKey": "POST /bookings/{id}/confirm",
+    "Target": {
+     "Fn::Join": [
+      "",
+      [
+       "integrations/",
+       {
+        "Ref": "DonverHttpApiPOSTbookingsidconfirmConfirmBookingF6FCA505"
+       }
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/POST--bookings--{id}--confirm/Resource"
+   }
+  },
+  "DonverHttpApiPOSTbookingsidcancelCancelBookingB733D47F": {
+   "Type": "AWS::ApiGatewayV2::Integration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverHttpApiDB0970D0"
+    },
+    "IntegrationType": "AWS_PROXY",
+    "IntegrationUri": {
+     "Fn::GetAtt": [
+      "CancelBookingFnFA83E4FA",
+      "Arn"
+     ]
+    },
+    "PayloadFormatVersion": "2.0"
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/POST--bookings--{id}--cancel/CancelBooking/Resource"
+   }
+  },
+  "DonverHttpApiPOSTbookingsidcancelCancelBookingPermission05DB1061": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "CancelBookingFnFA83E4FA",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:183192606101:",
+       {
+        "Ref": "DonverHttpApiDB0970D0"
+       },
+       "/*/*/bookings/{id}/cancel"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/POST--bookings--{id}--cancel/CancelBooking-Permission"
+   }
+  },
+  "DonverHttpApiPOSTbookingsidcancel978D62BB": {
+   "Type": "AWS::ApiGatewayV2::Route",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverHttpApiDB0970D0"
+    },
+    "AuthorizationType": "JWT",
+    "AuthorizerId": {
+     "Ref": "DonverHttpApiDonverJwtAuthorizer96D37763"
+    },
+    "RouteKey": "POST /bookings/{id}/cancel",
+    "Target": {
+     "Fn::Join": [
+      "",
+      [
+       "integrations/",
+       {
+        "Ref": "DonverHttpApiPOSTbookingsidcancelCancelBookingB733D47F"
+       }
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/POST--bookings--{id}--cancel/Resource"
+   }
+  },
+  "DonverHttpApiPOSTuploadspresignCreateUploadUrl660DA913": {
+   "Type": "AWS::ApiGatewayV2::Integration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverHttpApiDB0970D0"
+    },
+    "IntegrationType": "AWS_PROXY",
+    "IntegrationUri": {
+     "Fn::GetAtt": [
+      "CreateUploadUrlFn400256AD",
+      "Arn"
+     ]
+    },
+    "PayloadFormatVersion": "2.0"
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/POST--uploads--presign/CreateUploadUrl/Resource"
+   }
+  },
+  "DonverHttpApiPOSTuploadspresignCreateUploadUrlPermissionCDF1114F": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "CreateUploadUrlFn400256AD",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:183192606101:",
+       {
+        "Ref": "DonverHttpApiDB0970D0"
+       },
+       "/*/*/uploads/presign"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/POST--uploads--presign/CreateUploadUrl-Permission"
+   }
+  },
+  "DonverHttpApiPOSTuploadspresign9AD1A47B": {
+   "Type": "AWS::ApiGatewayV2::Route",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverHttpApiDB0970D0"
+    },
+    "AuthorizationType": "JWT",
+    "AuthorizerId": {
+     "Ref": "DonverHttpApiDonverJwtAuthorizer96D37763"
+    },
+    "RouteKey": "POST /uploads/presign",
+    "Target": {
+     "Fn::Join": [
+      "",
+      [
+       "integrations/",
+       {
+        "Ref": "DonverHttpApiPOSTuploadspresignCreateUploadUrl660DA913"
+       }
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/POST--uploads--presign/Resource"
+   }
+  },
+  "DonverHttpApiGETmessagesconversationsListConvs7CF84B4B": {
+   "Type": "AWS::ApiGatewayV2::Integration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverHttpApiDB0970D0"
+    },
+    "IntegrationType": "AWS_PROXY",
+    "IntegrationUri": {
+     "Fn::GetAtt": [
+      "ListConvsFn6BD3C94F",
+      "Arn"
+     ]
+    },
+    "PayloadFormatVersion": "2.0"
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/GET--messages--conversations/ListConvs/Resource"
+   }
+  },
+  "DonverHttpApiGETmessagesconversationsListConvsPermission6D324455": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "ListConvsFn6BD3C94F",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:183192606101:",
+       {
+        "Ref": "DonverHttpApiDB0970D0"
+       },
+       "/*/*/messages/conversations"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/GET--messages--conversations/ListConvs-Permission"
+   }
+  },
+  "DonverHttpApiGETmessagesconversationsE3D2FEC1": {
+   "Type": "AWS::ApiGatewayV2::Route",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverHttpApiDB0970D0"
+    },
+    "AuthorizationType": "JWT",
+    "AuthorizerId": {
+     "Ref": "DonverHttpApiDonverJwtAuthorizer96D37763"
+    },
+    "RouteKey": "GET /messages/conversations",
+    "Target": {
+     "Fn::Join": [
+      "",
+      [
+       "integrations/",
+       {
+        "Ref": "DonverHttpApiGETmessagesconversationsListConvs7CF84B4B"
+       }
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/GET--messages--conversations/Resource"
+   }
+  },
+  "DonverHttpApiGETmessagesconversationsidmessagesListMessages2E92D9C8": {
+   "Type": "AWS::ApiGatewayV2::Integration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverHttpApiDB0970D0"
+    },
+    "IntegrationType": "AWS_PROXY",
+    "IntegrationUri": {
+     "Fn::GetAtt": [
+      "ListMessagesFnD6515307",
+      "Arn"
+     ]
+    },
+    "PayloadFormatVersion": "2.0"
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/GET--messages--conversations--{id}--messages/ListMessages/Resource"
+   }
+  },
+  "DonverHttpApiGETmessagesconversationsidmessagesListMessagesPermission45DDC9B2": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "ListMessagesFnD6515307",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:183192606101:",
+       {
+        "Ref": "DonverHttpApiDB0970D0"
+       },
+       "/*/*/messages/conversations/{id}/messages"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/GET--messages--conversations--{id}--messages/ListMessages-Permission"
+   }
+  },
+  "DonverHttpApiGETmessagesconversationsidmessages40D8B7E4": {
+   "Type": "AWS::ApiGatewayV2::Route",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverHttpApiDB0970D0"
+    },
+    "AuthorizationType": "JWT",
+    "AuthorizerId": {
+     "Ref": "DonverHttpApiDonverJwtAuthorizer96D37763"
+    },
+    "RouteKey": "GET /messages/conversations/{id}/messages",
+    "Target": {
+     "Fn::Join": [
+      "",
+      [
+       "integrations/",
+       {
+        "Ref": "DonverHttpApiGETmessagesconversationsidmessagesListMessages2E92D9C8"
+       }
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverHttpApi/GET--messages--conversations--{id}--messages/Resource"
+   }
+  },
+  "DonverWebSocketApiBA9543F3": {
+   "Type": "AWS::ApiGatewayV2::Api",
+   "Properties": {
+    "Name": "donver-websocket-api-prod",
+    "ProtocolType": "WEBSOCKET",
+    "RouteSelectionExpression": "$request.body.action"
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverWebSocketApi/Resource"
+   }
+  },
+  "DonverWebSocketApiconnectRouteWsConnectIntPermissionA39DEF57": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "WsConnectFnB17D99F3",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:183192606101:",
+       {
+        "Ref": "DonverWebSocketApiBA9543F3"
+       },
+       "/*$connect"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverWebSocketApi/$connect-Route/WsConnectInt-Permission"
+   }
+  },
+  "DonverWebSocketApiconnectRouteWsConnectIntE5C694F2": {
+   "Type": "AWS::ApiGatewayV2::Integration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverWebSocketApiBA9543F3"
+    },
+    "IntegrationType": "AWS_PROXY",
+    "IntegrationUri": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":apigateway:us-east-1:lambda:path/2015-03-31/functions/",
+       {
+        "Fn::GetAtt": [
+         "WsConnectFnB17D99F3",
+         "Arn"
+        ]
+       },
+       "/invocations"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverWebSocketApi/$connect-Route/WsConnectInt/Resource"
+   }
+  },
+  "DonverWebSocketApiconnectRoute7D63A9BF": {
+   "Type": "AWS::ApiGatewayV2::Route",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverWebSocketApiBA9543F3"
+    },
+    "AuthorizationType": "NONE",
+    "RouteKey": "$connect",
+    "Target": {
+     "Fn::Join": [
+      "",
+      [
+       "integrations/",
+       {
+        "Ref": "DonverWebSocketApiconnectRouteWsConnectIntE5C694F2"
+       }
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverWebSocketApi/$connect-Route/Resource"
+   }
+  },
+  "DonverWebSocketApidisconnectRouteWsDisconnectIntPermission6D74384E": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "WsDisconnectFn9523C1B1",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:183192606101:",
+       {
+        "Ref": "DonverWebSocketApiBA9543F3"
+       },
+       "/*$disconnect"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverWebSocketApi/$disconnect-Route/WsDisconnectInt-Permission"
+   }
+  },
+  "DonverWebSocketApidisconnectRouteWsDisconnectIntBCACC384": {
+   "Type": "AWS::ApiGatewayV2::Integration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverWebSocketApiBA9543F3"
+    },
+    "IntegrationType": "AWS_PROXY",
+    "IntegrationUri": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":apigateway:us-east-1:lambda:path/2015-03-31/functions/",
+       {
+        "Fn::GetAtt": [
+         "WsDisconnectFn9523C1B1",
+         "Arn"
+        ]
+       },
+       "/invocations"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverWebSocketApi/$disconnect-Route/WsDisconnectInt/Resource"
+   }
+  },
+  "DonverWebSocketApidisconnectRoute2A3955D0": {
+   "Type": "AWS::ApiGatewayV2::Route",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverWebSocketApiBA9543F3"
+    },
+    "AuthorizationType": "NONE",
+    "RouteKey": "$disconnect",
+    "Target": {
+     "Fn::Join": [
+      "",
+      [
+       "integrations/",
+       {
+        "Ref": "DonverWebSocketApidisconnectRouteWsDisconnectIntBCACC384"
+       }
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverWebSocketApi/$disconnect-Route/Resource"
+   }
+  },
+  "DonverWebSocketApisendMessageRouteWsSendMessageIntPermissionCF3A3CF9": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "WsSendMessageFn00921F75",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:183192606101:",
+       {
+        "Ref": "DonverWebSocketApiBA9543F3"
+       },
+       "/*sendMessage"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverWebSocketApi/sendMessage-Route/WsSendMessageInt-Permission"
+   }
+  },
+  "DonverWebSocketApisendMessageRouteWsSendMessageInt8F2C6DEA": {
+   "Type": "AWS::ApiGatewayV2::Integration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverWebSocketApiBA9543F3"
+    },
+    "IntegrationType": "AWS_PROXY",
+    "IntegrationUri": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":apigateway:us-east-1:lambda:path/2015-03-31/functions/",
+       {
+        "Fn::GetAtt": [
+         "WsSendMessageFn00921F75",
+         "Arn"
+        ]
+       },
+       "/invocations"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverWebSocketApi/sendMessage-Route/WsSendMessageInt/Resource"
+   }
+  },
+  "DonverWebSocketApisendMessageRoute4347D7B4": {
+   "Type": "AWS::ApiGatewayV2::Route",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverWebSocketApiBA9543F3"
+    },
+    "AuthorizationType": "NONE",
+    "RouteKey": "sendMessage",
+    "Target": {
+     "Fn::Join": [
+      "",
+      [
+       "integrations/",
+       {
+        "Ref": "DonverWebSocketApisendMessageRouteWsSendMessageInt8F2C6DEA"
+       }
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/DonverWebSocketApi/sendMessage-Route/Resource"
+   }
+  },
+  "WsStage9AD02499": {
+   "Type": "AWS::ApiGatewayV2::Stage",
+   "Properties": {
+    "ApiId": {
+     "Ref": "DonverWebSocketApiBA9543F3"
+    },
+    "AutoDeploy": true,
+    "StageName": "prod"
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/WsStage/Resource"
+   }
+  },
+  "CDKMetadata": {
+   "Type": "AWS::CDK::Metadata",
+   "Properties": {
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/12R3U7DMAyFn4X7zEydeIBuEj8SAtRdcFl5XVa8tUkVO6tG1HdHblmHuDrns+wTJ8kge1jC8g57XlT706KhHaStYHUy2HOZGl8zpFdfPwUfO7M5uKsfTIPtbo+l83t7ZHgb5TG6Ssg7Q9hCKnxjdWbUD99QdVGc3GB4VSKzFYZcxfAK1rE6WVkj2994SJuDm1N12IaWmMm7wWBHNYrt8XLOID2LdHlH2qSiuBWsxw0mo6XCR5ncixNbB7wG/8NbXx7lywf6tmGMvtGn3W297qvHzTANzvg3di6O6wyDGe+tQK7W8PcoXZTB6JvCke/P2RIy/Z8jEy1CdEKthWLSH5t1+NW8AQAA"
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverApi-prod/CDKMetadata/Default"
+   }
+  }
+ },
+ "Outputs": {
+  "ApiBaseUrl": {
+   "Value": {
+    "Fn::Join": [
+     "",
+     [
+      "https://",
+      {
+       "Ref": "DonverHttpApiDB0970D0"
+      },
+      ".execute-api.us-east-1.",
+      {
+       "Ref": "AWS::URLSuffix"
+      },
+      "/"
+     ]
+    ]
+   }
+  },
+  "WebSocketUrl": {
+   "Value": {
+    "Fn::Join": [
+     "",
+     [
+      "wss://",
+      {
+       "Ref": "DonverWebSocketApiBA9543F3"
+      },
+      ".execute-api.us-east-1.",
+      {
+       "Ref": "AWS::URLSuffix"
+      },
+      "/prod"
+     ]
+    ]
+   }
+  }
+ },
+ "Parameters": {
+  "BootstrapVersion": {
+   "Type": "AWS::SSM::Parameter::Value<String>",
+   "Default": "/cdk-bootstrap/donver/version",
+   "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]"
+  }
+ },
+ "Rules": {
+  "CheckBootstrapVersion": {
+   "Assertions": [
+    {
+     "Assert": {
+      "Fn::Not": [
+       {
+        "Fn::Contains": [
+         [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+         ],
+         {
+          "Ref": "BootstrapVersion"
+         }
+        ]
+       }
+      ]
+     },
+     "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI."
+    }
+   ]
+  }
+ }
+}

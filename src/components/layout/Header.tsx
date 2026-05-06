@@ -23,7 +23,7 @@ export function Header() {
   const caregiverCta =
     experienceMode === "caregiver_pending"
       ? { label: "Continuar registro", to: "/become-caregiver" }
-      : experienceMode === "caregiver"
+      : experienceMode === "caregiver" || experienceMode === "both"
         ? { label: "Dashboard cuidador", to: "/caregiver/dashboard" }
         : { label: "Ser cuidador", to: "/become-caregiver" };
 

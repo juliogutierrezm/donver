@@ -1,7 +1,7 @@
 import type { APIGatewayProxyEventV2WithJWTAuthorizer } from 'aws-lambda';
 import { GetCommand, PutCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 import { ddb, CORE_TABLE_NAME, coreKeys } from '../../shared/core-db';
-import { deriveRolesFromGroups, getAuthClaims, normalizeRoles } from '../../shared/auth';
+import { deriveRolesFromGroups, getAuthClaims, resolveProfileRoles } from '../../shared/auth';
 import { ok, serverError } from '../../shared/response';
 import { normalizeProfileWithStatus } from '../../shared/profile';
 
@@ -25,6 +25,7 @@ export async function handler(event: APIGatewayProxyEventV2WithJWTAuthorizer) {
         name: email.split('@')[0],
         roles: derivedRoles.length ? derivedRoles : ['owner'],
         active_role: derivedRoles[0] ?? 'owner',
+        owner_profile_active: true,
         bio: '',
         phone: '',
         avatar_url: '',
@@ -39,10 +40,12 @@ export async function handler(event: APIGatewayProxyEventV2WithJWTAuthorizer) {
     }
 
     const item = existing.Item as Record<string, unknown>;
-    const roles = normalizeRoles(item.roles ?? item.role ?? derivedRoles);
-    const nextRoles = roles.length ? roles : (derivedRoles.length ? derivedRoles : ['owner']);
+    const nextRoles = resolveProfileRoles(
+      item,
+      derivedRoles.length ? derivedRoles : ['owner'],
+    );
     const needsEmailUpdate = String(item.email ?? '') !== email;
-    const needsRoleBackfill = !Array.isArray(item.roles) || item.roles.length === 0;
+    const needsRoleBackfill = !Array.isArray(item.roles) && nextRoles.length > 0;
 
     if (!needsEmailUpdate && !needsRoleBackfill) {
       return ok(await normalizeProfileWithStatus(item, nextRoles));

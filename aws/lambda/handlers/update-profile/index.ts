@@ -1,7 +1,7 @@
 import type { APIGatewayProxyEventV2WithJWTAuthorizer } from 'aws-lambda';
 import { GetCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 import { ddb, CORE_TABLE_NAME, coreKeys } from '../../shared/core-db';
-import { getAuthClaims, normalizeRoles } from '../../shared/auth';
+import { getAuthClaims, resolveProfileRoles } from '../../shared/auth';
 import { normalizeProfileWithStatus } from '../../shared/profile';
 import { badRequest, notFound, ok, serverError } from '../../shared/response';
 
@@ -18,7 +18,7 @@ export async function handler(event: APIGatewayProxyEventV2WithJWTAuthorizer) {
     }));
     if (!existing.Item) return notFound('Profile not found');
 
-    const currentRoles = normalizeRoles(existing.Item['roles'] ?? existing.Item['role']);
+    const currentRoles = resolveProfileRoles(existing.Item as Record<string, unknown>);
     if (body.active_role !== undefined && !currentRoles.includes(body.active_role as typeof currentRoles[number])) {
       return badRequest('active_role must belong to the current user roles');
     }

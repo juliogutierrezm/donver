@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { PhotoUpload } from "@/components/PhotoUpload";
+import { getPetSizeHelp, getPetSizeLabel, getPetTypeSingularLabel } from "@/lib/pet-labels";
 import { PET_TYPES, PET_SIZES } from "@/types";
 import type { Pet } from "@/types";
 
@@ -126,13 +127,7 @@ export function PetFormDialog({
               >
                 {PET_TYPES.map((type) => (
                   <option key={type} value={type}>
-                    {type === "dog"
-                      ? "Perro"
-                      : type === "cat"
-                        ? "Gato"
-                        : type === "bird"
-                          ? "Pájaro"
-                          : "Otro"}
+                    {getPetTypeSingularLabel(type)}
                   </option>
                 ))}
               </select>
@@ -181,14 +176,13 @@ export function PetFormDialog({
               >
                 {PET_SIZES.map((size) => (
                   <option key={size} value={size}>
-                    {size === "small"
-                      ? "Pequeño"
-                      : size === "medium"
-                        ? "Mediano"
-                        : "Grande"}
+                    {getPetSizeLabel(size)}
                   </option>
                 ))}
               </select>
+              <p className="mt-2 text-xs text-muted-foreground">
+                {getPetSizeHelp((formData.size as Pet["size"]) || "medium")}
+              </p>
             </div>
           </div>
 

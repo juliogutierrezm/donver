@@ -28,6 +28,15 @@ function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
   return R * c;
 }
 
+function hasValidSpaceCoordinates(space: Space) {
+  return (
+    Number.isFinite(space.latitude) &&
+    Number.isFinite(space.longitude) &&
+    Math.abs(space.latitude) <= 90 &&
+    Math.abs(space.longitude) <= 180
+  );
+}
+
 export default function SpacesPage() {
   const { toast } = useToast();
   const { coords, loading: geoLoading, getCurrentPosition } = useGeolocation();
@@ -88,6 +97,10 @@ export default function SpacesPage() {
     if (searchLocation) {
       filtered = filtered
         .filter((space) => {
+          if (!hasValidSpaceCoordinates(space)) {
+            return false;
+          }
+
           const distance = calculateDistance(
             searchLocation.lat,
             searchLocation.lon,
@@ -115,6 +128,18 @@ export default function SpacesPage() {
 
     return filtered;
   }, [priceRange, searchLocation, searchRadius, spaces]);
+
+  const mapUserLocation = useMemo(() => {
+    if (searchLocation) {
+      return searchLocation;
+    }
+
+    if (coords) {
+      return { lat: coords.latitude, lon: coords.longitude };
+    }
+
+    return null;
+  }, [coords, searchLocation]);
 
   return (
     <>
@@ -308,13 +333,11 @@ export default function SpacesPage() {
               >
                 <SpacesMap
                   spaces={filteredSpaces}
-                  userLocation={
-                    searchLocation ||
-                    (coords ? { lat: coords.latitude, lon: coords.longitude } : null)
-                  }
+                  userLocation={mapUserLocation}
                   searchRadius={searchRadius}
                   onRadiusChange={setSearchRadius}
                   resultCount={filteredSpaces.length}
+                  viewMode={viewMode}
                 />
               </div>
             )}

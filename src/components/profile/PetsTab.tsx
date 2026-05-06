@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { getPetSizeHelp, getPetSizeLabel, getPetTypeIcon, getPetTypeSingularLabel } from "@/lib/pet-labels";
 import { PetFormDialog } from "./PetFormDialog";
 import type { Pet } from "@/types";
 
@@ -97,14 +98,8 @@ export function PetsTab({
               {pet.name}
             </h3>
             <p className="text-sm text-muted-foreground mb-2">
-              {pet.type === "dog"
-                ? "🐕"
-                : pet.type === "cat"
-                  ? "🐱"
-                  : pet.type === "bird"
-                    ? "🦜"
-                    : "🐾"}{" "}
-              {pet.breed || "Sin raza especificada"}
+              {getPetTypeIcon(pet.type)} {getPetTypeSingularLabel(pet.type)}
+              {pet.breed ? ` • ${pet.breed}` : " • Sin raza especificada"}
             </p>
 
             {/* Details */}
@@ -115,13 +110,10 @@ export function PetsTab({
               <p>
                 Tamaño:{" "}
                 <span className="text-foreground font-semibold">
-                  {pet.size === "small"
-                    ? "Pequeño"
-                    : pet.size === "medium"
-                      ? "Mediano"
-                      : "Grande"}
+                  {getPetSizeLabel(pet.size)}
                 </span>
               </p>
+              <p>{getPetSizeHelp(pet.size)}</p>
               {pet.specialNeeds && (
                 <p>
                   ⚠️ <span className="text-foreground">{pet.specialNeeds}</span>

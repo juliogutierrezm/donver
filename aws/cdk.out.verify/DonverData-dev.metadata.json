@@ -1,0 +1,124 @@
+{
+  "/DonverData-dev/DonverMainTable": [
+    {
+      "type": "aws:cdk:hasPhysicalName",
+      "data": {
+        "Ref": "DonverMainTable8E4D56DB"
+      }
+    }
+  ],
+  "/DonverData-dev/DonverCoreTable": [
+    {
+      "type": "aws:cdk:hasPhysicalName",
+      "data": {
+        "Ref": "DonverCoreTable4F0AF932"
+      }
+    }
+  ],
+  "/DonverData-dev/DonverBookingsTable": [
+    {
+      "type": "aws:cdk:hasPhysicalName",
+      "data": {
+        "Ref": "DonverBookingsTableD3D2DDD0"
+      }
+    }
+  ],
+  "/DonverData-dev/DonverMessagingTable": [
+    {
+      "type": "aws:cdk:hasPhysicalName",
+      "data": {
+        "Ref": "DonverMessagingTable1BE1782C"
+      }
+    }
+  ],
+  "/DonverData-dev/MainTableName": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MainTableName"
+    }
+  ],
+  "/DonverData-dev/MainTableArn": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MainTableArn"
+    }
+  ],
+  "/DonverData-dev/CoreTableName": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CoreTableName"
+    }
+  ],
+  "/DonverData-dev/CoreTableArn": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CoreTableArn"
+    }
+  ],
+  "/DonverData-dev/BookingsTableName": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "BookingsTableName"
+    }
+  ],
+  "/DonverData-dev/BookingsTableArn": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "BookingsTableArn"
+    }
+  ],
+  "/DonverData-dev/MessagingTableName": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MessagingTableName"
+    }
+  ],
+  "/DonverData-dev/MessagingTableArn": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MessagingTableArn"
+    }
+  ],
+  "/DonverData-dev/BootstrapVersion": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "BootstrapVersion"
+    }
+  ],
+  "/DonverData-dev/CheckBootstrapVersion": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CheckBootstrapVersion"
+    }
+  ],
+  "/DonverData-dev/DonverMainTable/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverMainTable8E4D56DB"
+    }
+  ],
+  "/DonverData-dev/DonverCoreTable/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverCoreTable4F0AF932"
+    }
+  ],
+  "/DonverData-dev/DonverBookingsTable/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverBookingsTableD3D2DDD0"
+    }
+  ],
+  "/DonverData-dev/DonverMessagingTable/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverMessagingTable1BE1782C"
+    }
+  ],
+  "/DonverData-dev/CDKMetadata/Default": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CDKMetadata"
+    }
+  ]
+}

@@ -100,6 +100,7 @@ export class DonverApiStack extends cdk.Stack {
     const authBootstrapFn     = createFn("AuthBootstrapFn",     "auth-bootstrap");
     const getMeFn             = createFn("GetMeFn",              "get-me");
     const updateProfileFn     = createFn("UpdateProfileFn",      "update-profile");
+    const activateOwnerProfileFn = createFn("ActivateOwnerProfileFn", "activate-owner-profile");
     const listSpacesFn        = createFn("ListSpacesFn",         "list-spaces");
     const getSpaceDetailFn    = createFn("GetSpaceDetailFn",     "get-space-detail");
     const listMySpacesFn      = createFn("ListMySpacesFn",       "list-my-spaces");
@@ -128,7 +129,7 @@ export class DonverApiStack extends cdk.Stack {
     const wsSendMessageFn     = createFn("WsSendMessageFn",      "ws-send-message");
 
     const coreFunctions = [
-      authRegisterFn, authBootstrapFn, getMeFn, updateProfileFn, caregiverOnboardingFn, listSpacesFn, getSpaceDetailFn,
+      authRegisterFn, authBootstrapFn, getMeFn, updateProfileFn, activateOwnerProfileFn, caregiverOnboardingFn, listSpacesFn, getSpaceDetailFn,
       listMySpacesFn, listCgBookingsFn, createSpaceFn, updateSpaceFn, listPetsFn, createPetFn,
       updatePetFn, deletePetFn, listReviewsFn, createReviewFn, createBookingFn,
     ];
@@ -139,6 +140,9 @@ export class DonverApiStack extends cdk.Stack {
       confirmBookingFn, cancelBookingFn, createBlockedDateFn, deleteBlockedDateFn, createReviewFn,
     ];
     bookingsFunctions.forEach((fn) => grantDomainTableAccess(fn, bookingsTableName));
+
+    // Owner bookings enriches booking rows with caregiver and space data from Core.
+    grantDomainTableAccess(listOwnerBookingsFn, coreTableName, ["dynamodb:GetItem"]);
 
     grantDomainTableAccess(getBookingDetailFn, bookingsTableName, ["dynamodb:GetItem"]);
     grantDomainTableAccess(getBookingDetailFn, coreTableName, ["dynamodb:GetItem"]);
@@ -191,6 +195,7 @@ export class DonverApiStack extends cdk.Stack {
     httpApi.addRoutes({ path: "/auth/bootstrap",  methods: [apigwv2.HttpMethod.POST], integration: h(authBootstrapFn, "AuthBootstrap"),    authorizer: auth });
     httpApi.addRoutes({ path: "/me",               methods: [apigwv2.HttpMethod.GET],  integration: h(getMeFn, "GetMe"),                    authorizer: auth });
     httpApi.addRoutes({ path: "/me/profile",        methods: [apigwv2.HttpMethod.PUT],  integration: h(updateProfileFn, "UpdateProfile"),    authorizer: auth });
+    httpApi.addRoutes({ path: "/profile/activate-owner", methods: [apigwv2.HttpMethod.POST], integration: h(activateOwnerProfileFn, "ActivateOwnerProfile"), authorizer: auth });
     httpApi.addRoutes({ path: "/caregiver/onboarding", methods: [apigwv2.HttpMethod.POST], integration: h(caregiverOnboardingFn, "CaregiverOnboarding"), authorizer: auth });
     httpApi.addRoutes({ path: "/spaces",           methods: [apigwv2.HttpMethod.GET],  integration: h(listSpacesFn, "ListSpaces") });
     httpApi.addRoutes({ path: "/spaces/{id}",      methods: [apigwv2.HttpMethod.GET],  integration: h(getSpaceDetailFn, "GetSpaceDetail") });

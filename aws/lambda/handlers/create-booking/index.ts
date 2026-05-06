@@ -2,13 +2,16 @@ import type { APIGatewayProxyEventV2WithJWTAuthorizer } from 'aws-lambda';
 import { GetCommand, QueryCommand, TransactWriteCommand } from '@aws-sdk/lib-dynamodb';
 import { ddb, CORE_TABLE_NAME, coreKeys } from '../../shared/core-db';
 import { BOOKINGS_TABLE_NAME, bookingKeys, bookingsGsi } from '../../shared/bookings-db';
-import { getAuthClaims } from '../../shared/auth';
+import { getAuthClaims, userHasRole } from '../../shared/auth';
 import { calculateBookingPricing, DEFAULT_ADDITIONAL_PET_RATE } from '../../shared/booking-pricing';
-import { created, badRequest, notFound, serverError } from '../../shared/response';
+import { created, badRequest, forbidden, notFound, serverError } from '../../shared/response';
 
 export async function handler(event: APIGatewayProxyEventV2WithJWTAuthorizer) {
   try {
     const { sub } = getAuthClaims(event);
+    if (!(await userHasRole(sub, 'owner'))) {
+      return forbidden('No tienes perfil de dueño activo.');
+    }
     const body = JSON.parse(event.body ?? '{}') as {
       space_id?: string; pet_ids?: string[]; booking_type?: string;
       start_date?: string; end_date?: string; start_time?: string; end_time?: string;
@@ -30,6 +33,9 @@ export async function handler(event: APIGatewayProxyEventV2WithJWTAuthorizer) {
     if (!spaceResult.Item) return notFound('Space not found');
     const space = spaceResult.Item as Record<string, unknown>;
     const caregiverId = String(space['caregiver_id'] ?? '');
+    if (caregiverId && caregiverId === sub) {
+      return forbidden('No puedes reservar tu propio espacio.');
+    }
     const maxPets = Number(space['max_pets'] ?? 1);
     if (petIds.length > maxPets) {
       return badRequest(`Este espacio permite máximo ${maxPets} mascotas por reserva.`);

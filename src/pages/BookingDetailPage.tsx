@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { ArrowLeft, Calendar, Clock3, DollarSign, Home, PawPrint, ShieldAlert, UserRound } from "lucide-react";
+import { ArrowLeft, Calendar, Clock3, DollarSign, Home, MessageSquare, PawPrint, ShieldAlert, UserRound } from "lucide-react";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { Badge } from "@/components/ui/badge";
@@ -16,10 +16,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { ApiError, authApi, bookingsApi, type BookingDetail, type BookingPartySummary } from "@/services/api";
+import { getPetSizeHelp, getPetSizeLabel, getPetTypeSingularLabel } from "@/lib/pet-labels";
+import { ApiError, authApi, bookingsApi, messagesApi, type BookingDetail, type BookingPartySummary } from "@/services/api";
 import type { User } from "@/types";
 
 type ViewState = "loading" | "ready" | "forbidden" | "not-found" | "error";
+type ContactState = "idle" | "loading" | "available" | "unavailable";
 
 const statusLabels: Record<BookingDetail["status"], string> = {
   pending: "Pendiente de aprobación",
@@ -100,6 +102,8 @@ export default function BookingDetailPage() {
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [actionLoading, setActionLoading] = useState(false);
   const [pendingAction, setPendingAction] = useState<PendingAction>(null);
+  const [contactState, setContactState] = useState<ContactState>("idle");
+  const [contactConversationId, setContactConversationId] = useState<string | null>(null);
 
   const reloadDetail = async (bookingId: string) => {
     const bookingDetail = await bookingsApi.getById(bookingId);
@@ -163,6 +167,53 @@ export default function BookingDetailPage() {
       party: isOwnerView ? detail.caregiver : detail.owner,
     };
   }, [currentUser, detail]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function resolveConversation() {
+      if (
+        viewState !== "ready" ||
+        !detail ||
+        !counterparty?.party?.id ||
+        !detail.spaceId
+      ) {
+        setContactState("unavailable");
+        setContactConversationId(null);
+        return;
+      }
+
+      setContactState("loading");
+      try {
+        const conversations = await messagesApi.listConversations();
+        if (cancelled) return;
+
+        const match = conversations.find(
+          (conversation) =>
+            conversation.spaceId === detail.spaceId &&
+            conversation.otherParticipant?.id === counterparty.party?.id
+        );
+
+        if (match) {
+          setContactConversationId(match.id);
+          setContactState("available");
+          return;
+        }
+
+        setContactConversationId(null);
+        setContactState("unavailable");
+      } catch {
+        if (cancelled) return;
+        setContactConversationId(null);
+        setContactState("unavailable");
+      }
+    }
+
+    void resolveConversation();
+    return () => {
+      cancelled = true;
+    };
+  }, [counterparty?.party?.id, detail, viewState]);
 
   const isCaregiver = Boolean(detail && currentUser && detail.caregiverId === currentUser.id);
   const isOwner = Boolean(detail && currentUser && detail.ownerId === currentUser.id);
@@ -354,10 +405,15 @@ export default function BookingDetailPage() {
                               <div>
                                 <p className="font-semibold text-foreground">{pet.name}</p>
                                 <p className="text-sm text-muted-foreground">
-                                  {pet.type}
+                                  {getPetTypeSingularLabel(pet.type)}
                                   {pet.breed ? ` • ${pet.breed}` : ""}
-                                  {pet.size ? ` • ${pet.size}` : ""}
+                                  {pet.size ? ` • ${getPetSizeLabel(pet.size)}` : ""}
                                 </p>
+                                {pet.size && (
+                                  <p className="mt-1 text-xs text-muted-foreground">
+                                    {getPetSizeHelp(pet.size)}
+                                  </p>
+                                )}
                               </div>
                             </div>
                           </div>
@@ -407,7 +463,7 @@ export default function BookingDetailPage() {
                         <span className="font-semibold text-foreground">{formatCurrency(detail.subtotal)}</span>
                       </div>
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">Service fee</span>
+                        <span className="text-muted-foreground">Comisión Donver</span>
                         <span className="font-semibold text-foreground">{formatCurrency(detail.serviceFee)}</span>
                       </div>
                       <div className="border-t border-border pt-4">
@@ -428,6 +484,40 @@ export default function BookingDetailPage() {
                       party={counterparty.party}
                     />
                   )}
+
+                  <div className="rounded-xl border border-border bg-card p-6">
+                    <h2 className="text-lg font-semibold text-foreground">Contacto</h2>
+                    {counterparty?.party ? (
+                      <div className="mt-3 space-y-3">
+                        <p className="text-sm text-muted-foreground">
+                          Puedes dar seguimiento con {counterparty.party.name || "la otra persona de la reserva"} desde Donver.
+                        </p>
+                        {contactState === "available" && contactConversationId ? (
+                          <Button
+                            className="w-full gap-2"
+                            onClick={() =>
+                              navigate("/messages", {
+                                state: { initialConversationId: contactConversationId },
+                              })
+                            }
+                          >
+                            <MessageSquare className="h-4 w-4" />
+                            Enviar mensaje
+                          </Button>
+                        ) : contactState === "loading" ? (
+                          <p className="text-sm text-muted-foreground">Buscando conversación disponible...</p>
+                        ) : (
+                          <p className="text-sm text-muted-foreground">
+                            La mensajería estará disponible próximamente.
+                          </p>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="mt-3 text-sm text-muted-foreground">
+                        La mensajería estará disponible próximamente.
+                      </p>
+                    )}
+                  </div>
 
                   <div className="rounded-xl border border-border bg-card p-6">
                     <h2 className="text-lg font-semibold text-foreground">Acciones</h2>

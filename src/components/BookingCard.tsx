@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { format, addDays, parse } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { getPetSizeHelp, getPetSizeLabel, getPetTypeSingularLabel } from "@/lib/pet-labels";
 import type { Space, BlockedDate, Pet } from "@/types";
 import { calculateBookingPricing, DEFAULT_ADDITIONAL_PET_RATE } from "@/lib/bookingPricing";
 
@@ -331,15 +332,21 @@ export function BookingCard({
                   <span className="flex-1">
                     <span className="block font-semibold text-foreground">{pet.name}</span>
                     <span className="text-muted-foreground">
-                      {pet.type}
+                      {getPetTypeSingularLabel(pet.type)}
                       {pet.breed ? ` • ${pet.breed}` : ""}
-                      {pet.size ? ` • ${pet.size}` : ""}
+                      {pet.size ? ` • ${getPetSizeLabel(pet.size)}` : ""}
                     </span>
                   </span>
                 </label>
               ))}
             </div>
           )}
+        </div>
+        <div className="rounded-lg bg-muted/40 p-3 text-xs text-muted-foreground">
+          <p className="font-medium text-foreground">Guía rápida de tamaños</p>
+          <p className="mt-1">{getPetSizeLabel("small")}: {getPetSizeHelp("small")}</p>
+          <p className="mt-1">{getPetSizeLabel("medium")}: {getPetSizeHelp("medium")}</p>
+          <p className="mt-1">{getPetSizeLabel("large")}: {getPetSizeHelp("large")}</p>
         </div>
         <p className="text-sm text-muted-foreground">
           {selectedPetIds.length} de {space.maxPets} mascotas seleccionadas para esta reserva.

@@ -35,6 +35,31 @@ export function normalizeRoles(roles: unknown): AppRole[] {
   return Array.from(new Set(normalized));
 }
 
+function isOwnerProfileActive(value: unknown) {
+  if (value === false || value === 'false' || value === 0 || value === '0') {
+    return false;
+  }
+
+  return true;
+}
+
+export function resolveProfileRoles(
+  item: Record<string, unknown>,
+  fallbackRoles: AppRole[] = ['owner'],
+): AppRole[] {
+  const legacyRole = typeof item.role === 'string' ? [item.role] : [];
+  const rawRoles = normalizeRoles(item.roles ?? legacyRole);
+  const effectiveRoles = isOwnerProfileActive(item.owner_profile_active)
+    ? rawRoles
+    : rawRoles.filter((role) => role !== 'owner');
+
+  if (effectiveRoles.length) {
+    return effectiveRoles;
+  }
+
+  return item.signup_intent === 'caregiver' ? [] : fallbackRoles;
+}
+
 export function deriveRolesFromGroups(groups: string[]): AppRole[] {
   const mapped = groups.flatMap((group) => {
     if (group === 'owner' || group === 'caregiver') return [group];
@@ -51,6 +76,8 @@ export async function userHasRole(sub: string, role: AppRole): Promise<boolean> 
     Key: coreKeys.userProfile(sub),
   }));
 
-  const profileRoles = normalizeRoles(result.Item?.['roles'] ?? result.Item?.['role']);
+  const profileRoles = result.Item
+    ? resolveProfileRoles(result.Item as Record<string, unknown>)
+    : [];
   return profileRoles.includes(role);
 }

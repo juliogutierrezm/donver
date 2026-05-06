@@ -1,0 +1,540 @@
+{
+ "Description": "Donver shared resources (dev)",
+ "Resources": {
+  "SpacePhotosBucket9FD3EAE1": {
+   "Type": "AWS::S3::Bucket",
+   "Properties": {
+    "BucketEncryption": {
+     "ServerSideEncryptionConfiguration": [
+      {
+       "ServerSideEncryptionByDefault": {
+        "SSEAlgorithm": "AES256"
+       }
+      }
+     ]
+    },
+    "BucketName": {
+     "Fn::Join": [
+      "",
+      [
+       "donver-space-photos-dev-",
+       {
+        "Ref": "AWS::AccountId"
+       }
+      ]
+     ]
+    },
+    "CorsConfiguration": {
+     "CorsRules": [
+      {
+       "AllowedHeaders": [
+        "*"
+       ],
+       "AllowedMethods": [
+        "GET",
+        "HEAD",
+        "PUT"
+       ],
+       "AllowedOrigins": [
+        "http://localhost:5173",
+        "http://localhost:4173",
+        "http://127.0.0.1:5173",
+        "http://127.0.0.1:4173",
+        "https://app.donver.cr"
+       ],
+       "ExposedHeaders": [
+        "ETag",
+        "x-amz-request-id",
+        "x-amz-id-2"
+       ],
+       "MaxAge": 3600
+      }
+     ]
+    },
+    "PublicAccessBlockConfiguration": {
+     "BlockPublicAcls": true,
+     "IgnorePublicAcls": true
+    },
+    "VersioningConfiguration": {
+     "Status": "Enabled"
+    }
+   },
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "DonverShared-dev/SpacePhotosBucket/Resource"
+   }
+  },
+  "SpacePhotosBucketPolicyC796F53D": {
+   "Type": "AWS::S3::BucketPolicy",
+   "Properties": {
+    "Bucket": {
+     "Ref": "SpacePhotosBucket9FD3EAE1"
+    },
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "s3:*",
+       "Condition": {
+        "Bool": {
+         "aws:SecureTransport": "false"
+        }
+       },
+       "Effect": "Deny",
+       "Principal": {
+        "AWS": "*"
+       },
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "SpacePhotosBucket9FD3EAE1",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "SpacePhotosBucket9FD3EAE1",
+             "Arn"
+            ]
+           },
+           "/*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": "s3:GetObject",
+       "Effect": "Allow",
+       "Principal": {
+        "AWS": "*"
+       },
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          {
+           "Fn::GetAtt": [
+            "SpacePhotosBucket9FD3EAE1",
+            "Arn"
+           ]
+          },
+          "/*"
+         ]
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverShared-dev/SpacePhotosBucket/Policy/Resource"
+   }
+  },
+  "PetPhotosBucket146E4037": {
+   "Type": "AWS::S3::Bucket",
+   "Properties": {
+    "BucketEncryption": {
+     "ServerSideEncryptionConfiguration": [
+      {
+       "ServerSideEncryptionByDefault": {
+        "SSEAlgorithm": "AES256"
+       }
+      }
+     ]
+    },
+    "BucketName": {
+     "Fn::Join": [
+      "",
+      [
+       "donver-pet-photos-dev-",
+       {
+        "Ref": "AWS::AccountId"
+       }
+      ]
+     ]
+    },
+    "CorsConfiguration": {
+     "CorsRules": [
+      {
+       "AllowedHeaders": [
+        "*"
+       ],
+       "AllowedMethods": [
+        "GET",
+        "HEAD",
+        "PUT"
+       ],
+       "AllowedOrigins": [
+        "http://localhost:5173",
+        "http://localhost:4173",
+        "http://127.0.0.1:5173",
+        "http://127.0.0.1:4173",
+        "https://app.donver.cr"
+       ],
+       "ExposedHeaders": [
+        "ETag",
+        "x-amz-request-id",
+        "x-amz-id-2"
+       ],
+       "MaxAge": 3600
+      }
+     ]
+    },
+    "PublicAccessBlockConfiguration": {
+     "BlockPublicAcls": true,
+     "IgnorePublicAcls": true
+    },
+    "VersioningConfiguration": {
+     "Status": "Enabled"
+    }
+   },
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "DonverShared-dev/PetPhotosBucket/Resource"
+   }
+  },
+  "PetPhotosBucketPolicy38817945": {
+   "Type": "AWS::S3::BucketPolicy",
+   "Properties": {
+    "Bucket": {
+     "Ref": "PetPhotosBucket146E4037"
+    },
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "s3:*",
+       "Condition": {
+        "Bool": {
+         "aws:SecureTransport": "false"
+        }
+       },
+       "Effect": "Deny",
+       "Principal": {
+        "AWS": "*"
+       },
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "PetPhotosBucket146E4037",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "PetPhotosBucket146E4037",
+             "Arn"
+            ]
+           },
+           "/*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": "s3:GetObject",
+       "Effect": "Allow",
+       "Principal": {
+        "AWS": "*"
+       },
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          {
+           "Fn::GetAtt": [
+            "PetPhotosBucket146E4037",
+            "Arn"
+           ]
+          },
+          "/*"
+         ]
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverShared-dev/PetPhotosBucket/Policy/Resource"
+   }
+  },
+  "StripeSecretKeyParameterCD5A69AE": {
+   "Type": "AWS::SSM::Parameter",
+   "Properties": {
+    "Description": "Placeholder Stripe secret key for Donver",
+    "Name": "/donver/dev/stripe-secret-key",
+    "Type": "String",
+    "Value": "REPLACE_ME"
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverShared-dev/StripeSecretKeyParameter/Resource"
+   }
+  },
+  "GoogleOAuthClientIdParameter254EF3EF": {
+   "Type": "AWS::SSM::Parameter",
+   "Properties": {
+    "Description": "Placeholder Google OAuth client ID for Donver",
+    "Name": "/donver/dev/google-oauth-client-id",
+    "Type": "String",
+    "Value": "REPLACE_ME"
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverShared-dev/GoogleOAuthClientIdParameter/Resource"
+   }
+  },
+  "DonverDeployPolicyB9972F74": {
+   "Type": "AWS::IAM::ManagedPolicy",
+   "Properties": {
+    "Description": "Create and update Donver resources without delete permissions",
+    "ManagedPolicyName": "DonverDeployPolicy-dev",
+    "Path": "/",
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "cloudformation:Create*",
+        "cloudformation:Update*",
+        "cloudformation:Describe*",
+        "cloudformation:List*",
+        "cloudformation:Get*",
+        "dynamodb:CreateTable",
+        "dynamodb:UpdateTable",
+        "dynamodb:DescribeTable",
+        "dynamodb:ListTables",
+        "dynamodb:TagResource",
+        "dynamodb:UntagResource",
+        "dynamodb:ListTagsOfResource",
+        "dynamodb:PutItem",
+        "dynamodb:GetItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:TransactWriteItems",
+        "dynamodb:TransactGetItems",
+        "s3:Create*",
+        "s3:Put*",
+        "s3:Get*",
+        "s3:List*",
+        "s3:Head*",
+        "s3:Tag*",
+        "ssm:PutParameter",
+        "ssm:GetParameter",
+        "ssm:GetParameters",
+        "secretsmanager:CreateSecret",
+        "secretsmanager:DescribeSecret",
+        "secretsmanager:GetSecretValue",
+        "secretsmanager:PutSecretValue",
+        "iam:CreateRole",
+        "iam:PutRolePolicy",
+        "iam:AttachRolePolicy",
+        "iam:PassRole",
+        "iam:GetRole",
+        "iam:List*",
+        "cognito-idp:Create*",
+        "cognito-idp:Update*",
+        "cognito-idp:Describe*",
+        "lambda:Create*",
+        "lambda:Update*",
+        "lambda:Publish*",
+        "lambda:Get*",
+        "lambda:List*",
+        "apigateway:*",
+        "logs:Create*",
+        "logs:Put*",
+        "logs:Describe*"
+       ],
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": [
+        "cloudformation:Delete*",
+        "s3:Delete*",
+        "ssm:Delete*",
+        "secretsmanager:Delete*",
+        "iam:Delete*",
+        "cognito-idp:Delete*",
+        "lambda:Delete*",
+        "apigateway:Delete*",
+        "logs:Delete*",
+        "dynamodb:DeleteTable"
+       ],
+       "Effect": "Deny",
+       "Resource": "*"
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverShared-dev/DonverDeployPolicy/Resource"
+   }
+  },
+  "DonverDeployRoleC40F0D32": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "AWS": {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":iam::183192606101:root"
+          ]
+         ]
+        }
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "Description": "Deployment role for Donver with create/update-only permissions",
+    "ManagedPolicyArns": [
+     {
+      "Ref": "DonverDeployPolicyB9972F74"
+     }
+    ],
+    "MaxSessionDuration": 3600,
+    "RoleName": "donver-deploy-role-dev"
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverShared-dev/DonverDeployRole/Resource"
+   }
+  },
+  "CDKMetadata": {
+   "Type": "AWS::CDK::Metadata",
+   "Properties": {
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/1WOQQrCMBBFz+I+HUvEC+haLPUAMqZjmbZJJZNYJOTuEiqKq/f/Y/iMBr2vod7gIpXpxmriG6RLQDMqXOSaZAfpEM1IQR3v7pNWNPPE5vXTa89KxJYJz65v0KOlQL5cfUtWjBbSCR321P1m/kU7T1RsYc4lnWN4xJCVmzuCQbZPXYMuzw/CXPnoAluCduUbfsj/S9kAAAA="
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverShared-dev/CDKMetadata/Default"
+   }
+  }
+ },
+ "Outputs": {
+  "SpacePhotosBucketName": {
+   "Value": {
+    "Ref": "SpacePhotosBucket9FD3EAE1"
+   }
+  },
+  "PetPhotosBucketName": {
+   "Value": {
+    "Ref": "PetPhotosBucket146E4037"
+   }
+  },
+  "StripeSecretParameterName": {
+   "Value": {
+    "Ref": "StripeSecretKeyParameterCD5A69AE"
+   }
+  },
+  "GoogleOAuthClientIdParameterName": {
+   "Value": {
+    "Ref": "GoogleOAuthClientIdParameter254EF3EF"
+   }
+  },
+  "DeployRoleArn": {
+   "Value": {
+    "Fn::GetAtt": [
+     "DonverDeployRoleC40F0D32",
+     "Arn"
+    ]
+   }
+  },
+  "ExportsOutputRefSpacePhotosBucket9FD3EAE15F11F63D": {
+   "Value": {
+    "Ref": "SpacePhotosBucket9FD3EAE1"
+   },
+   "Export": {
+    "Name": "DonverShared-dev:ExportsOutputRefSpacePhotosBucket9FD3EAE15F11F63D"
+   }
+  },
+  "ExportsOutputRefPetPhotosBucket146E40377706B8E9": {
+   "Value": {
+    "Ref": "PetPhotosBucket146E4037"
+   },
+   "Export": {
+    "Name": "DonverShared-dev:ExportsOutputRefPetPhotosBucket146E40377706B8E9"
+   }
+  },
+  "ExportsOutputFnGetAttSpacePhotosBucket9FD3EAE1ArnA61BB112": {
+   "Value": {
+    "Fn::GetAtt": [
+     "SpacePhotosBucket9FD3EAE1",
+     "Arn"
+    ]
+   },
+   "Export": {
+    "Name": "DonverShared-dev:ExportsOutputFnGetAttSpacePhotosBucket9FD3EAE1ArnA61BB112"
+   }
+  },
+  "ExportsOutputFnGetAttPetPhotosBucket146E4037ArnC184780F": {
+   "Value": {
+    "Fn::GetAtt": [
+     "PetPhotosBucket146E4037",
+     "Arn"
+    ]
+   },
+   "Export": {
+    "Name": "DonverShared-dev:ExportsOutputFnGetAttPetPhotosBucket146E4037ArnC184780F"
+   }
+  }
+ },
+ "Parameters": {
+  "BootstrapVersion": {
+   "Type": "AWS::SSM::Parameter::Value<String>",
+   "Default": "/cdk-bootstrap/donver/version",
+   "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]"
+  }
+ },
+ "Rules": {
+  "CheckBootstrapVersion": {
+   "Assertions": [
+    {
+     "Assert": {
+      "Fn::Not": [
+       {
+        "Fn::Contains": [
+         [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+         ],
+         {
+          "Ref": "BootstrapVersion"
+         }
+        ]
+       }
+      ]
+     },
+     "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI."
+    }
+   ]
+  }
+ }
+}

@@ -81,6 +81,9 @@ export interface Booking {
   id: string;
   spaceId: string;
   ownerId: string;
+  spaceName?: string;
+  ownerName?: string;
+  caregiverName?: string;
   petIds: string[];
   bookingType: BookingType;
   startDate: Date;
