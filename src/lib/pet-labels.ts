@@ -4,20 +4,35 @@ const PET_TYPE_LABELS: Record<PetType, string> = {
   dog: "Perros",
   cat: "Gatos",
   bird: "Aves",
-  other: "Otros",
+  rabbit: "Conejos",
+  hamster: "Hámsteres",
+  snake: "Serpientes",
+  reptile: "Reptiles",
+  fish: "Peces",
+  other: "Otro",
 };
 
 const PET_TYPE_SINGULAR_LABELS: Record<PetType, string> = {
   dog: "Perro",
   cat: "Gato",
   bird: "Ave",
-  other: "Otra mascota",
+  rabbit: "Conejo",
+  hamster: "Hámster",
+  snake: "Serpiente",
+  reptile: "Reptil",
+  fish: "Pez",
+  other: "Otro",
 };
 
 const PET_TYPE_ICONS: Record<PetType, string> = {
   dog: "🐕",
   cat: "🐱",
   bird: "🦜",
+  rabbit: "🐇",
+  hamster: "🐹",
+  snake: "🐍",
+  reptile: "🦎",
+  fish: "🐠",
   other: "🐾",
 };
 

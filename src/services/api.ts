@@ -151,6 +151,8 @@ export interface PaymentIntent {
 export interface BookingPartySummary {
   id: string;
   name: string;
+  email?: string;
+  phone?: string;
   avatarUrl?: string;
 }
 
@@ -168,6 +170,10 @@ export interface BookingPetSummary {
   type: PetType;
   breed?: string;
   size?: PetSize;
+  age?: number;
+  description?: string;
+  photos?: string[];
+  specialNeeds?: string;
 }
 
 export interface BookingDetail extends Booking {
@@ -350,7 +356,17 @@ function toBackendProvince(value?: string): string {
 }
 
 function normalizePetType(value?: string): PetType {
-  if (value === "dog" || value === "cat" || value === "bird" || value === "other") {
+  if (
+    value === "dog" ||
+    value === "cat" ||
+    value === "bird" ||
+    value === "rabbit" ||
+    value === "hamster" ||
+    value === "snake" ||
+    value === "reptile" ||
+    value === "fish" ||
+    value === "other"
+  ) {
     return value;
   }
   return "other";
@@ -957,12 +973,20 @@ function mapBookingPartySummary(value: unknown): BookingPartySummary | undefined
     (typeof party.email === "string" && party.email) ||
     "Usuario Donver";
 
-  return {
-    id: String(party.id ?? ""),
-    name: name,
-    avatarUrl:
-      typeof party.avatar_url === "string" && party.avatar_url
-        ? party.avatar_url
+    return {
+      id: String(party.id ?? ""),
+      name: name,
+      email:
+        typeof party.email === "string" && party.email.trim()
+          ? party.email
+          : undefined,
+      phone:
+        typeof party.phone === "string" && party.phone.trim()
+          ? party.phone
+          : undefined,
+      avatarUrl:
+        typeof party.avatar_url === "string" && party.avatar_url
+          ? party.avatar_url
         : undefined,
   };
 }
@@ -984,14 +1008,23 @@ function mapBookingPetSummary(value: unknown): BookingPetSummary | undefined {
   if (typeof value !== "object" || !value) return undefined;
   const pet = value as Record<string, unknown>;
 
-  return {
-    id: String(pet.id ?? ""),
-    name: String(pet.name ?? ""),
-    type: normalizePetType(String(pet.species ?? pet.type ?? "other")),
-    breed: typeof pet.breed === "string" && pet.breed ? pet.breed : undefined,
-    size: typeof pet.size === "string" && pet.size ? normalizePetSize(pet.size) : undefined,
-  };
-}
+    return {
+      id: String(pet.id ?? ""),
+      name: String(pet.name ?? ""),
+      type: normalizePetType(String(pet.species ?? pet.type ?? "other")),
+      breed: typeof pet.breed === "string" && pet.breed ? pet.breed : undefined,
+      size: typeof pet.size === "string" && pet.size ? normalizePetSize(pet.size) : undefined,
+      age: typeof pet.age === "number" ? pet.age : undefined,
+      description: typeof pet.description === "string" && pet.description ? pet.description : undefined,
+      photos: Array.isArray(pet.photos) ? pet.photos.map(String) : undefined,
+      specialNeeds:
+        typeof pet.medical_notes === "string" && pet.medical_notes
+          ? pet.medical_notes
+          : typeof pet.specialNeeds === "string" && pet.specialNeeds
+            ? pet.specialNeeds
+            : undefined,
+    };
+  }
 
 function mapBackendBookingDetail(booking: Record<string, unknown>): BookingDetail {
   const baseBooking = mapBackendBooking(booking);
@@ -1119,19 +1152,37 @@ function buildMockBookingDetail(booking: Booking): BookingDetail {
       type: pet.type,
       breed: pet.breed,
       size: pet.size,
+      age: pet.age,
+      description: pet.description,
+      photos: [...pet.photos],
+      specialNeeds: pet.specialNeeds,
     }));
 
   const owner: BookingPartySummary = {
     id: booking.ownerId,
-    name: booking.ownerId === currentUserStore.id ? currentUserStore.name : "Usuario Donver",
-    avatarUrl: booking.ownerId === currentUserStore.id ? currentUserStore.avatar : undefined,
+    name: mockUser.name,
+    email: mockUser.email,
+    phone: mockUser.phone,
+    avatarUrl: booking.ownerId === currentUserStore.id ? currentUserStore.avatar : mockUser.avatar,
   };
 
   const caregiver: BookingPartySummary | undefined = space
     ? {
         id: space.caregiverId,
-        name: space.caregiverId === currentUserStore.id ? currentUserStore.name : "Usuario Donver",
-        avatarUrl: space.caregiverId === currentUserStore.id ? currentUserStore.avatar : undefined,
+        name:
+          space.caregiverId === mockCaregiverProfile.id
+            ? mockCaregiverProfile.name
+            : space.caregiverId === currentUserStore.id
+              ? currentUserStore.name
+              : "Usuario Donver",
+        email: space.caregiverId === mockCaregiverProfile.id ? mockCaregiverProfile.email : undefined,
+        phone: space.caregiverId === mockCaregiverProfile.id ? mockCaregiverProfile.phone : undefined,
+        avatarUrl:
+          space.caregiverId === mockCaregiverProfile.id
+            ? mockCaregiverProfile.avatar
+            : space.caregiverId === currentUserStore.id
+              ? currentUserStore.avatar
+              : undefined,
       }
     : undefined;
   const pricing = space

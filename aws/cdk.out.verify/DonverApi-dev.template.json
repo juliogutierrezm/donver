@@ -2753,7 +2753,7 @@
    "Properties": {
     "Code": {
      "S3Bucket": "cdk-donver-assets-183192606101-us-east-1",
-     "S3Key": "045170396b35dec2b81035773f63b57faae566868b5d6dc93a59d23c0c3ed209.zip"
+     "S3Key": "db8349c9908afa8aa57a3c7e9fffc6061504a18664e132deda1146613295088e.zip"
     },
     "Environment": {
      "Variables": {
@@ -2795,7 +2795,7 @@
    ],
    "Metadata": {
     "aws:cdk:path": "DonverApi-dev/GetBookingDetailFn/Resource",
-    "aws:asset:path": "asset.045170396b35dec2b81035773f63b57faae566868b5d6dc93a59d23c0c3ed209",
+    "aws:asset:path": "asset.db8349c9908afa8aa57a3c7e9fffc6061504a18664e132deda1146613295088e",
     "aws:asset:is-bundled": true,
     "aws:asset:property": "Code"
    }

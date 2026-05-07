@@ -19,6 +19,7 @@ async function safeGetItem(key: Record<string, string>, tableName: string) {
 }
 
 function toPartySummary(item: Record<string, unknown> | undefined, userId: string) {
+  if (!userId) return undefined;
   const fullName =
     typeof item?.['full_name'] === 'string' && item['full_name'].trim()
       ? item['full_name']
@@ -33,11 +34,23 @@ function toPartySummary(item: Record<string, unknown> | undefined, userId: strin
     typeof item?.['email'] === 'string' && item['email'].trim()
       ? item['email']
       : undefined;
+  const phone =
+    typeof item?.['phone'] === 'string' && item['phone'].trim()
+      ? item['phone']
+      : undefined;
+  const avatarUrl =
+    typeof item?.['avatar_url'] === 'string' && item['avatar_url'].trim()
+      ? item['avatar_url']
+      : typeof item?.['avatarUrl'] === 'string' && item['avatarUrl'].trim()
+        ? item['avatarUrl']
+        : undefined;
 
   return {
     id: userId,
     name: name ?? email ?? 'Usuario Donver',
-    avatar_url: typeof item['avatar_url'] === 'string' && item['avatar_url'].trim() ? item['avatar_url'] : undefined,
+    email,
+    phone,
+    avatar_url: avatarUrl,
   };
 }
 
@@ -66,6 +79,13 @@ function toPetSummary(item: Record<string, unknown> | undefined) {
     species: typeof item['species'] === 'string' ? item['species'] : 'other',
     breed: typeof item['breed'] === 'string' && item['breed'].trim() ? item['breed'] : undefined,
     size: typeof item['size'] === 'string' && item['size'].trim() ? item['size'] : undefined,
+    age: typeof item['age'] === 'number' ? item['age'] : undefined,
+    description: typeof item['description'] === 'string' && item['description'].trim() ? item['description'] : undefined,
+    photos: Array.isArray(item['photos']) ? item['photos'].map(String) : [],
+    medical_notes:
+      typeof item['medical_notes'] === 'string' && item['medical_notes'].trim()
+        ? item['medical_notes']
+        : undefined,
   };
 }
 

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { format, addDays, parse } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { getPetSizeHelp, getPetSizeLabel, getPetTypeSingularLabel } from "@/lib/pet-labels";
+import { getPetSizeLabel, getPetTypeSingularLabel } from "@/lib/pet-labels";
 import type { Space, BlockedDate, Pet } from "@/types";
 import { calculateBookingPricing, DEFAULT_ADDITIONAL_PET_RATE } from "@/lib/bookingPricing";
 
@@ -11,6 +11,16 @@ interface BookingCardProps {
   blockedDates: BlockedDate[];
   pets: Pet[];
   onBookingSummary: (booking: any) => void;
+}
+
+const HOUR_OPTIONS = Array.from({ length: 24 }, (_, index) =>
+  `${String(index).padStart(2, "0")}:00`
+);
+
+function getHourNumber(time: string) {
+  const [hours, minutes] = time.split(":");
+  if (minutes !== "00") return Number.NaN;
+  return Number(hours);
 }
 
 export function BookingCard({
@@ -31,7 +41,6 @@ export function BookingCard({
   );
   const [startTime, setStartTime] = useState("10:00");
   const [endTime, setEndTime] = useState("16:00");
-  const [hours, setHours] = useState(space.minHours);
   const [selectedPetIds, setSelectedPetIds] = useState<string[]>([]);
   const eligiblePets = useMemo(
     () =>
@@ -67,6 +76,43 @@ export function BookingCard({
     [blockedDates]
   );
 
+  const endTimeOptions = useMemo(
+    () => HOUR_OPTIONS.filter((option) => getHourNumber(option) > getHourNumber(startTime)),
+    [startTime]
+  );
+
+  useEffect(() => {
+    if (bookingType === "hourly" && endTime && !endTimeOptions.includes(endTime)) {
+      setEndTime("");
+    }
+  }, [bookingType, endTime, endTimeOptions]);
+
+  const selectedHours = useMemo(() => {
+    const startHour = getHourNumber(startTime);
+    const endHour = getHourNumber(endTime);
+    if (!Number.isFinite(startHour) || !Number.isFinite(endHour)) {
+      return 0;
+    }
+    return endHour - startHour;
+  }, [endTime, startTime]);
+
+  const hourlyValidationMessage = useMemo(() => {
+    if (bookingType !== "hourly") return "";
+    if (!startTime || !endTime) {
+      return "Selecciona una hora de inicio y una hora de fin.";
+    }
+    if (!startTime.endsWith(":00") || !endTime.endsWith(":00")) {
+      return "Solo puedes seleccionar horas cerradas.";
+    }
+    if (selectedHours <= 0) {
+      return "La hora de fin debe ser posterior a la hora de inicio.";
+    }
+    if (selectedHours < space.minHours) {
+      return `Este espacio requiere un mínimo de ${space.minHours} horas.`;
+    }
+    return "";
+  }, [bookingType, endTime, selectedHours, space.minHours, startTime]);
+
   // Check if a date or date range has blocked dates
   const hasBlockedDates = (start: string, end?: string) => {
     const startD = parse(start, "yyyy-MM-dd", new Date());
@@ -83,6 +129,18 @@ export function BookingCard({
 
   // Calculate price
   const priceBreakdown = useMemo(() => {
+    if (bookingType === "hourly" && hourlyValidationMessage) {
+      return {
+        unitCount: 0,
+        baseSubtotal: 0,
+        additionalPetFee: 0,
+        subtotal: 0,
+        serviceFee: 0,
+        total: 0,
+        additionalPetRate: DEFAULT_ADDITIONAL_PET_RATE,
+      };
+    }
+
     return calculateBookingPricing({
       bookingType,
       startDate: parse(startDate, "yyyy-MM-dd", new Date()),
@@ -90,13 +148,25 @@ export function BookingCard({
         bookingType === "overnight"
           ? parse(endDate, "yyyy-MM-dd", new Date())
           : parse(startDate, "yyyy-MM-dd", new Date()),
-      hours,
+      hours: bookingType === "hourly" ? selectedHours : undefined,
       pricePerNight: space.pricePerNight,
       pricePerHour: space.pricePerHour,
       petCount: Math.max(selectedPetIds.length, 1),
       additionalPetRate: DEFAULT_ADDITIONAL_PET_RATE,
     });
-  }, [bookingType, endDate, hours, selectedPetIds.length, space.pricePerHour, space.pricePerNight, startDate]);
+  }, [
+    bookingType,
+    endDate,
+    hourlyValidationMessage,
+    selectedHours,
+    selectedPetIds.length,
+    space.pricePerHour,
+    space.pricePerNight,
+    startDate,
+  ]);
+
+  const isBookingDisabled =
+    selectedPetIds.length === 0 || (bookingType === "hourly" && Boolean(hourlyValidationMessage));
 
   const handlePetToggle = (petId: string) => {
     setSelectedPetIds((current) => {
@@ -154,6 +224,15 @@ export function BookingCard({
       return;
     }
 
+    if (bookingType === "hourly" && hourlyValidationMessage) {
+      toast({
+        title: "Horario inválido",
+        description: hourlyValidationMessage,
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Create booking object
     const booking = {
       spaceId: space.id,
@@ -165,7 +244,7 @@ export function BookingCard({
           : parse(startDate, "yyyy-MM-dd", new Date()),
       startTime: bookingType === "hourly" ? startTime : undefined,
       endTime: bookingType === "hourly" ? endTime : undefined,
-      hours: bookingType === "hourly" ? hours : undefined,
+      hours: bookingType === "hourly" ? selectedHours : undefined,
       petIds: selectedPetIds,
       subtotal: priceBreakdown.subtotal,
       serviceFee: priceBreakdown.serviceFee,
@@ -271,37 +350,52 @@ export function BookingCard({
                 <label className="text-sm font-semibold text-foreground mb-1 block">
                   Hora inicio
                 </label>
-                <input
-                  type="time"
+                <select
                   value={startTime}
                   onChange={(e) => setStartTime(e.target.value)}
                   className="w-full px-3 py-2 border border-input rounded-lg bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                />
+                >
+                  {HOUR_OPTIONS.map((timeOption) => (
+                    <option key={timeOption} value={timeOption}>
+                      {timeOption}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label className="text-sm font-semibold text-foreground mb-1 block">
                   Hora fin
                 </label>
-                <input
-                  type="time"
-                  value={endTime}
+                <select
+                  value={endTimeOptions.includes(endTime) ? endTime : ""}
                   onChange={(e) => setEndTime(e.target.value)}
                   className="w-full px-3 py-2 border border-input rounded-lg bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                />
+                >
+                  <option value="" disabled>
+                    Selecciona una hora
+                  </option>
+                  {endTimeOptions.map((timeOption) => (
+                    <option key={timeOption} value={timeOption}>
+                      {timeOption}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
-            <div>
-              <label className="text-sm font-semibold text-foreground mb-1 block">
-                Duración (mínimo {space.minHours}h)
-              </label>
-              <input
-                type="number"
-                value={hours}
-                onChange={(e) => setHours(Math.max(space.minHours, Number(e.target.value)))}
-                min={space.minHours}
-                className="w-full px-3 py-2 border border-input rounded-lg bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-              />
+            <div className="rounded-lg border border-border bg-muted/30 px-3 py-3 text-sm">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-muted-foreground">Horas seleccionadas</span>
+                <span className="font-semibold text-foreground">
+                  {selectedHours > 0 ? `${selectedHours} ${selectedHours === 1 ? "hora" : "horas"}` : "0 horas"}
+                </span>
+              </div>
+              <p className="mt-2 text-xs text-muted-foreground">
+                Este espacio requiere un mínimo de {space.minHours} horas.
+              </p>
             </div>
+            {hourlyValidationMessage && (
+              <p className="text-sm font-medium text-destructive">{hourlyValidationMessage}</p>
+            )}
           </>
         )}
       </div>
@@ -342,12 +436,6 @@ export function BookingCard({
             </div>
           )}
         </div>
-        <div className="rounded-lg bg-muted/40 p-3 text-xs text-muted-foreground">
-          <p className="font-medium text-foreground">Guía rápida de tamaños</p>
-          <p className="mt-1">{getPetSizeLabel("small")}: {getPetSizeHelp("small")}</p>
-          <p className="mt-1">{getPetSizeLabel("medium")}: {getPetSizeHelp("medium")}</p>
-          <p className="mt-1">{getPetSizeLabel("large")}: {getPetSizeHelp("large")}</p>
-        </div>
         <p className="text-sm text-muted-foreground">
           {selectedPetIds.length} de {space.maxPets} mascotas seleccionadas para esta reserva.
         </p>
@@ -355,12 +443,37 @@ export function BookingCard({
 
       {/* Price Breakdown */}
       <div className="space-y-2 pt-4 border-t border-border">
-        <div className="flex justify-between text-sm">
-          <span className="text-muted-foreground">Precio base</span>
-          <span className="font-semibold text-foreground">
-            ₡{priceBreakdown.baseSubtotal.toLocaleString("es-CR")}
-          </span>
-        </div>
+        {bookingType === "hourly" ? (
+          <>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Precio por hora</span>
+              <span className="font-semibold text-foreground">
+                ₡{space.pricePerHour.toLocaleString("es-CR")}
+              </span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Horas seleccionadas</span>
+              <span className="font-semibold text-foreground">
+                {selectedHours > 0 ? selectedHours : 0}
+              </span>
+            </div>
+          </>
+        ) : (
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">Precio base</span>
+            <span className="font-semibold text-foreground">
+              ₡{priceBreakdown.baseSubtotal.toLocaleString("es-CR")}
+            </span>
+          </div>
+        )}
+        {bookingType === "hourly" && (
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">Subtotal base</span>
+            <span className="font-semibold text-foreground">
+              ₡{priceBreakdown.baseSubtotal.toLocaleString("es-CR")}
+            </span>
+          </div>
+        )}
         <div className="flex justify-between text-sm">
           <span className="text-muted-foreground">
             Mascotas adicionales ({Math.max(selectedPetIds.length - 1, 0)})
@@ -402,8 +515,9 @@ export function BookingCard({
         onClick={handleRequestBooking}
         size="lg"
         className="w-full rounded-lg"
+        disabled={isBookingDisabled}
       >
-        Solicitar Reservación
+        Solicitar Reserva
       </Button>
     </div>
   );

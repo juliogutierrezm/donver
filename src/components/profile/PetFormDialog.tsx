@@ -121,7 +121,7 @@ export function PetFormDialog({
               <select
                 value={formData.type || "dog"}
                 onChange={(e) =>
-                  setFormData({ ...formData, type: e.target.value as any })
+                  setFormData({ ...formData, type: e.target.value as Pet["type"] })
                 }
                 className="w-full px-3 py-2 border border-input rounded-lg bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               >
@@ -170,7 +170,7 @@ export function PetFormDialog({
               <select
                 value={formData.size || "medium"}
                 onChange={(e) =>
-                  setFormData({ ...formData, size: e.target.value as any })
+                  setFormData({ ...formData, size: e.target.value as Pet["size"] })
                 }
                 className="w-full px-3 py-2 border border-input rounded-lg bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               >

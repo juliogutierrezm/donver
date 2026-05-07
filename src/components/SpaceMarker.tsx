@@ -1,6 +1,6 @@
 import { Marker, Popup } from "react-leaflet";
 import L from "leaflet";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import type { Space } from "@/types";
 import { Button } from "@/components/ui/button";
 
@@ -18,10 +18,19 @@ function hasValidCoordinates(space: Space) {
 }
 
 export function SpaceMarker({ space }: SpaceMarkerProps) {
+  const navigate = useNavigate();
+  const hasNightPrice = Number.isFinite(space.pricePerNight) && space.pricePerNight > 0;
+  const hasHourlyPrice = Number.isFinite(space.pricePerHour) && space.pricePerHour > 0;
+  const markerPriceLabel = hasHourlyPrice
+    ? `₡${space.pricePerHour.toLocaleString("es-CR")}/h`
+    : hasNightPrice
+      ? `₡${space.pricePerNight.toLocaleString("es-CR")}/n`
+      : "Donver";
+
   const markerHtml = `
     <div class="flex flex-col items-center">
       <div class="bg-primary text-primary-foreground px-2 py-1 rounded-lg text-xs font-bold whitespace-nowrap">
-        ₡${space.pricePerHour.toLocaleString("es-CR")}/h
+        ${markerPriceLabel}
       </div>
       <div class="w-0 h-0 border-l-[6px] border-r-[6px] border-t-[8px] border-l-transparent border-r-transparent border-t-primary"></div>
     </div>
@@ -39,6 +48,9 @@ export function SpaceMarker({ space }: SpaceMarkerProps) {
   const mapQuery = hasCoordinates ? `${space.latitude},${space.longitude}` : "";
   const wazeUrl = `https://waze.com/ul?ll=${mapQuery}&navigate=yes`;
   const googleMapsUrl = `https://www.google.com/maps?q=${mapQuery}`;
+  const handleOpenSpace = () => {
+    navigate(`/spaces/${space.id}`);
+  };
 
   return (
     <Marker position={[space.latitude, space.longitude]} icon={markerIcon}>
@@ -56,15 +68,20 @@ export function SpaceMarker({ space }: SpaceMarkerProps) {
             <p className="text-xs text-muted-foreground">
               {space.canton}, {space.province}
             </p>
-            <p className="text-sm font-semibold text-primary">
-              Desde ₡{space.pricePerNight.toLocaleString("es-CR")} por noche
-            </p>
+            {hasNightPrice && (
+              <p className="text-sm font-semibold text-primary">
+                ₡{space.pricePerNight.toLocaleString("es-CR")} por noche
+              </p>
+            )}
+            {hasHourlyPrice && (
+              <p className="text-sm font-semibold text-primary">
+                ₡{space.pricePerHour.toLocaleString("es-CR")} por hora
+              </p>
+            )}
           </div>
-          <Link to={`/spaces/${space.id}`} className="block">
-            <Button size="sm" className="w-full text-xs">
-              Ver espacio
-            </Button>
-          </Link>
+          <Button size="sm" className="w-full text-xs" onClick={handleOpenSpace}>
+            Ver espacio
+          </Button>
           {hasCoordinates && (
             <div className="flex gap-2 text-xs">
               <a

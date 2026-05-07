@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { ArrowLeft, Calendar, Clock3, DollarSign, Home, MessageSquare, PawPrint, ShieldAlert, UserRound } from "lucide-react";
+import { ArrowLeft, Calendar, Clock3, DollarSign, Home, Mail, MessageSquare, PawPrint, Phone, ShieldAlert, UserRound } from "lucide-react";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { Badge } from "@/components/ui/badge";
@@ -16,7 +16,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { getPetSizeHelp, getPetSizeLabel, getPetTypeSingularLabel } from "@/lib/pet-labels";
+import { getPetSizeLabel, getPetTypeSingularLabel } from "@/lib/pet-labels";
 import { ApiError, authApi, bookingsApi, messagesApi, type BookingDetail, type BookingPartySummary } from "@/services/api";
 import type { User } from "@/types";
 
@@ -47,6 +47,31 @@ function formatBookingType(detail: BookingDetail) {
 
 function formatDateTimeLabel(value: Date) {
   return format(value, "d 'de' MMMM yyyy", { locale: es });
+}
+
+function formatAgeLabel(age?: number) {
+  if (typeof age !== "number" || Number.isNaN(age)) return null;
+  return `${age} ${age === 1 ? "año" : "años"}`;
+}
+
+function ContactInfoRow({
+  icon,
+  label,
+  value,
+}: {
+  icon: ReactNode;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="flex items-start gap-3 rounded-lg bg-secondary/40 p-3">
+      <div className="mt-0.5 text-primary">{icon}</div>
+      <div>
+        <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
+        <p className="mt-1 text-sm font-medium text-foreground">{value}</p>
+      </div>
+    </div>
+  );
 }
 
 function DetailState({
@@ -80,13 +105,36 @@ function PartyCard({ title, party }: { title: string; party?: BookingPartySummar
   return (
     <div className="rounded-xl border border-border bg-card p-5">
       <p className="text-sm text-muted-foreground">{title}</p>
-      <div className="mt-3 flex items-center gap-3">
-        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-secondary text-secondary-foreground">
-          <UserRound className="h-5 w-5" />
-        </div>
+      <div className="mt-4 flex items-center gap-3">
+        {party.avatarUrl ? (
+          <img
+            src={party.avatarUrl}
+            alt={party.name || "Usuario Donver"}
+            className="h-14 w-14 rounded-full object-cover"
+          />
+        ) : (
+          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-secondary text-secondary-foreground">
+            <UserRound className="h-6 w-6" />
+          </div>
+        )}
         <div>
           <p className="font-semibold text-foreground">{party.name || "Usuario Donver"}</p>
+          <p className="text-sm text-muted-foreground">
+            {party.email || "Correo no disponible"}
+          </p>
         </div>
+      </div>
+      <div className="mt-4 space-y-3">
+        <ContactInfoRow
+          icon={<Mail className="h-4 w-4" />}
+          label="Correo"
+          value={party.email || "Correo no disponible"}
+        />
+        <ContactInfoRow
+          icon={<Phone className="h-4 w-4" />}
+          label="Teléfono"
+          value={party.phone || "Teléfono no disponible"}
+        />
       </div>
     </div>
   );
@@ -163,7 +211,7 @@ export default function BookingDetailPage() {
     if (!detail || !currentUser) return undefined;
     const isOwnerView = currentUser.id === detail.ownerId;
     return {
-      title: isOwnerView ? "Cuidador" : "Dueño de la reserva",
+      title: isOwnerView ? "Datos del cuidador" : "Datos del dueño de la reserva",
       party: isOwnerView ? detail.caregiver : detail.owner,
     };
   }, [currentUser, detail]);
@@ -397,23 +445,86 @@ export default function BookingDetailPage() {
                   <div className="rounded-xl border border-border bg-card p-6">
                     <h2 className="text-lg font-semibold text-foreground">Mascotas asociadas</h2>
                     {detail.pets && detail.pets.length > 0 ? (
-                      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                      <div className="mt-4 grid gap-4">
                         {detail.pets.map((pet) => (
-                          <div key={pet.id} className="rounded-lg border border-border p-4">
-                            <div className="flex items-start gap-3">
-                              <PawPrint className="mt-0.5 h-5 w-5 text-primary" />
-                              <div>
-                                <p className="font-semibold text-foreground">{pet.name}</p>
-                                <p className="text-sm text-muted-foreground">
-                                  {getPetTypeSingularLabel(pet.type)}
-                                  {pet.breed ? ` • ${pet.breed}` : ""}
-                                  {pet.size ? ` • ${getPetSizeLabel(pet.size)}` : ""}
-                                </p>
-                                {pet.size && (
-                                  <p className="mt-1 text-xs text-muted-foreground">
-                                    {getPetSizeHelp(pet.size)}
-                                  </p>
+                          <div key={pet.id} className="overflow-hidden rounded-xl border border-border">
+                            <div className="grid gap-0 md:grid-cols-[220px,1fr]">
+                              <div className="bg-muted/40">
+                                {pet.photos && pet.photos.length > 0 ? (
+                                  <div className="space-y-2 p-3">
+                                    <img
+                                      src={pet.photos[0]}
+                                      alt={pet.name}
+                                      className="h-48 w-full rounded-lg object-cover"
+                                    />
+                                    {pet.photos.length > 1 && (
+                                      <div className="grid grid-cols-3 gap-2">
+                                        {pet.photos.slice(1, 4).map((photo, index) => (
+                                          <img
+                                            key={`${pet.id}-photo-${index}`}
+                                            src={photo}
+                                            alt={`${pet.name} ${index + 2}`}
+                                            className="h-16 w-full rounded-md object-cover"
+                                          />
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <div className="flex h-full min-h-[220px] flex-col items-center justify-center gap-3 px-4 py-6 text-center">
+                                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-secondary text-secondary-foreground">
+                                      <PawPrint className="h-7 w-7" />
+                                    </div>
+                                    <div>
+                                      <p className="font-medium text-foreground">Sin foto registrada</p>
+                                      <p className="mt-1 text-sm text-muted-foreground">
+                                        Esta mascota no tiene imágenes cargadas.
+                                      </p>
+                                    </div>
+                                  </div>
                                 )}
+                              </div>
+                              <div className="space-y-4 p-5">
+                                <div>
+                                  <p className="text-lg font-semibold text-foreground">{pet.name}</p>
+                                  <p className="mt-1 text-sm text-muted-foreground">
+                                    {getPetTypeSingularLabel(pet.type)}
+                                    {pet.breed ? ` • ${pet.breed}` : ""}
+                                    {pet.size ? ` • ${getPetSizeLabel(pet.size)}` : ""}
+                                    {formatAgeLabel(pet.age) ? ` • ${formatAgeLabel(pet.age)}` : ""}
+                                  </p>
+                                </div>
+
+                                <div className="grid gap-3 sm:grid-cols-2">
+                                  <div className="rounded-lg bg-secondary/40 p-3">
+                                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Tamaño</p>
+                                    <p className="mt-1 text-sm font-medium text-foreground">
+                                      {pet.size ? getPetSizeLabel(pet.size) : "No registrado"}
+                                    </p>
+                                  </div>
+                                  <div className="rounded-lg bg-secondary/40 p-3">
+                                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Edad</p>
+                                    <p className="mt-1 text-sm font-medium text-foreground">
+                                      {formatAgeLabel(pet.age) || "No registrada"}
+                                    </p>
+                                  </div>
+                                </div>
+
+                                {pet.description && (
+                                  <div>
+                                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Descripción</p>
+                                    <p className="mt-1 text-sm leading-6 text-foreground">{pet.description}</p>
+                                  </div>
+                                )}
+
+                                <div>
+                                  <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                                    Necesidades especiales
+                                  </p>
+                                  <p className="mt-1 text-sm leading-6 text-foreground">
+                                    {pet.specialNeeds || "Sin necesidades especiales registradas"}
+                                  </p>
+                                </div>
                               </div>
                             </div>
                           </div>
@@ -490,8 +601,15 @@ export default function BookingDetailPage() {
                     {counterparty?.party ? (
                       <div className="mt-3 space-y-3">
                         <p className="text-sm text-muted-foreground">
-                          Puedes dar seguimiento con {counterparty.party.name || "la otra persona de la reserva"} desde Donver.
+                          Usa estos datos para coordinar tu reserva con{" "}
+                          {counterparty.party.name || "la otra persona de la reserva"}.
                         </p>
+                        {detail.space?.title && isOwner && (
+                          <div className="rounded-lg bg-secondary/40 p-3">
+                            <p className="text-xs uppercase tracking-wide text-muted-foreground">Espacio reservado</p>
+                            <p className="mt-1 text-sm font-medium text-foreground">{detail.space.title}</p>
+                          </div>
+                        )}
                         {contactState === "available" && contactConversationId ? (
                           <Button
                             className="w-full gap-2"

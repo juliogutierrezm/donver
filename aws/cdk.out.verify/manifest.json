@@ -125,7 +125,7 @@
         "validateOnSynth": false,
         "assumeRoleArn": "arn:${AWS::Partition}:iam::183192606101:role/cdk-donver-deploy-role-183192606101-us-east-1",
         "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::183192606101:role/cdk-donver-cfn-exec-role-183192606101-us-east-1",
-        "stackTemplateAssetObjectUrl": "s3://cdk-donver-assets-183192606101-us-east-1/9cb6826af076b12ca68a4c0cf4e07a582c91a1545645f2ca41ed051cd5bfde5a.json",
+        "stackTemplateAssetObjectUrl": "s3://cdk-donver-assets-183192606101-us-east-1/ceca69e9124d0f62f75bf7f59de56abf98f7de6bf358890f2c65e1163eebf5c9.json",
         "requiresBootstrapStackVersion": 6,
         "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/donver/version",
         "additionalDependencies": [
@@ -270,7 +270,7 @@
         "validateOnSynth": false,
         "assumeRoleArn": "arn:${AWS::Partition}:iam::183192606101:role/cdk-donver-deploy-role-183192606101-us-east-1",
         "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::183192606101:role/cdk-donver-cfn-exec-role-183192606101-us-east-1",
-        "stackTemplateAssetObjectUrl": "s3://cdk-donver-assets-183192606101-us-east-1/303f81166137baa7a57bf7be73653943678357d514f6b23dee8c1d29bf91dbe5.json",
+        "stackTemplateAssetObjectUrl": "s3://cdk-donver-assets-183192606101-us-east-1/5e6a18a81d43a34b70cfa78af8e5067677d1dd814f73ef144157008485d4ed6c.json",
         "requiresBootstrapStackVersion": 6,
         "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/donver/version",
         "additionalDependencies": [

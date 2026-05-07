@@ -7,6 +7,7 @@ import { LocationSearch, type LocationResult } from "@/components/LocationSearch
 import { SpacesMap } from "@/components/SpacesMap";
 import { SpaceCard } from "@/components/SpaceCard";
 import { useGeolocation } from "@/hooks/use-geolocation";
+import { getPetTypeLabel } from "@/lib/pet-labels";
 import { PROVINCES, CANTONES, PET_TYPES } from "@/types";
 import { spacesApi } from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
@@ -216,13 +217,7 @@ export default function SpacesPage() {
                   <option value="">Todas</option>
                   {PET_TYPES.map((type) => (
                     <option key={type} value={type}>
-                      {type === "dog"
-                        ? "Perros"
-                        : type === "cat"
-                          ? "Gatos"
-                          : type === "bird"
-                            ? "Pájaros"
-                            : "Otros"}
+                      {getPetTypeLabel(type)}
                     </option>
                   ))}
                 </select>

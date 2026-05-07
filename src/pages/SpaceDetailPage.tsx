@@ -307,10 +307,14 @@ export default function SpaceDetailPage() {
                 <p className="text-foreground leading-relaxed">{space.description}</p>
               </div>
 
-              <div className="grid grid-cols-3 gap-4 p-6 bg-card border border-border rounded-lg">
+              <div className="grid grid-cols-1 gap-4 rounded-lg border border-border bg-card p-6 md:grid-cols-3">
                 <div className="text-center">
-                  <p className="text-2xl font-bold text-primary">{space.acceptedPetTypes.length}</p>
-                  <p className="text-sm text-muted-foreground">Tipos de mascotas</p>
+                  <p className="text-sm font-semibold text-muted-foreground">Tipos aceptados</p>
+                  <p className="mt-2 text-sm font-bold text-foreground">
+                    {space.acceptedPetTypes.length > 0
+                      ? space.acceptedPetTypes.map((type) => getPetTypeLabel(type)).join(", ")
+                      : "No definidos"}
+                  </p>
                 </div>
                 <div className="text-center border-l border-r border-border">
                   <p className="text-2xl font-bold text-primary">{space.maxPets}</p>
@@ -435,8 +439,8 @@ export default function SpaceDetailPage() {
       </main>
 
       <Dialog open={bookingSummaryOpen} onOpenChange={setBookingSummaryOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
+        <DialogContent className="flex max-h-[90vh] min-h-0 w-[calc(100vw-2rem)] max-w-md flex-col overflow-hidden p-0">
+          <DialogHeader className="border-b border-border px-6 py-4">
             <DialogTitle>Resumen de la reservación</DialogTitle>
           </DialogHeader>
           {bookingData && (
