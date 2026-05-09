@@ -808,11 +808,11 @@ export default function BookingDetailPage() {
             </div>
           </div>
 
-          <DialogFooter>
-            <Button variant="outline" onClick={() => handleReviewDialogChange(false)} disabled={reviewSubmitting}>
+          <DialogFooter className="border-t border-border pt-4">
+            <Button variant="outline" className="w-full sm:w-auto" onClick={() => handleReviewDialogChange(false)} disabled={reviewSubmitting}>
               Cancelar
             </Button>
-            <Button onClick={() => void handleSubmitReview()} disabled={reviewSubmitting || reviewRating < 1}>
+            <Button className="w-full sm:w-auto" onClick={() => void handleSubmitReview()} disabled={reviewSubmitting || reviewRating < 1}>
               {reviewSubmitting ? "Enviando..." : "Publicar reseña"}
             </Button>
           </DialogFooter>
@@ -824,11 +824,12 @@ export default function BookingDetailPage() {
             <DialogTitle>{actionCopy.title}</DialogTitle>
             <DialogDescription>{actionCopy.description}</DialogDescription>
           </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setPendingAction(null)} disabled={actionLoading}>
+          <DialogFooter className="border-t border-border pt-4">
+            <Button variant="outline" className="w-full sm:w-auto" onClick={() => setPendingAction(null)} disabled={actionLoading}>
               Volver
             </Button>
             <Button
+              className="w-full sm:w-auto"
               variant={pendingAction === "confirm" ? "default" : "destructive"}
               onClick={() => void handleAction()}
               disabled={actionLoading}

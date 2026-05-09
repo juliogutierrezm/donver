@@ -15,7 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import type { PetType, Province, Space } from "@/types";
 
 type ViewMode = "grid" | "map" | "split";
-type PriceMode = "night" | "hour";
+type PriceMode = "all" | "night" | "hour";
 const PRICE_MIN = 0;
 const PRICE_STEP = 1000;
 
@@ -29,16 +29,36 @@ function normalizePriceValue(value: number, max: number) {
 }
 
 function getSpacePrice(space: Space, priceMode: PriceMode) {
-  return priceMode === "night" ? space.pricePerNight : space.pricePerHour;
+  if (priceMode === "night") {
+    return space.pricePerNight;
+  }
+
+  if (priceMode === "hour") {
+    return space.pricePerHour;
+  }
+
+  return PRICE_MIN;
 }
 
 function hasValidSpacePrice(space: Space, priceMode: PriceMode) {
+  if (priceMode === "all") {
+    return true;
+  }
+
   const price = getSpacePrice(space, priceMode);
   return Number.isFinite(price) && price > 0;
 }
 
 function getPriceModeLabel(priceMode: PriceMode) {
-  return priceMode === "night" ? "noche" : "hora";
+  if (priceMode === "night") {
+    return "noche";
+  }
+
+  if (priceMode === "hour") {
+    return "hora";
+  }
+
+  return "reserva";
 }
 
 function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -74,7 +94,7 @@ export default function SpacesPage() {
   const [selectedProvince, setSelectedProvince] = useState<string>("");
   const [selectedCanton, setSelectedCanton] = useState<string>("");
   const [selectedPetType, setSelectedPetType] = useState<string>("");
-  const [priceMode, setPriceMode] = useState<PriceMode>("night");
+  const [priceMode, setPriceMode] = useState<PriceMode>("all");
   const [priceRange, setPriceRange] = useState<[number, number]>([PRICE_MIN, PRICE_MIN]);
   const [priceInputs, setPriceInputs] = useState({ min: String(PRICE_MIN), max: String(PRICE_MIN) });
   const [searchRadius, setSearchRadius] = useState(25);
@@ -130,6 +150,10 @@ export default function SpacesPage() {
   }, [priceMode, searchLocation, searchRadius, spaces]);
 
   const dynamicPriceMax = useMemo(() => {
+    if (priceMode === "all") {
+      return PRICE_MIN;
+    }
+
     const highestPrice = candidateSpaces.reduce((max, space) => {
       const price = getSpacePrice(space, priceMode);
       return price > max ? price : max;
@@ -171,14 +195,27 @@ export default function SpacesPage() {
   };
 
   useEffect(() => {
+    if (priceMode === "all") {
+      setPriceRange([PRICE_MIN, PRICE_MIN]);
+      setPriceInputs({
+        min: "",
+        max: "",
+      });
+      return;
+    }
+
     setPriceRange([PRICE_MIN, dynamicPriceMax]);
     setPriceInputs({
       min: String(PRICE_MIN),
       max: String(dynamicPriceMax),
     });
-  }, [priceMode]);
+  }, [dynamicPriceMax, priceMode]);
 
   useEffect(() => {
+    if (priceMode === "all") {
+      return;
+    }
+
     setPriceRange((currentRange) => {
       const nextMin = clamp(currentRange[0], PRICE_MIN, dynamicPriceMax);
       const nextMax = clamp(currentRange[1], nextMin, dynamicPriceMax);
@@ -207,7 +244,7 @@ export default function SpacesPage() {
 
       return normalizedInputs;
     });
-  }, [dynamicPriceMax]);
+  }, [dynamicPriceMax, priceMode]);
 
   const handleUseCurrentLocation = async () => {
     const currentCoords = await getCurrentPosition();
@@ -272,11 +309,16 @@ export default function SpacesPage() {
   }, [selectedProvince, selectedCanton, selectedPetType, toast]);
 
   const filteredSpaces = useMemo(
-    () =>
-      candidateSpaces.filter((space) => {
+    () => {
+      if (priceMode === "all") {
+        return candidateSpaces;
+      }
+
+      return candidateSpaces.filter((space) => {
         const price = getSpacePrice(space, priceMode);
         return price >= priceRange[0] && price <= priceRange[1];
-      }),
+      });
+    },
     [candidateSpaces, priceMode, priceRange]
   );
 
@@ -380,7 +422,13 @@ export default function SpacesPage() {
                   Tipo de reserva
                 </label>
                 <Tabs value={priceMode} onValueChange={(value) => setPriceMode(value as PriceMode)} className="w-full">
-                  <TabsList className="grid h-auto w-full grid-cols-2 rounded-xl bg-muted/60 p-1.5">
+                  <TabsList className="grid h-auto w-full grid-cols-3 rounded-xl bg-muted/60 p-1.5">
+                    <TabsTrigger
+                      value="all"
+                      className="min-h-11 rounded-lg px-4 py-2 text-sm font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground"
+                    >
+                      Todos
+                    </TabsTrigger>
                     <TabsTrigger
                       value="night"
                       className="min-h-11 rounded-lg px-4 py-2 text-sm font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground"
@@ -397,8 +445,9 @@ export default function SpacesPage() {
                 </Tabs>
               </div>
               <label className="text-sm font-semibold text-foreground mb-2 block">
-                Rango de precio por {getPriceModeLabel(priceMode)}: ₡{priceRange[0].toLocaleString("es-CR")} - ₡
-                {priceRange[1].toLocaleString("es-CR")}
+                {priceMode === "all"
+                  ? "Rango de precio"
+                  : `Rango de precio por ${getPriceModeLabel(priceMode)}: ₡${priceRange[0].toLocaleString("es-CR")} - ₡${priceRange[1].toLocaleString("es-CR")}`}
               </label>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <input
@@ -407,7 +456,8 @@ export default function SpacesPage() {
                   pattern="[0-9]*"
                   value={priceInputs.min}
                   onChange={(e) => handlePriceInputChange("min", e.target.value)}
-                  placeholder={`Precio mínimo por ${getPriceModeLabel(priceMode)}`}
+                  placeholder={priceMode === "all" ? "Selecciona tipo de reserva" : `Precio mínimo por ${getPriceModeLabel(priceMode)}`}
+                  disabled={priceMode === "all"}
                   className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                 />
                 <input
@@ -416,7 +466,8 @@ export default function SpacesPage() {
                   pattern="[0-9]*"
                   value={priceInputs.max}
                   onChange={(e) => handlePriceInputChange("max", e.target.value)}
-                  placeholder={`Precio máximo por ${getPriceModeLabel(priceMode)}`}
+                  placeholder={priceMode === "all" ? "Selecciona tipo de reserva" : `Precio máximo por ${getPriceModeLabel(priceMode)}`}
+                  disabled={priceMode === "all"}
                   className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                 />
               </div>
@@ -437,6 +488,7 @@ export default function SpacesPage() {
                   value={priceRange[0]}
                   onChange={(e) => handlePriceSliderChange("min", e.target.value)}
                   aria-label="Precio mínimo"
+                  disabled={priceMode === "all"}
                   className="pointer-events-none absolute inset-0 z-20 h-full w-full appearance-none bg-transparent [&::-webkit-slider-runnable-track]:h-2 [&::-webkit-slider-runnable-track]:bg-transparent [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:mt-[-6px] [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-background [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:shadow-[0_0_0_2px_hsl(var(--primary)),0_6px_16px_rgba(0,0,0,0.18)] [&::-moz-range-track]:h-2 [&::-moz-range-track]:bg-transparent [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-background [&::-moz-range-thumb]:bg-primary [&::-moz-range-thumb]:shadow-none"
                 />
                 <input
@@ -447,9 +499,15 @@ export default function SpacesPage() {
                   value={priceRange[1]}
                   onChange={(e) => handlePriceSliderChange("max", e.target.value)}
                   aria-label="Precio máximo"
+                  disabled={priceMode === "all"}
                   className="pointer-events-none absolute inset-0 z-30 h-full w-full appearance-none bg-transparent [&::-webkit-slider-runnable-track]:h-2 [&::-webkit-slider-runnable-track]:bg-transparent [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:mt-[-6px] [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-background [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:shadow-[0_0_0_2px_hsl(var(--primary)),0_6px_16px_rgba(0,0,0,0.18)] [&::-moz-range-track]:h-2 [&::-moz-range-track]:bg-transparent [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-background [&::-moz-range-thumb]:bg-primary [&::-moz-range-thumb]:shadow-none"
                 />
               </div>
+              {priceMode === "all" && (
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Estás viendo todos los espacios disponibles. Selecciona “Por noche” o “Por hora” para activar el filtro de precio.
+                </p>
+              )}
             </div>
 
             <div className="flex flex-col sm:flex-row gap-2">
