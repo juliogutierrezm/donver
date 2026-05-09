@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { MapPin, LayoutGrid, Map, Maximize2, Loader2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { LocationSearch, type LocationResult } from "@/components/LocationSearch";
@@ -14,6 +15,31 @@ import { useToast } from "@/hooks/use-toast";
 import type { PetType, Province, Space } from "@/types";
 
 type ViewMode = "grid" | "map" | "split";
+type PriceMode = "night" | "hour";
+const PRICE_MIN = 0;
+const PRICE_STEP = 1000;
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(Math.max(value, min), max);
+}
+
+function normalizePriceValue(value: number, max: number) {
+  const safeValue = clamp(value, PRICE_MIN, max);
+  return Math.round(safeValue / PRICE_STEP) * PRICE_STEP;
+}
+
+function getSpacePrice(space: Space, priceMode: PriceMode) {
+  return priceMode === "night" ? space.pricePerNight : space.pricePerHour;
+}
+
+function hasValidSpacePrice(space: Space, priceMode: PriceMode) {
+  const price = getSpacePrice(space, priceMode);
+  return Number.isFinite(price) && price > 0;
+}
+
+function getPriceModeLabel(priceMode: PriceMode) {
+  return priceMode === "night" ? "noche" : "hora";
+}
 
 function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371;
@@ -48,8 +74,9 @@ export default function SpacesPage() {
   const [selectedProvince, setSelectedProvince] = useState<string>("");
   const [selectedCanton, setSelectedCanton] = useState<string>("");
   const [selectedPetType, setSelectedPetType] = useState<string>("");
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 100000]);
-  const [priceInputs, setPriceInputs] = useState({ min: "0", max: "100000" });
+  const [priceMode, setPriceMode] = useState<PriceMode>("night");
+  const [priceRange, setPriceRange] = useState<[number, number]>([PRICE_MIN, PRICE_MIN]);
+  const [priceInputs, setPriceInputs] = useState({ min: String(PRICE_MIN), max: String(PRICE_MIN) });
   const [searchRadius, setSearchRadius] = useState(25);
   const [searchLocation, setSearchLocation] = useState<LocationResult | null>(null);
 
@@ -64,18 +91,123 @@ export default function SpacesPage() {
     }
   }, [cantons, selectedCanton, selectedProvince]);
 
+  const candidateSpaces = useMemo(() => {
+    let filtered = spaces.filter((space) => hasValidSpacePrice(space, priceMode));
+
+    if (searchLocation) {
+      filtered = filtered
+        .filter((space) => {
+          if (!hasValidSpaceCoordinates(space)) {
+            return false;
+          }
+
+          const distance = calculateDistance(
+            searchLocation.lat,
+            searchLocation.lon,
+            space.latitude,
+            space.longitude
+          );
+          return distance <= searchRadius;
+        })
+        .sort((a, b) => {
+          const distA = calculateDistance(
+            searchLocation.lat,
+            searchLocation.lon,
+            a.latitude,
+            a.longitude
+          );
+          const distB = calculateDistance(
+            searchLocation.lat,
+            searchLocation.lon,
+            b.latitude,
+            b.longitude
+          );
+          return distA - distB;
+        });
+    }
+
+    return filtered;
+  }, [priceMode, searchLocation, searchRadius, spaces]);
+
+  const dynamicPriceMax = useMemo(() => {
+    const highestPrice = candidateSpaces.reduce((max, space) => {
+      const price = getSpacePrice(space, priceMode);
+      return price > max ? price : max;
+    }, 0);
+
+    if (highestPrice <= 0) {
+      return PRICE_MIN;
+    }
+
+    return Math.ceil(highestPrice / PRICE_STEP) * PRICE_STEP;
+  }, [candidateSpaces, priceMode]);
+
   const handlePriceInputChange = (field: "min" | "max", rawValue: string) => {
     const nextValue = rawValue.replace(/[^\d]/g, "");
     const nextInputs = { ...priceInputs, [field]: nextValue };
     setPriceInputs(nextInputs);
 
-    const parsedMin = Number.parseInt(nextInputs.min || "0", 10);
-    const parsedMax = Number.parseInt(nextInputs.max || "100000", 10);
-    const safeMin = Number.isFinite(parsedMin) ? parsedMin : 0;
-    const safeMax = Number.isFinite(parsedMax) ? parsedMax : 100000;
+    const parsedMin = Number.parseInt(nextInputs.min || String(PRICE_MIN), 10);
+    const parsedMax = Number.parseInt(nextInputs.max || String(dynamicPriceMax), 10);
+    const safeMin = normalizePriceValue(Number.isFinite(parsedMin) ? parsedMin : PRICE_MIN, dynamicPriceMax);
+    const safeMax = normalizePriceValue(Number.isFinite(parsedMax) ? parsedMax : dynamicPriceMax, dynamicPriceMax);
 
     setPriceRange([Math.min(safeMin, safeMax), Math.max(safeMin, safeMax)]);
   };
+
+  const handlePriceSliderChange = (field: "min" | "max", rawValue: string) => {
+    const nextValue = normalizePriceValue(Number.parseInt(rawValue, 10), dynamicPriceMax);
+    const [currentMin, currentMax] = priceRange;
+    const nextRange: [number, number] =
+      field === "min"
+        ? [Math.min(nextValue, currentMax), currentMax]
+        : [currentMin, Math.max(nextValue, currentMin)];
+
+    setPriceRange(nextRange);
+    setPriceInputs({
+      min: String(nextRange[0]),
+      max: String(nextRange[1]),
+    });
+  };
+
+  useEffect(() => {
+    setPriceRange([PRICE_MIN, dynamicPriceMax]);
+    setPriceInputs({
+      min: String(PRICE_MIN),
+      max: String(dynamicPriceMax),
+    });
+  }, [priceMode]);
+
+  useEffect(() => {
+    setPriceRange((currentRange) => {
+      const nextMin = clamp(currentRange[0], PRICE_MIN, dynamicPriceMax);
+      const nextMax = clamp(currentRange[1], nextMin, dynamicPriceMax);
+
+      if (nextMin === currentRange[0] && nextMax === currentRange[1]) {
+        return currentRange;
+      }
+
+      return [nextMin, nextMax];
+    });
+
+    setPriceInputs((currentInputs) => {
+      const currentMin = Number.parseInt(currentInputs.min || String(PRICE_MIN), 10);
+      const currentMax = Number.parseInt(currentInputs.max || String(dynamicPriceMax), 10);
+      const nextMin = clamp(Number.isFinite(currentMin) ? currentMin : PRICE_MIN, PRICE_MIN, dynamicPriceMax);
+      const nextMax = clamp(Number.isFinite(currentMax) ? currentMax : dynamicPriceMax, nextMin, dynamicPriceMax);
+
+      const normalizedInputs = {
+        min: String(nextMin),
+        max: String(nextMax),
+      };
+
+      if (normalizedInputs.min === currentInputs.min && normalizedInputs.max === currentInputs.max) {
+        return currentInputs;
+      }
+
+      return normalizedInputs;
+    });
+  }, [dynamicPriceMax]);
 
   const handleUseCurrentLocation = async () => {
     const currentCoords = await getCurrentPosition();
@@ -139,45 +271,14 @@ export default function SpacesPage() {
     };
   }, [selectedProvince, selectedCanton, selectedPetType, toast]);
 
-  const filteredSpaces = useMemo(() => {
-    let filtered = spaces.filter(
-      (space) => space.pricePerNight >= priceRange[0] && space.pricePerNight <= priceRange[1]
-    );
-
-    if (searchLocation) {
-      filtered = filtered
-        .filter((space) => {
-          if (!hasValidSpaceCoordinates(space)) {
-            return false;
-          }
-
-          const distance = calculateDistance(
-            searchLocation.lat,
-            searchLocation.lon,
-            space.latitude,
-            space.longitude
-          );
-          return distance <= searchRadius;
-        })
-        .sort((a, b) => {
-          const distA = calculateDistance(
-            searchLocation.lat,
-            searchLocation.lon,
-            a.latitude,
-            a.longitude
-          );
-          const distB = calculateDistance(
-            searchLocation.lat,
-            searchLocation.lon,
-            b.latitude,
-            b.longitude
-          );
-          return distA - distB;
-        });
-    }
-
-    return filtered;
-  }, [priceRange, searchLocation, searchRadius, spaces]);
+  const filteredSpaces = useMemo(
+    () =>
+      candidateSpaces.filter((space) => {
+        const price = getSpacePrice(space, priceMode);
+        return price >= priceRange[0] && price <= priceRange[1];
+      }),
+    [candidateSpaces, priceMode, priceRange]
+  );
 
   const mapUserLocation = useMemo(() => {
     if (searchLocation) {
@@ -186,6 +287,10 @@ export default function SpacesPage() {
 
     return null;
   }, [searchLocation]);
+
+  const safeSliderMax = Math.max(dynamicPriceMax, PRICE_STEP);
+  const sliderStart = dynamicPriceMax === 0 ? 0 : ((priceRange[0] - PRICE_MIN) / (safeSliderMax - PRICE_MIN)) * 100;
+  const sliderEnd = dynamicPriceMax === 0 ? 0 : ((priceRange[1] - PRICE_MIN) / (safeSliderMax - PRICE_MIN)) * 100;
 
   return (
     <>
@@ -270,8 +375,29 @@ export default function SpacesPage() {
             </div>
 
             <div className="mb-4">
+              <div className="mb-3">
+                <label className="mb-2 block text-sm font-semibold text-foreground">
+                  Tipo de reserva
+                </label>
+                <Tabs value={priceMode} onValueChange={(value) => setPriceMode(value as PriceMode)} className="w-full">
+                  <TabsList className="grid h-auto w-full grid-cols-2 rounded-xl bg-muted/60 p-1.5">
+                    <TabsTrigger
+                      value="night"
+                      className="min-h-11 rounded-lg px-4 py-2 text-sm font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground"
+                    >
+                      Por noche
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="hour"
+                      className="min-h-11 rounded-lg px-4 py-2 text-sm font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground"
+                    >
+                      Por hora
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
+              </div>
               <label className="text-sm font-semibold text-foreground mb-2 block">
-                Rango de precio por noche: ₡{priceRange[0].toLocaleString("es-CR")} - ₡
+                Rango de precio por {getPriceModeLabel(priceMode)}: ₡{priceRange[0].toLocaleString("es-CR")} - ₡
                 {priceRange[1].toLocaleString("es-CR")}
               </label>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -281,7 +407,7 @@ export default function SpacesPage() {
                   pattern="[0-9]*"
                   value={priceInputs.min}
                   onChange={(e) => handlePriceInputChange("min", e.target.value)}
-                  placeholder="Precio mínimo"
+                  placeholder={`Precio mínimo por ${getPriceModeLabel(priceMode)}`}
                   className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                 />
                 <input
@@ -290,28 +416,38 @@ export default function SpacesPage() {
                   pattern="[0-9]*"
                   value={priceInputs.max}
                   onChange={(e) => handlePriceInputChange("max", e.target.value)}
-                  placeholder="Precio máximo"
+                  placeholder={`Precio máximo por ${getPriceModeLabel(priceMode)}`}
                   className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                 />
               </div>
-              <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <input
-                  type="range"
-                  min="0"
-                  max="100000"
-                  step="5000"
-                  value={priceRange[0]}
-                  onChange={(e) => handlePriceInputChange("min", e.target.value)}
-                  className="w-full"
+              <div className="relative mt-5 px-1 py-3">
+                <div className="pointer-events-none absolute left-1 right-1 top-1/2 h-2 -translate-y-1/2 rounded-full bg-muted" />
+                <div
+                  className="pointer-events-none absolute top-1/2 h-2 -translate-y-1/2 rounded-full bg-primary"
+                  style={{
+                    left: `calc(${sliderStart}% + 0.25rem)`,
+                    right: `calc(${100 - sliderEnd}% + 0.25rem)`,
+                  }}
                 />
                 <input
                   type="range"
-                  min="0"
-                  max="100000"
-                  step="5000"
+                  min={PRICE_MIN}
+                  max={dynamicPriceMax}
+                  step={PRICE_STEP}
+                  value={priceRange[0]}
+                  onChange={(e) => handlePriceSliderChange("min", e.target.value)}
+                  aria-label="Precio mínimo"
+                  className="pointer-events-none absolute inset-0 z-20 h-full w-full appearance-none bg-transparent [&::-webkit-slider-runnable-track]:h-2 [&::-webkit-slider-runnable-track]:bg-transparent [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:mt-[-6px] [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-background [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:shadow-[0_0_0_2px_hsl(var(--primary)),0_6px_16px_rgba(0,0,0,0.18)] [&::-moz-range-track]:h-2 [&::-moz-range-track]:bg-transparent [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-background [&::-moz-range-thumb]:bg-primary [&::-moz-range-thumb]:shadow-none"
+                />
+                <input
+                  type="range"
+                  min={PRICE_MIN}
+                  max={dynamicPriceMax}
+                  step={PRICE_STEP}
                   value={priceRange[1]}
-                  onChange={(e) => handlePriceInputChange("max", e.target.value)}
-                  className="w-full"
+                  onChange={(e) => handlePriceSliderChange("max", e.target.value)}
+                  aria-label="Precio máximo"
+                  className="pointer-events-none absolute inset-0 z-30 h-full w-full appearance-none bg-transparent [&::-webkit-slider-runnable-track]:h-2 [&::-webkit-slider-runnable-track]:bg-transparent [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:mt-[-6px] [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-background [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:shadow-[0_0_0_2px_hsl(var(--primary)),0_6px_16px_rgba(0,0,0,0.18)] [&::-moz-range-track]:h-2 [&::-moz-range-track]:bg-transparent [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-background [&::-moz-range-thumb]:bg-primary [&::-moz-range-thumb]:shadow-none"
                 />
               </div>
             </div>
