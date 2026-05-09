@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from "react-lea
 import { AlertCircle, MapPin, Navigation } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LocationSearch, parseNominatimLocation, type LocationResult } from "@/components/LocationSearch";
+import { useGeolocation } from "@/hooks/use-geolocation";
 import L from "leaflet";
 
 // Fix leaflet default marker icons
@@ -48,7 +49,7 @@ function FlyToLocation({ coords }: { coords: [number, number] | null }) {
 }
 
 export function LocationPicker({ coordinates, onLocationChange }: LocationPickerProps) {
-  const [loading, setLoading] = useState(false);
+  const { getCurrentPosition, loading, error: geolocationError } = useGeolocation();
   const [address, setAddress] = useState("");
   const [flyTarget, setFlyTarget] = useState<[number, number] | null>(null);
   const [mapError, setMapError] = useState<string | null>(null);
@@ -118,25 +119,16 @@ export function LocationPicker({ coordinates, onLocationChange }: LocationPicker
   };
 
   const handleUseGPS = () => {
-    if (!navigator.geolocation) {
-      setGeoError("Tu navegador no soporta geolocalizacion.");
-      return;
-    }
-    setLoading(true);
     setGeoError(null);
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        const { latitude, longitude } = pos.coords;
-        setFlyTarget([latitude, longitude]);
-        await reverseGeocode(latitude, longitude);
-        setLoading(false);
-      },
-      () => {
-        setGeoError("No se pudo obtener tu ubicacion actual.");
-        setLoading(false);
-      },
-      { timeout: 10000 }
-    );
+    void (async () => {
+      const coords = await getCurrentPosition();
+      if (!coords) {
+        return;
+      }
+
+      setFlyTarget([coords.latitude, coords.longitude]);
+      await reverseGeocode(coords.latitude, coords.longitude);
+    })();
   };
 
   const center: [number, number] = coordinates
@@ -188,10 +180,10 @@ export function LocationPicker({ coordinates, onLocationChange }: LocationPicker
         </MapContainer>
       </div>
 
-      {(mapError || geoError) && (
+      {(mapError || geoError || geolocationError) && (
         <div className="rounded-lg border border-destructive/20 bg-destructive/5 px-3 py-2 text-xs text-destructive flex items-start gap-2">
           <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
-          <span>{geoError || mapError}</span>
+          <span>{geoError || geolocationError || mapError}</span>
         </div>
       )}
 
@@ -203,7 +195,7 @@ export function LocationPicker({ coordinates, onLocationChange }: LocationPicker
         </p>
       ) : (
         <p className="text-xs text-muted-foreground text-center">
-          Haz clic en el mapa o busca una dirección para marcar tu ubicación
+          Haz clic en el mapa o busca una dirección para marcar tu ubicación. Si el GPS falla, puedes colocar el pin manualmente.
         </p>
       )}
     </div>

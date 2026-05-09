@@ -114,12 +114,12 @@ export function Header() {
                 </>
               ) : (
                 <>
-                  <Link to="/login" onClick={() => setIsMenuOpen(false)}>
+                  <Link to="/login" onClick={() => setIsMenuOpen(false)} className="block">
                     <Button variant="outline" className="w-full">
                       Iniciar sesión
                     </Button>
                   </Link>
-                  <Link to="/register" onClick={() => setIsMenuOpen(false)}>
+                  <Link to="/register" onClick={() => setIsMenuOpen(false)} className="block pt-1">
                     <Button className="w-full">Registrarse</Button>
                   </Link>
                 </>

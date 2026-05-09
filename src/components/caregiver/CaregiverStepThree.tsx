@@ -2,7 +2,8 @@ import { PET_TYPES, PET_SIZES, AMENITIES } from "@/types";
 import { Button } from "@/components/ui/button";
 import { PhotoUpload } from "@/components/PhotoUpload";
 import { getPetSizeLabel, getPetTypeIcon, getPetTypeLabel } from "@/lib/pet-labels";
-import { useState } from "react";
+import { parseIntegerInput, sanitizeIntegerInput } from "@/lib/numeric-input";
+import { useEffect, useState } from "react";
 
 interface CaregiverStepThreeProps {
   formData: {
@@ -31,6 +32,21 @@ export function CaregiverStepThree({
   isSubmitting = false,
 }: CaregiverStepThreeProps) {
   const [isUploadingPhotos, setIsUploadingPhotos] = useState(false);
+  const [numericInputs, setNumericInputs] = useState({
+    pricePerNight: String(formData.pricePerNight),
+    pricePerHour: String(formData.pricePerHour),
+    minHours: String(formData.minHours),
+    maxPets: String(formData.maxPets),
+  });
+
+  useEffect(() => {
+    setNumericInputs({
+      pricePerNight: String(formData.pricePerNight),
+      pricePerHour: String(formData.pricePerHour),
+      minHours: String(formData.minHours),
+      maxPets: String(formData.maxPets),
+    });
+  }, [formData.maxPets, formData.minHours, formData.pricePerHour, formData.pricePerNight]);
   const toggleItem = (field: string, list: string[], item: string) => {
     const updated = list.includes(item)
       ? list.filter((i) => i !== item)
@@ -96,11 +112,16 @@ export function CaregiverStepThree({
             Precio por noche (₡) *
           </label>
           <input
-            type="number"
-            value={formData.pricePerNight || ""}
-            onChange={(e) => onChange("pricePerNight", parseInt(e.target.value) || 0)}
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            value={numericInputs.pricePerNight}
+            onChange={(e) => {
+              const nextValue = sanitizeIntegerInput(e.target.value);
+              setNumericInputs((current) => ({ ...current, pricePerNight: nextValue }));
+              onChange("pricePerNight", parseIntegerInput(nextValue, 0));
+            }}
             placeholder="45000"
-            min="0"
             className="w-full px-4 py-2 border border-input rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
           />
         </div>
@@ -109,11 +130,16 @@ export function CaregiverStepThree({
             Precio por hora (₡) *
           </label>
           <input
-            type="number"
-            value={formData.pricePerHour || ""}
-            onChange={(e) => onChange("pricePerHour", parseInt(e.target.value) || 0)}
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            value={numericInputs.pricePerHour}
+            onChange={(e) => {
+              const nextValue = sanitizeIntegerInput(e.target.value);
+              setNumericInputs((current) => ({ ...current, pricePerHour: nextValue }));
+              onChange("pricePerHour", parseIntegerInput(nextValue, 0));
+            }}
             placeholder="8000"
-            min="0"
             className="w-full px-4 py-2 border border-input rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
           />
         </div>
@@ -126,11 +152,15 @@ export function CaregiverStepThree({
             Mínimo de horas
           </label>
           <input
-            type="number"
-            value={formData.minHours}
-            onChange={(e) => onChange("minHours", parseInt(e.target.value) || 1)}
-            min="1"
-            max="24"
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            value={numericInputs.minHours}
+            onChange={(e) => {
+              const nextValue = sanitizeIntegerInput(e.target.value);
+              setNumericInputs((current) => ({ ...current, minHours: nextValue }));
+              onChange("minHours", parseIntegerInput(nextValue, 1));
+            }}
             className="w-full px-4 py-2 border border-input rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
           />
         </div>
@@ -139,11 +169,15 @@ export function CaregiverStepThree({
             Máximo de mascotas
           </label>
           <input
-            type="number"
-            value={formData.maxPets}
-            onChange={(e) => onChange("maxPets", parseInt(e.target.value) || 1)}
-            min="1"
-            max="10"
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            value={numericInputs.maxPets}
+            onChange={(e) => {
+              const nextValue = sanitizeIntegerInput(e.target.value);
+              setNumericInputs((current) => ({ ...current, maxPets: nextValue }));
+              onChange("maxPets", parseIntegerInput(nextValue, 1));
+            }}
             className="w-full px-4 py-2 border border-input rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
           />
         </div>

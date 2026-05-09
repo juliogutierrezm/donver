@@ -30,6 +30,7 @@ export class DonverSharedStack extends cdk.Stack {
           "http://localhost:4173",
           "http://127.0.0.1:5173",
           "http://127.0.0.1:4173",
+          "https://donver.vercel.app",
           "https://app.donver.cr",
         ],
         exposedHeaders: ["ETag", "x-amz-request-id", "x-amz-id-2"],

@@ -40,7 +40,7 @@ function hasValidSpaceCoordinates(space: Space) {
 
 export default function SpacesPage() {
   const { toast } = useToast();
-  const { coords, loading: geoLoading, getCurrentPosition } = useGeolocation();
+  const { loading: geoLoading, getCurrentPosition, error: geoError } = useGeolocation();
   const [spaces, setSpaces] = useState<Space[]>([]);
   const [loadingSpaces, setLoadingSpaces] = useState(true);
   const [spacesError, setSpacesError] = useState<string | null>(null);
@@ -49,6 +49,7 @@ export default function SpacesPage() {
   const [selectedCanton, setSelectedCanton] = useState<string>("");
   const [selectedPetType, setSelectedPetType] = useState<string>("");
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 100000]);
+  const [priceInputs, setPriceInputs] = useState({ min: "0", max: "100000" });
   const [searchRadius, setSearchRadius] = useState(25);
   const [searchLocation, setSearchLocation] = useState<LocationResult | null>(null);
 
@@ -62,6 +63,44 @@ export default function SpacesPage() {
       setSelectedCanton("");
     }
   }, [cantons, selectedCanton, selectedProvince]);
+
+  const handlePriceInputChange = (field: "min" | "max", rawValue: string) => {
+    const nextValue = rawValue.replace(/[^\d]/g, "");
+    const nextInputs = { ...priceInputs, [field]: nextValue };
+    setPriceInputs(nextInputs);
+
+    const parsedMin = Number.parseInt(nextInputs.min || "0", 10);
+    const parsedMax = Number.parseInt(nextInputs.max || "100000", 10);
+    const safeMin = Number.isFinite(parsedMin) ? parsedMin : 0;
+    const safeMax = Number.isFinite(parsedMax) ? parsedMax : 100000;
+
+    setPriceRange([Math.min(safeMin, safeMax), Math.max(safeMin, safeMax)]);
+  };
+
+  const handleUseCurrentLocation = async () => {
+    const currentCoords = await getCurrentPosition();
+
+    if (!currentCoords) {
+      toast({
+        title: "No pudimos usar tu ubicación",
+        description: "Revisa los permisos del navegador o usa la búsqueda manual.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setSearchLocation({
+      lat: currentCoords.latitude,
+      lon: currentCoords.longitude,
+      displayName: "Tu ubicación actual",
+      formattedAddress: "Tu ubicación actual",
+    });
+
+    toast({
+      title: "Ubicación aplicada",
+      description: "Usaremos tu ubicación actual para ordenar y filtrar los espacios cercanos.",
+    });
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -145,12 +184,8 @@ export default function SpacesPage() {
       return searchLocation;
     }
 
-    if (coords) {
-      return { lat: coords.latitude, lon: coords.longitude };
-    }
-
     return null;
-  }, [coords, searchLocation]);
+  }, [searchLocation]);
 
   return (
     <>
@@ -239,20 +274,51 @@ export default function SpacesPage() {
                 Rango de precio por noche: ₡{priceRange[0].toLocaleString("es-CR")} - ₡
                 {priceRange[1].toLocaleString("es-CR")}
               </label>
-              <input
-                type="range"
-                min="0"
-                max="100000"
-                step="5000"
-                value={priceRange[1]}
-                onChange={(e) => setPriceRange([priceRange[0], Number(e.target.value)])}
-                className="w-full"
-              />
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  value={priceInputs.min}
+                  onChange={(e) => handlePriceInputChange("min", e.target.value)}
+                  placeholder="Precio mínimo"
+                  className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  value={priceInputs.max}
+                  onChange={(e) => handlePriceInputChange("max", e.target.value)}
+                  placeholder="Precio máximo"
+                  className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+              <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <input
+                  type="range"
+                  min="0"
+                  max="100000"
+                  step="5000"
+                  value={priceRange[0]}
+                  onChange={(e) => handlePriceInputChange("min", e.target.value)}
+                  className="w-full"
+                />
+                <input
+                  type="range"
+                  min="0"
+                  max="100000"
+                  step="5000"
+                  value={priceRange[1]}
+                  onChange={(e) => handlePriceInputChange("max", e.target.value)}
+                  className="w-full"
+                />
+              </div>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-2">
               <Button
-                onClick={() => getCurrentPosition()}
+                onClick={() => void handleUseCurrentLocation()}
                 disabled={geoLoading}
                 variant="outline"
                 className="gap-2"
@@ -261,6 +327,11 @@ export default function SpacesPage() {
                 {geoLoading ? "Localizando..." : "Usar mi ubicación"}
               </Button>
             </div>
+            {geoError && (
+              <p className="mt-3 text-sm text-destructive">
+                {geoError}. Si prefieres, también puedes buscar la ubicación manualmente.
+              </p>
+            )}
           </div>
 
           <div className="flex items-center gap-2 mb-6">

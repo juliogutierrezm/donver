@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { LocationPicker } from "@/components/LocationPicker";
 import { PhotoUpload } from "@/components/PhotoUpload";
 import { useToast } from "@/hooks/use-toast";
+import { parseIntegerInput, sanitizeIntegerInput } from "@/lib/numeric-input";
 import { getPetSizeLabel, getPetTypeIcon, getPetTypeLabel } from "@/lib/pet-labels";
 import type { Space } from "@/types";
 
@@ -74,13 +75,29 @@ export function SpaceFormDialog({
   const { toast } = useToast();
   const [isUploadingPhotos, setIsUploadingPhotos] = useState(false);
   const [formData, setFormData] = useState(createDefaultForm(space, caregiverDefaults));
+  const [numericInputs, setNumericInputs] = useState(() => {
+    const initialForm = createDefaultForm(space, caregiverDefaults);
+    return {
+      pricePerNight: String(initialForm.pricePerNight),
+      pricePerHour: String(initialForm.pricePerHour),
+      minHours: String(initialForm.minHours),
+      maxPets: String(initialForm.maxPets),
+    };
+  });
 
   const isProvinceOption = (value?: string): value is Province =>
     Boolean(value && PROVINCES.includes(value as Province));
 
   useEffect(() => {
     if (open) {
-      setFormData(createDefaultForm(space, caregiverDefaults));
+      const nextForm = createDefaultForm(space, caregiverDefaults);
+      setFormData(nextForm);
+      setNumericInputs({
+        pricePerNight: String(nextForm.pricePerNight),
+        pricePerHour: String(nextForm.pricePerHour),
+        minHours: String(nextForm.minHours),
+        maxPets: String(nextForm.maxPets),
+      });
       setIsUploadingPhotos(false);
     }
   }, [caregiverDefaults, open, space]);
@@ -134,6 +151,15 @@ export function SpaceFormDialog({
       return;
     }
 
+    if (formData.pricePerNight <= 0 || formData.pricePerHour <= 0 || formData.minHours < 1 || formData.maxPets < 1) {
+      toast({
+        title: "Completa los valores numéricos",
+        description: "Verifica precios, mínimo de horas y máximo de mascotas antes de guardar.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     onSave({
       title: formData.title,
       description: formData.description,
@@ -159,12 +185,12 @@ export function SpaceFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[90dvh] max-w-3xl flex-col overflow-hidden p-0">
+      <DialogContent className="flex max-h-[calc(100dvh-2rem)] min-h-0 max-w-3xl flex-col overflow-hidden p-0">
         <DialogHeader className="border-b border-border px-6 py-4">
           <DialogTitle>{space ? "Editar espacio" : "Nuevo espacio"}</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6 overflow-y-auto px-6 py-4">
+        <div className="min-h-0 space-y-6 overflow-y-auto px-6 py-4">
           <div className="rounded-xl border border-border bg-muted/30 p-4 text-sm text-muted-foreground">
             Los espacios nuevos se guardan como borrador. Solo podrás publicarlos cuando tu perfil de cuidador esté completo y el espacio tenga todos sus datos obligatorios.
           </div>
@@ -293,9 +319,15 @@ export function SpaceFormDialog({
                 Precio por noche (CRC)
               </label>
               <input
-                type="number"
-                value={formData.pricePerNight}
-                onChange={(event) => setFormData((prev) => ({ ...prev, pricePerNight: Number(event.target.value) || 0 }))}
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                value={numericInputs.pricePerNight}
+                onChange={(event) => {
+                  const nextValue = sanitizeIntegerInput(event.target.value);
+                  setNumericInputs((prev) => ({ ...prev, pricePerNight: nextValue }));
+                  setFormData((prev) => ({ ...prev, pricePerNight: parseIntegerInput(nextValue, 0) }));
+                }}
                 className="w-full rounded-lg border border-input bg-background px-4 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
@@ -304,9 +336,15 @@ export function SpaceFormDialog({
                 Precio por hora (CRC)
               </label>
               <input
-                type="number"
-                value={formData.pricePerHour}
-                onChange={(event) => setFormData((prev) => ({ ...prev, pricePerHour: Number(event.target.value) || 0 }))}
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                value={numericInputs.pricePerHour}
+                onChange={(event) => {
+                  const nextValue = sanitizeIntegerInput(event.target.value);
+                  setNumericInputs((prev) => ({ ...prev, pricePerHour: nextValue }));
+                  setFormData((prev) => ({ ...prev, pricePerHour: parseIntegerInput(nextValue, 0) }));
+                }}
                 className="w-full rounded-lg border border-input bg-background px-4 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
@@ -318,10 +356,15 @@ export function SpaceFormDialog({
                 Mínimo de horas
               </label>
               <input
-                type="number"
-                value={formData.minHours}
-                min="1"
-                onChange={(event) => setFormData((prev) => ({ ...prev, minHours: Number(event.target.value) || 1 }))}
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                value={numericInputs.minHours}
+                onChange={(event) => {
+                  const nextValue = sanitizeIntegerInput(event.target.value);
+                  setNumericInputs((prev) => ({ ...prev, minHours: nextValue }));
+                  setFormData((prev) => ({ ...prev, minHours: parseIntegerInput(nextValue, 1) }));
+                }}
                 className="w-full rounded-lg border border-input bg-background px-4 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
@@ -330,10 +373,15 @@ export function SpaceFormDialog({
                 Máximo de mascotas
               </label>
               <input
-                type="number"
-                value={formData.maxPets}
-                min="1"
-                onChange={(event) => setFormData((prev) => ({ ...prev, maxPets: Number(event.target.value) || 1 }))}
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                value={numericInputs.maxPets}
+                onChange={(event) => {
+                  const nextValue = sanitizeIntegerInput(event.target.value);
+                  setNumericInputs((prev) => ({ ...prev, maxPets: nextValue }));
+                  setFormData((prev) => ({ ...prev, maxPets: parseIntegerInput(nextValue, 1) }));
+                }}
                 className="w-full rounded-lg border border-input bg-background px-4 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>

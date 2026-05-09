@@ -9,6 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { PhotoUpload } from "@/components/PhotoUpload";
 import { getPetSizeHelp, getPetSizeLabel, getPetTypeSingularLabel } from "@/lib/pet-labels";
+import { parseIntegerInput, sanitizeIntegerInput } from "@/lib/numeric-input";
 import { PET_TYPES, PET_SIZES } from "@/types";
 import type { Pet } from "@/types";
 
@@ -43,10 +44,13 @@ export function PetFormDialog({
   const [isUploadingPhotos, setIsUploadingPhotos] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<Partial<Pet>>(createDefaultPetForm(pet));
+  const [ageInput, setAgeInput] = useState(() => String(createDefaultPetForm(pet).age ?? 1));
 
   useEffect(() => {
     if (open) {
-      setFormData(createDefaultPetForm(pet));
+      const nextForm = createDefaultPetForm(pet);
+      setFormData(nextForm);
+      setAgeInput(String(nextForm.age ?? 1));
       setIsUploadingPhotos(false);
       setIsSubmitting(false);
     }
@@ -73,14 +77,14 @@ export function PetFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
+      <DialogContent className="flex max-h-[calc(100dvh-2rem)] min-h-0 max-w-2xl flex-col overflow-hidden p-0">
+        <DialogHeader className="border-b border-border px-6 py-4">
           <DialogTitle>
             {pet ? "Editar mascota" : "Agregar mascota"}
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="min-h-0 space-y-6 overflow-y-auto px-6 py-4">
           {/* Photos */}
           <div>
             <label className="text-sm font-semibold text-foreground mb-2 block">
@@ -153,12 +157,15 @@ export function PetFormDialog({
                 Edad (años)
               </label>
               <input
-                type="number"
-                value={formData.age || 1}
-                onChange={(e) =>
-                  setFormData({ ...formData, age: Number(e.target.value) })
-                }
-                min="0"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                value={ageInput}
+                onChange={(e) => {
+                  const nextValue = sanitizeIntegerInput(e.target.value);
+                  setAgeInput(nextValue);
+                  setFormData({ ...formData, age: parseIntegerInput(nextValue, 0) });
+                }}
                 className="w-full px-3 py-2 border border-input rounded-lg bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
@@ -218,7 +225,7 @@ export function PetFormDialog({
           </div>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="border-t border-border px-6 py-4">
           <Button
             variant="outline"
             type="button"

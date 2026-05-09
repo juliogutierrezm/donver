@@ -262,7 +262,7 @@ export default function ProfilePage() {
             </div>
 
             <div className="space-y-6 lg:col-span-3">
-              <CaregiverStatusBanner user={user} />
+              {showCaregiverExperience && <CaregiverStatusBanner user={user} />}
 
               {showCaregiverExperience ? (
                 <div className="space-y-6">{caregiverContent}</div>

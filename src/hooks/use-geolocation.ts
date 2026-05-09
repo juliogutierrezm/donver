@@ -20,15 +20,30 @@ export function useGeolocation() {
   });
 
   const getCurrentPosition = useCallback(async () => {
+    if (typeof window !== "undefined" && !window.isSecureContext) {
+      const error = "La ubicación solo funciona en una conexión segura (HTTPS).";
+      setState({ coords: null, loading: false, error });
+      return null;
+    }
+
     if (!navigator.geolocation) {
-      setState((prev) => ({
-        ...prev,
-        error: "Geolocalización no disponible en tu navegador",
-      }));
-      return;
+      const error = "Tu navegador no soporta geolocalización.";
+      setState((prev) => ({ ...prev, error }));
+      return null;
     }
 
     setState((prev) => ({ ...prev, loading: true, error: null }));
+
+    let permissionState: PermissionState | null = null;
+
+    if ("permissions" in navigator && navigator.permissions?.query) {
+      try {
+        const permission = await navigator.permissions.query({ name: "geolocation" });
+        permissionState = permission.state;
+      } catch {
+        permissionState = null;
+      }
+    }
 
     return new Promise<GeolocationCoords | null>((resolve) => {
       navigator.geolocation.getCurrentPosition(
@@ -44,17 +59,19 @@ export function useGeolocation() {
         (error) => {
           const errorMessage =
             error.code === 1
-              ? "Permiso de geolocalización denegado"
+              ? permissionState === "denied"
+                ? "El navegador bloqueó el permiso de ubicación. Actívalo en la configuración del sitio."
+                : "No diste permiso para usar tu ubicación."
               : error.code === 2
-                ? "Posición no disponible"
-                : "Error al obtener geolocalización";
+                ? "No pudimos detectar tu ubicación actual. Intenta moverte a una zona con mejor señal."
+                : "Se agotó el tiempo para obtener tu ubicación. Intenta nuevamente.";
           setState({ coords: null, loading: false, error: errorMessage });
           resolve(null);
         },
         {
-          enableHighAccuracy: false,
-          timeout: 10000,
-          maximumAge: 300000, // 5 minutes cache
+          enableHighAccuracy: true,
+          timeout: 15000,
+          maximumAge: 60000,
         }
       );
     });
