@@ -1,5 +1,5 @@
 import { QueryCommand } from '@aws-sdk/lib-dynamodb';
-import { APP_ROLES, type AppRole, normalizeRoles } from './auth';
+import { APP_ROLES, type AppRole, resolveProfileRoles } from './auth';
 import { ddb, CORE_TABLE_NAME, coreGsi } from './core-db';
 
 export type SignupIntent = 'caregiver';
@@ -42,20 +42,21 @@ export function normalizeProfileRecord(
   item: Record<string, unknown>,
   fallbackRoles: AppRole[] = ['owner'],
 ): ProfileRecord {
-  const legacyRole = typeof item.role === 'string' ? [item.role] : [];
-  const roles = normalizeRoles(item.roles ?? legacyRole);
-  const nextRoles = roles.length ? roles : fallbackRoles;
+  const signupIntent = normalizeSignupIntent(item.signup_intent);
+  const nextRoles = resolveProfileRoles(item, fallbackRoles);
   const requestedActiveRole = readString(item.active_role);
   const activeRole = APP_ROLES.includes(requestedActiveRole as AppRole) &&
     nextRoles.includes(requestedActiveRole as AppRole)
     ? (requestedActiveRole as AppRole)
+    : signupIntent === 'caregiver' && nextRoles.length === 0
+      ? 'caregiver'
     : (nextRoles[0] ?? 'owner');
 
   return {
     ...item,
     roles: nextRoles,
     active_role: activeRole,
-    signup_intent: normalizeSignupIntent(item.signup_intent),
+    signup_intent: signupIntent,
   };
 }
 

@@ -94,7 +94,7 @@ export const mockSpaces: SpaceWithCoords[] = [
     pricePerNight: 55000,
     pricePerHour: 9500,
     minHours: 1,
-    acceptedPetTypes: ["dog", "cat", "bird", "other"],
+    acceptedPetTypes: ["dog", "cat", "bird", "rabbit"],
     acceptedPetSizes: ["small", "medium", "large"],
     maxPets: 5,
     amenities: [
@@ -155,7 +155,7 @@ export const mockSpaces: SpaceWithCoords[] = [
     pricePerNight: 30000,
     pricePerHour: 5500,
     minHours: 2,
-    acceptedPetTypes: ["cat", "bird"],
+    acceptedPetTypes: ["cat", "bird", "hamster", "fish"],
     acceptedPetSizes: ["small"],
     maxPets: 2,
     amenities: [
@@ -184,7 +184,7 @@ export const mockSpaces: SpaceWithCoords[] = [
     pricePerNight: 48000,
     pricePerHour: 8000,
     minHours: 2,
-    acceptedPetTypes: ["dog", "cat", "other"],
+    acceptedPetTypes: ["dog", "cat", "snake", "reptile"],
     acceptedPetSizes: ["small", "medium", "large"],
     maxPets: 4,
     amenities: [

@@ -114,6 +114,8 @@ export async function handler(event: { body?: string | null }) {
     }
 
     const now = new Date().toISOString();
+    const initialRoles = signupIntent === 'caregiver' ? [] : ['owner'];
+    const initialActiveRole = signupIntent === 'caregiver' ? 'caregiver' : 'owner';
     const profile = {
       pk: `USER#${signUpResult.UserSub}`,
       sk: 'PROFILE',
@@ -123,8 +125,9 @@ export async function handler(event: { body?: string | null }) {
       phone,
       province,
       canton,
-      roles: ['owner'],
-      active_role: 'owner',
+      roles: initialRoles,
+      active_role: initialActiveRole,
+      owner_profile_active: signupIntent === 'caregiver' ? false : true,
       bio: '',
       avatar_url: '',
       signup_intent: signupIntent,
@@ -140,7 +143,7 @@ export async function handler(event: { body?: string | null }) {
 
     return created({
       confirmed: Boolean(signUpResult.UserConfirmed),
-      user: await normalizeProfileWithStatus(profile),
+      user: await normalizeProfileWithStatus(profile, initialRoles),
     });
   } catch (err) {
     return serverError(err);

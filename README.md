@@ -72,10 +72,12 @@ donver-app/
 │   │   ├── HelpCenterPage.tsx
 │   │   ├── LoginPage.tsx
 │   │   ├── RegisterPage.tsx
+│   │   ├── VerifyEmailPage.tsx
 │   │   └── NotFound.tsx
 │   ├── hooks/                 # Custom Hooks
 │   │   ├── use-geolocation.ts
-│   │   └── use-toast.ts
+│   │   ├── use-toast.ts
+│   │   └── useAuthSessionUser.ts
 │   ├── lib/                   # Utilidades
 │   │   └── utils.ts
 │   ├── services/              # Servicios de API
@@ -155,16 +157,17 @@ La aplicación utiliza React Router DOM con las siguientes rutas principales:
 | Ruta | Página | Descripción |
 |------|--------|-------------|
 | `/` | `Index` | Página de inicio/landing |
-| `/espacios` | `SpacesPage` | Listado y mapa de espacios |
-| `/espacios/:id` | `SpaceDetailPage` | Detalle de un espacio |
-| `/cuidador` | `CaregiverDashboardPage` | Dashboard del cuidador |
-| `/convertirse-cuidador` | `BecomeCaregiverPage` | Registro como cuidador |
-| `/perfil` | `ProfilePage` | Perfil de usuario |
-| `/mensajes` | `MessagesPage` | Centro de mensajes |
-| `/como-funciona` | `HowItWorksPage` | Guía de uso |
-| `/ayuda` | `HelpCenterPage` | Centro de ayuda |
+| `/spaces` | `SpacesPage` | Listado y mapa de espacios |
+| `/spaces/:id` | `SpaceDetailPage` | Detalle de un espacio |
+| `/caregiver/dashboard` | `CaregiverDashboardPage` | Dashboard del cuidador |
+| `/become-caregiver` | `BecomeCaregiverPage` | Registro como cuidador |
+| `/profile` | `ProfilePage` | Perfil de usuario |
+| `/messages` | `MessagesPage` | Centro de mensajes |
+| `/how-it-works` | `HowItWorksPage` | Guía de uso |
+| `/help` | `HelpCenterPage` | Centro de ayuda |
 | `/login` | `LoginPage` | Inicio de sesión |
-| `/registro` | `RegisterPage` | Registro de usuario |
+| `/register` | `RegisterPage` | Registro de usuario |
+| `/verify-email` | `VerifyEmailPage` | Verificación de correo electrónico |
 | `*` | `NotFound` | Página 404 |
 
 ### Gestión de Estado
@@ -280,14 +283,61 @@ El sistema incluye las **7 provincias de Costa Rica** y sus respectivos cantones
 
 ## Infraestructura AWS
 
-El directorio `aws/` contiene una aplicación CDK (Cloud Development Kit) para el despliegue de la infraestructura en AWS, que puede incluir:
+El directorio `aws/` contiene una aplicación CDK (Cloud Development Kit) para el despliegue de la infraestructura en AWS:
 
-- Hosting estático (S3 + CloudFront)
-- API Gateway + Lambda (backend serverless)
-- Base de datos (DynamoDB/RDS)
-- Autenticación (Cognito)
+### Stacks
 
-> Ver `aws/README.md` o la documentación específica de CDK para más detalles sobre la infraestructura.
+| Stack | Archivo | Descripción |
+|-------|---------|-------------|
+| `AuthStack` | `lib/auth-stack.ts` | Amazon Cognito User Pool + Identity Pool |
+| `DataStack` | `lib/data-stack.ts` | Tablas DynamoDB y bucket S3 |
+| `SharedStack` | `lib/shared-stack.ts` | Recursos compartidos entre stacks |
+| `ApiStack` | `lib/api-stack.ts` | API Gateway REST + WebSocket + Lambda handlers |
+
+### Lambda Handlers
+
+| Handler | Descripción |
+|---------|-------------|
+| `auth-bootstrap` | Inicialización de sesión de usuario |
+| `auth-register` | Registro de nuevos usuarios |
+| `get-me` | Obtener perfil del usuario autenticado |
+| `update-profile` | Actualizar datos del perfil |
+| `caregiver-onboarding` | Completar registro como cuidador |
+| `create-space` | Crear espacio de alojamiento |
+| `update-space` | Actualizar espacio existente |
+| `list-spaces` | Listar espacios disponibles |
+| `list-my-spaces` | Listar espacios del cuidador |
+| `get-space-detail` | Obtener detalle de un espacio |
+| `create-blocked-date` | Bloquear fechas de disponibilidad |
+| `delete-blocked-date` | Eliminar fecha bloqueada |
+| `create-booking` | Crear reserva |
+| `cancel-booking` | Cancelar reserva |
+| `list-owner-bookings` | Listar reservas del dueño de mascota |
+| `list-caregiver-bookings` | Listar reservas del cuidador |
+| `create-pet` | Crear mascota |
+| `update-pet` | Actualizar mascota |
+| `delete-pet` | Eliminar mascota |
+| `list-pets` | Listar mascotas del usuario |
+| `create-review` | Crear reseña |
+| `list-reviews` | Listar reseñas de un espacio |
+| `create-upload-url` | Generar URL prefirmada para subir fotos (S3) |
+| `list-conversations` | Listar conversaciones del usuario |
+| `list-messages` | Listar mensajes de una conversación |
+| `ws-connect` | Conexión WebSocket |
+| `ws-disconnect` | Desconexión WebSocket |
+| `ws-send-message` | Enviar mensaje en tiempo real |
+
+### Variables de Entorno
+
+Tras ejecutar `cdk deploy` en la carpeta `aws/`, actualiza el archivo `.env` del frontend con los outputs del deploy:
+
+```env
+VITE_API_BASE_URL=https://<api-id>.execute-api.<region>.amazonaws.com/prod
+VITE_WS_URL=wss://<ws-id>.execute-api.<region>.amazonaws.com/prod
+VITE_AWS_REGION=us-east-1
+VITE_COGNITO_USER_POOL_ID=...
+VITE_COGNITO_CLIENT_ID=...
+```
 
 ## Convenciones
 

@@ -1,0 +1,68 @@
+{
+  "/DonverAuth-prod/OwnerGroup": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "OwnerGroup"
+    }
+  ],
+  "/DonverAuth-prod/CaregiverGroup": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CaregiverGroup"
+    }
+  ],
+  "/DonverAuth-prod/UserPoolId": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "UserPoolId"
+    }
+  ],
+  "/DonverAuth-prod/UserPoolClientId": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "UserPoolClientId"
+    }
+  ],
+  "/DonverAuth-prod/BootstrapVersion": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "BootstrapVersion"
+    }
+  ],
+  "/DonverAuth-prod/CheckBootstrapVersion": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CheckBootstrapVersion"
+    }
+  ],
+  "/DonverAuth-prod/DonverUserPool/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverUserPool69F4E0B3"
+    }
+  ],
+  "/DonverAuth-prod/CDKMetadata/Default": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CDKMetadata"
+    }
+  ],
+  "/DonverAuth-prod/Exports/Output{\"Ref\":\"DonverUserPoolDonverWebClient55387986\"}": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ExportsOutputRefDonverUserPoolDonverWebClient55387986BD58B7AB"
+    }
+  ],
+  "/DonverAuth-prod/Exports/Output{\"Ref\":\"DonverUserPool69F4E0B3\"}": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ExportsOutputRefDonverUserPool69F4E0B32DDB3652"
+    }
+  ],
+  "/DonverAuth-prod/DonverUserPool/DonverWebClient/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverUserPoolDonverWebClient55387986"
+    }
+  ]
+}

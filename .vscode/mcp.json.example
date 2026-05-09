@@ -1,0 +1,96 @@
+{
+  // ============================================================
+  // .vscode/mcp.json.example
+  //
+  // This is an EXAMPLE configuration file for VS Code MCP servers.
+  // Copy this file to .vscode/mcp.json and fill in your own values.
+  //
+  // DO NOT commit .vscode/mcp.json with real credentials.
+  // .vscode/mcp.json is listed in .gitignore.
+  //
+  // MCP servers are loaded by VS Code Copilot (and compatible agents)
+  // to give the agent access to external tools at runtime.
+  // ============================================================
+
+  "inputs": [
+    // ----------------------------------------------------------
+    // Declare input prompts here. VS Code will ask the user for
+    // these values when the server first starts.
+    // ----------------------------------------------------------
+    {
+      "id": "aws-profile",
+      "type": "promptString",
+      "description": "AWS CLI profile name to use (e.g. default, donver-dev)",
+      "default": "default"
+    }
+  ],
+
+  "servers": {
+    // ----------------------------------------------------------
+    // Chrome DevTools MCP
+    // Gives the agent the ability to inspect a running Chrome
+    // browser: screenshots, console messages, network requests,
+    // DOM snapshots, Lighthouse audits, etc.
+    //
+    // Install: npm install -g @modelcontextprotocol/server-puppeteer
+    //   OR use the npx variant below (no global install needed).
+    // ----------------------------------------------------------
+    "chrome-devtools": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-puppeteer"],
+      "env": {}
+    },
+
+    // ----------------------------------------------------------
+    // AWS Documentation MCP
+    // Gives the agent access to AWS service documentation so it
+    // can look up API shapes, CDK constructs, and best practices
+    // without leaving the editor.
+    //
+    // Requires: AWS_PROFILE set in env (or the input above).
+    // ----------------------------------------------------------
+    "aws-docs": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@aws/mcp-server-aws-documentation"],
+      "env": {
+        "AWS_PROFILE": "${input:aws-profile}"
+      }
+    },
+
+    // ----------------------------------------------------------
+    // AWS API / SDK MCP  (aws-mcp-serve)
+    // Allows the agent to call AWS APIs (CloudWatch, DynamoDB,
+    // Lambda, Cognito, etc.) using your local AWS credentials.
+    //
+    // ⚠️  This gives the agent real AWS access.
+    //     Use a read-only or sandbox profile for safety.
+    // ----------------------------------------------------------
+    "aws-api": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": ["awslabs.aws-mcp-servers@latest", "serve", "aws"],
+      "env": {
+        "AWS_PROFILE": "${input:aws-profile}",
+        "AWS_REGION": "us-east-1"
+      }
+    },
+
+    // ----------------------------------------------------------
+    // GitHub MCP (optional)
+    // Gives the agent access to GitHub issues, PRs, and search.
+    //
+    // Requires a GitHub Personal Access Token with repo scope.
+    // Store the token in VS Code secrets, not in this file.
+    // ----------------------------------------------------------
+    // "github": {
+    //   "type": "stdio",
+    //   "command": "npx",
+    //   "args": ["-y", "@modelcontextprotocol/server-github"],
+    //   "env": {
+    //     "GITHUB_PERSONAL_ACCESS_TOKEN": "<your-token-here>"
+    //   }
+    // }
+  }
+}

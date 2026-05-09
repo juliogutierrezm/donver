@@ -1,14 +1,26 @@
-import { useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { format, addDays, parse } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { getPetSizeLabel, getPetTypeSingularLabel } from "@/lib/pet-labels";
 import type { Space, BlockedDate, Pet } from "@/types";
+import { calculateBookingPricing, DEFAULT_ADDITIONAL_PET_RATE } from "@/lib/bookingPricing";
 
 interface BookingCardProps {
   space: Space;
   blockedDates: BlockedDate[];
   pets: Pet[];
   onBookingSummary: (booking: any) => void;
+}
+
+const HOUR_OPTIONS = Array.from({ length: 24 }, (_, index) =>
+  `${String(index).padStart(2, "0")}:00`
+);
+
+function getHourNumber(time: string) {
+  const [hours, minutes] = time.split(":");
+  if (minutes !== "00") return Number.NaN;
+  return Number(hours);
 }
 
 export function BookingCard({
@@ -29,15 +41,25 @@ export function BookingCard({
   );
   const [startTime, setStartTime] = useState("10:00");
   const [endTime, setEndTime] = useState("16:00");
-  const [hours, setHours] = useState(space.minHours);
-  const [selectedPetType, setSelectedPetType] = useState(
-    space.acceptedPetTypes[0] || "dog"
+  const [selectedPetIds, setSelectedPetIds] = useState<string[]>([]);
+  const eligiblePets = useMemo(
+    () =>
+      pets.filter(
+        (pet) =>
+          space.acceptedPetTypes.includes(pet.type) &&
+          space.acceptedPetSizes.includes(pet.size)
+      ),
+    [pets, space.acceptedPetSizes, space.acceptedPetTypes]
   );
-  const [petCount, setPetCount] = useState(1);
-  const matchingPets = useMemo(
-    () => pets.filter((pet) => pet.type === selectedPetType),
-    [pets, selectedPetType]
-  );
+
+  useEffect(() => {
+    const eligibleIds = new Set(eligiblePets.map((pet) => pet.id));
+    setSelectedPetIds((current) => {
+      const filtered = current.filter((id) => eligibleIds.has(id)).slice(0, space.maxPets);
+      if (filtered.length > 0 || eligiblePets.length === 0) return filtered;
+      return [eligiblePets[0].id];
+    });
+  }, [eligiblePets, space.maxPets]);
 
   const blockedDateStrings = useMemo(
     () => {
@@ -53,6 +75,43 @@ export function BookingCard({
     },
     [blockedDates]
   );
+
+  const endTimeOptions = useMemo(
+    () => HOUR_OPTIONS.filter((option) => getHourNumber(option) > getHourNumber(startTime)),
+    [startTime]
+  );
+
+  useEffect(() => {
+    if (bookingType === "hourly" && endTime && !endTimeOptions.includes(endTime)) {
+      setEndTime("");
+    }
+  }, [bookingType, endTime, endTimeOptions]);
+
+  const selectedHours = useMemo(() => {
+    const startHour = getHourNumber(startTime);
+    const endHour = getHourNumber(endTime);
+    if (!Number.isFinite(startHour) || !Number.isFinite(endHour)) {
+      return 0;
+    }
+    return endHour - startHour;
+  }, [endTime, startTime]);
+
+  const hourlyValidationMessage = useMemo(() => {
+    if (bookingType !== "hourly") return "";
+    if (!startTime || !endTime) {
+      return "Selecciona una hora de inicio y una hora de fin.";
+    }
+    if (!startTime.endsWith(":00") || !endTime.endsWith(":00")) {
+      return "Solo puedes seleccionar horas cerradas.";
+    }
+    if (selectedHours <= 0) {
+      return "La hora de fin debe ser posterior a la hora de inicio.";
+    }
+    if (selectedHours < space.minHours) {
+      return `Este espacio requiere un mínimo de ${space.minHours} horas.`;
+    }
+    return "";
+  }, [bookingType, endTime, selectedHours, space.minHours, startTime]);
 
   // Check if a date or date range has blocked dates
   const hasBlockedDates = (start: string, end?: string) => {
@@ -70,19 +129,61 @@ export function BookingCard({
 
   // Calculate price
   const priceBreakdown = useMemo(() => {
-    if (bookingType === "overnight") {
-      const startD = parse(startDate, "yyyy-MM-dd", new Date());
-      const endD = parse(endDate, "yyyy-MM-dd", new Date());
-      const nights = Math.max(1, Math.floor((endD.getTime() - startD.getTime()) / (1000 * 60 * 60 * 24)));
-      const subtotal = space.pricePerNight * nights;
-      const serviceFee = Math.floor(subtotal * 0.1);
-      return { nights, subtotal, serviceFee, total: subtotal + serviceFee };
-    } else {
-      const subtotal = space.pricePerHour * hours;
-      const serviceFee = Math.floor(subtotal * 0.1);
-      return { hours, subtotal, serviceFee, total: subtotal + serviceFee };
+    if (bookingType === "hourly" && hourlyValidationMessage) {
+      return {
+        unitCount: 0,
+        baseSubtotal: 0,
+        additionalPetFee: 0,
+        subtotal: 0,
+        serviceFee: 0,
+        total: 0,
+        additionalPetRate: DEFAULT_ADDITIONAL_PET_RATE,
+      };
     }
-  }, [bookingType, startDate, endDate, hours, space.pricePerNight, space.pricePerHour]);
+
+    return calculateBookingPricing({
+      bookingType,
+      startDate: parse(startDate, "yyyy-MM-dd", new Date()),
+      endDate:
+        bookingType === "overnight"
+          ? parse(endDate, "yyyy-MM-dd", new Date())
+          : parse(startDate, "yyyy-MM-dd", new Date()),
+      hours: bookingType === "hourly" ? selectedHours : undefined,
+      pricePerNight: space.pricePerNight,
+      pricePerHour: space.pricePerHour,
+      petCount: Math.max(selectedPetIds.length, 1),
+      additionalPetRate: DEFAULT_ADDITIONAL_PET_RATE,
+    });
+  }, [
+    bookingType,
+    endDate,
+    hourlyValidationMessage,
+    selectedHours,
+    selectedPetIds.length,
+    space.pricePerHour,
+    space.pricePerNight,
+    startDate,
+  ]);
+
+  const isBookingDisabled =
+    selectedPetIds.length === 0 || (bookingType === "hourly" && Boolean(hourlyValidationMessage));
+
+  const handlePetToggle = (petId: string) => {
+    setSelectedPetIds((current) => {
+      if (current.includes(petId)) {
+        return current.filter((id) => id !== petId);
+      }
+      if (current.length >= space.maxPets) {
+        toast({
+          title: "Límite de mascotas alcanzado",
+          description: `Este espacio permite máximo ${space.maxPets} mascotas por reserva.`,
+          variant: "destructive",
+        });
+        return current;
+      }
+      return [...current, petId];
+    });
+  };
 
   const handleRequestBooking = () => {
     // Validate blocked dates
@@ -105,20 +206,28 @@ export function BookingCard({
       return;
     }
 
-    // Validate pet count
-    if (petCount > space.maxPets) {
+    if (selectedPetIds.length === 0) {
       toast({
-        title: "Demasiadas mascotas",
-        description: `Este espacio acepta máximo ${space.maxPets} mascotas.`,
+        title: "Selecciona al menos una mascota",
+        description: "Debes elegir la mascota o mascotas para esta reserva.",
         variant: "destructive",
       });
       return;
     }
 
-    if (matchingPets.length < petCount) {
+    if (selectedPetIds.length > space.maxPets) {
       toast({
-        title: "Mascotas insuficientes",
-        description: `Solo tienes ${matchingPets.length} mascota(s) registradas de este tipo.`,
+        title: "Demasiadas mascotas",
+        description: `Este espacio permite máximo ${space.maxPets} mascotas por reserva.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (bookingType === "hourly" && hourlyValidationMessage) {
+      toast({
+        title: "Horario inválido",
+        description: hourlyValidationMessage,
         variant: "destructive",
       });
       return;
@@ -135,11 +244,12 @@ export function BookingCard({
           : parse(startDate, "yyyy-MM-dd", new Date()),
       startTime: bookingType === "hourly" ? startTime : undefined,
       endTime: bookingType === "hourly" ? endTime : undefined,
-      hours: bookingType === "hourly" ? hours : undefined,
-      petIds: matchingPets.slice(0, petCount).map((pet) => pet.id),
+      hours: bookingType === "hourly" ? selectedHours : undefined,
+      petIds: selectedPetIds,
       subtotal: priceBreakdown.subtotal,
       serviceFee: priceBreakdown.serviceFee,
       totalPrice: priceBreakdown.total,
+      pricing: priceBreakdown,
     };
 
     onBookingSummary(booking);
@@ -240,92 +350,146 @@ export function BookingCard({
                 <label className="text-sm font-semibold text-foreground mb-1 block">
                   Hora inicio
                 </label>
-                <input
-                  type="time"
+                <select
                   value={startTime}
                   onChange={(e) => setStartTime(e.target.value)}
                   className="w-full px-3 py-2 border border-input rounded-lg bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                />
+                >
+                  {HOUR_OPTIONS.map((timeOption) => (
+                    <option key={timeOption} value={timeOption}>
+                      {timeOption}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label className="text-sm font-semibold text-foreground mb-1 block">
                   Hora fin
                 </label>
-                <input
-                  type="time"
-                  value={endTime}
+                <select
+                  value={endTimeOptions.includes(endTime) ? endTime : ""}
                   onChange={(e) => setEndTime(e.target.value)}
                   className="w-full px-3 py-2 border border-input rounded-lg bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                />
+                >
+                  <option value="" disabled>
+                    Selecciona una hora
+                  </option>
+                  {endTimeOptions.map((timeOption) => (
+                    <option key={timeOption} value={timeOption}>
+                      {timeOption}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
-            <div>
-              <label className="text-sm font-semibold text-foreground mb-1 block">
-                Duración (mínimo {space.minHours}h)
-              </label>
-              <input
-                type="number"
-                value={hours}
-                onChange={(e) => setHours(Math.max(space.minHours, Number(e.target.value)))}
-                min={space.minHours}
-                className="w-full px-3 py-2 border border-input rounded-lg bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-              />
+            <div className="rounded-lg border border-border bg-muted/30 px-3 py-3 text-sm">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-muted-foreground">Horas seleccionadas</span>
+                <span className="font-semibold text-foreground">
+                  {selectedHours > 0 ? `${selectedHours} ${selectedHours === 1 ? "hora" : "horas"}` : "0 horas"}
+                </span>
+              </div>
+              <p className="mt-2 text-xs text-muted-foreground">
+                Este espacio requiere un mínimo de {space.minHours} horas.
+              </p>
             </div>
+            {hourlyValidationMessage && (
+              <p className="text-sm font-medium text-destructive">{hourlyValidationMessage}</p>
+            )}
           </>
         )}
       </div>
 
       {/* Pets */}
       <div className="space-y-2">
-        <div className="grid grid-cols-2 gap-2">
-          <div>
-            <label className="text-sm font-semibold text-foreground mb-1 block">
-              Tipo
-            </label>
-            <select
-              value={selectedPetType}
-              onChange={(e) => setSelectedPetType(e.target.value as any)}
-              className="w-full px-3 py-2 border border-input rounded-lg bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-            >
-              {space.acceptedPetTypes.map((type) => (
-                <option key={type} value={type}>
-                  {type === "dog"
-                    ? "Perro"
-                    : type === "cat"
-                      ? "Gato"
-                      : type === "bird"
-                        ? "Pájaro"
-                        : "Otro"}
-                </option>
+        <div>
+          <label className="text-sm font-semibold text-foreground mb-2 block">
+            Mascotas para la reserva (máx {space.maxPets})
+          </label>
+          {eligiblePets.length === 0 ? (
+            <div className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
+              No tienes mascotas compatibles registradas para este espacio.
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {eligiblePets.map((pet) => (
+                <label
+                  key={pet.id}
+                  className="flex items-start gap-3 rounded-lg border border-border bg-background px-3 py-3 text-sm"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedPetIds.includes(pet.id)}
+                    onChange={() => handlePetToggle(pet.id)}
+                    className="mt-1 h-4 w-4 accent-primary"
+                  />
+                  <span className="flex-1">
+                    <span className="block font-semibold text-foreground">{pet.name}</span>
+                    <span className="text-muted-foreground">
+                      {getPetTypeSingularLabel(pet.type)}
+                      {pet.breed ? ` • ${pet.breed}` : ""}
+                      {pet.size ? ` • ${getPetSizeLabel(pet.size)}` : ""}
+                    </span>
+                  </span>
+                </label>
               ))}
-            </select>
-          </div>
-          <div>
-            <label className="text-sm font-semibold text-foreground mb-1 block">
-              Cantidad (máx {space.maxPets})
-            </label>
-            <input
-              type="number"
-              value={petCount}
-              onChange={(e) =>
-                setPetCount(
-                  Math.max(1, Math.min(space.maxPets, Number(e.target.value)))
-                )
-              }
-              min={1}
-              max={space.maxPets}
-              className="w-full px-3 py-2 border border-input rounded-lg bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-          </div>
+            </div>
+          )}
         </div>
         <p className="text-sm text-muted-foreground">
-          {matchingPets.length} mascota(s) registradas de este tipo disponibles
-          para esta reserva.
+          {selectedPetIds.length} de {space.maxPets} mascotas seleccionadas para esta reserva.
         </p>
       </div>
 
       {/* Price Breakdown */}
       <div className="space-y-2 pt-4 border-t border-border">
+        {bookingType === "hourly" ? (
+          <>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Precio por hora</span>
+              <span className="font-semibold text-foreground">
+                ₡{space.pricePerHour.toLocaleString("es-CR")}
+              </span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Horas seleccionadas</span>
+              <span className="font-semibold text-foreground">
+                {selectedHours > 0 ? selectedHours : 0}
+              </span>
+            </div>
+          </>
+        ) : (
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">Precio base</span>
+            <span className="font-semibold text-foreground">
+              ₡{priceBreakdown.baseSubtotal.toLocaleString("es-CR")}
+            </span>
+          </div>
+        )}
+        {bookingType === "hourly" && (
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">Subtotal base</span>
+            <span className="font-semibold text-foreground">
+              ₡{priceBreakdown.baseSubtotal.toLocaleString("es-CR")}
+            </span>
+          </div>
+        )}
+        <div className="flex justify-between text-sm">
+          <span className="text-muted-foreground">
+            Mascotas adicionales ({Math.max(selectedPetIds.length - 1, 0)})
+          </span>
+          <span className="font-semibold text-foreground">
+            {Math.max(selectedPetIds.length - 1, 0)}
+          </span>
+        </div>
+        <div className="flex justify-between text-sm">
+          <span className="text-muted-foreground">
+            Recargo mascotas adicionales ({Math.round(priceBreakdown.additionalPetRate * 100)}%)
+          </span>
+          <span className="font-semibold text-foreground">
+            ₡{priceBreakdown.additionalPetFee.toLocaleString("es-CR")}
+          </span>
+        </div>
         <div className="flex justify-between text-sm">
           <span className="text-muted-foreground">Subtotal</span>
           <span className="font-semibold text-foreground">
@@ -351,8 +515,9 @@ export function BookingCard({
         onClick={handleRequestBooking}
         size="lg"
         className="w-full rounded-lg"
+        disabled={isBookingDisabled}
       >
-        Solicitar Reservación
+        Solicitar Reserva
       </Button>
     </div>
   );

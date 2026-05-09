@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { PhotoUpload } from "@/components/PhotoUpload";
+import { getPetSizeHelp, getPetSizeLabel, getPetTypeSingularLabel } from "@/lib/pet-labels";
 import { PET_TYPES, PET_SIZES } from "@/types";
 import type { Pet } from "@/types";
 
@@ -120,19 +121,13 @@ export function PetFormDialog({
               <select
                 value={formData.type || "dog"}
                 onChange={(e) =>
-                  setFormData({ ...formData, type: e.target.value as any })
+                  setFormData({ ...formData, type: e.target.value as Pet["type"] })
                 }
                 className="w-full px-3 py-2 border border-input rounded-lg bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 {PET_TYPES.map((type) => (
                   <option key={type} value={type}>
-                    {type === "dog"
-                      ? "Perro"
-                      : type === "cat"
-                        ? "Gato"
-                        : type === "bird"
-                          ? "Pájaro"
-                          : "Otro"}
+                    {getPetTypeSingularLabel(type)}
                   </option>
                 ))}
               </select>
@@ -175,20 +170,19 @@ export function PetFormDialog({
               <select
                 value={formData.size || "medium"}
                 onChange={(e) =>
-                  setFormData({ ...formData, size: e.target.value as any })
+                  setFormData({ ...formData, size: e.target.value as Pet["size"] })
                 }
                 className="w-full px-3 py-2 border border-input rounded-lg bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 {PET_SIZES.map((size) => (
                   <option key={size} value={size}>
-                    {size === "small"
-                      ? "Pequeño"
-                      : size === "medium"
-                        ? "Mediano"
-                        : "Grande"}
+                    {getPetSizeLabel(size)}
                   </option>
                 ))}
               </select>
+              <p className="mt-2 text-xs text-muted-foreground">
+                {getPetSizeHelp((formData.size as Pet["size"]) || "medium")}
+              </p>
             </div>
           </div>
 

@@ -2,7 +2,7 @@ import type { APIGatewayProxyEventV2WithJWTAuthorizer } from 'aws-lambda';
 import { GetCommand, TransactWriteCommand } from '@aws-sdk/lib-dynamodb';
 import { ddb, BOOKINGS_TABLE_NAME, bookingKeys } from '../../shared/bookings-db';
 import { getAuthClaims } from '../../shared/auth';
-import { ok, forbidden, notFound, serverError } from '../../shared/response';
+import { badRequest, ok, forbidden, notFound, serverError } from '../../shared/response';
 
 export async function handler(event: APIGatewayProxyEventV2WithJWTAuthorizer) {
   try {
@@ -18,6 +18,9 @@ export async function handler(event: APIGatewayProxyEventV2WithJWTAuthorizer) {
 
     const booking = result.Item;
     if (booking['owner_id'] !== sub && booking['caregiver_id'] !== sub) return forbidden();
+    if (booking['status'] !== 'pending' && booking['status'] !== 'confirmed') {
+      return badRequest('Only pending or confirmed bookings can be cancelled');
+    }
 
     const now = new Date().toISOString();
     await ddb.send(new TransactWriteCommand({

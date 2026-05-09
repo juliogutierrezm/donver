@@ -1,0 +1,200 @@
+{
+ "Description": "Donver auth resources (dev)",
+ "Resources": {
+  "DonverUserPool69F4E0B3": {
+   "Type": "AWS::Cognito::UserPool",
+   "Properties": {
+    "AccountRecoverySetting": {
+     "RecoveryMechanisms": [
+      {
+       "Name": "verified_email",
+       "Priority": 1
+      }
+     ]
+    },
+    "AdminCreateUserConfig": {
+     "AllowAdminCreateUserOnly": false
+    },
+    "AutoVerifiedAttributes": [
+     "email"
+    ],
+    "EmailVerificationMessage": "The verification code to your new account is {####}",
+    "EmailVerificationSubject": "Verify your new account",
+    "Policies": {
+     "PasswordPolicy": {
+      "MinimumLength": 12,
+      "RequireLowercase": true,
+      "RequireNumbers": true,
+      "RequireSymbols": true,
+      "RequireUppercase": true
+     }
+    },
+    "Schema": [
+     {
+      "Mutable": true,
+      "Name": "email",
+      "Required": true
+     },
+     {
+      "Mutable": true,
+      "Name": "name",
+      "Required": true
+     }
+    ],
+    "SmsVerificationMessage": "The verification code to your new account is {####}",
+    "UserPoolName": "donver-user-pool-dev",
+    "UsernameAttributes": [
+     "email"
+    ],
+    "VerificationMessageTemplate": {
+     "DefaultEmailOption": "CONFIRM_WITH_CODE",
+     "EmailMessage": "The verification code to your new account is {####}",
+     "EmailSubject": "Verify your new account",
+     "SmsMessage": "The verification code to your new account is {####}"
+    }
+   },
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "DonverAuth-dev/DonverUserPool/Resource"
+   }
+  },
+  "DonverUserPoolDonverWebClient55387986": {
+   "Type": "AWS::Cognito::UserPoolClient",
+   "Properties": {
+    "AllowedOAuthFlows": [
+     "code"
+    ],
+    "AllowedOAuthFlowsUserPoolClient": true,
+    "AllowedOAuthScopes": [
+     "email",
+     "openid",
+     "profile"
+    ],
+    "CallbackURLs": [
+     "http://localhost:5173/auth/callback",
+     "https://app.donver.cr/auth/callback"
+    ],
+    "ClientName": "donver-web-client-dev",
+    "ExplicitAuthFlows": [
+     "ALLOW_USER_PASSWORD_AUTH",
+     "ALLOW_CUSTOM_AUTH",
+     "ALLOW_USER_SRP_AUTH",
+     "ALLOW_REFRESH_TOKEN_AUTH"
+    ],
+    "GenerateSecret": false,
+    "LogoutURLs": [
+     "http://localhost:5173/",
+     "https://app.donver.cr/"
+    ],
+    "PreventUserExistenceErrors": "ENABLED",
+    "SupportedIdentityProviders": [
+     "COGNITO"
+    ],
+    "UserPoolId": {
+     "Ref": "DonverUserPool69F4E0B3"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverAuth-dev/DonverUserPool/DonverWebClient/Resource"
+   }
+  },
+  "OwnerGroup": {
+   "Type": "AWS::Cognito::UserPoolGroup",
+   "Properties": {
+    "Description": "Donver owner role",
+    "GroupName": "owner",
+    "UserPoolId": {
+     "Ref": "DonverUserPool69F4E0B3"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverAuth-dev/OwnerGroup"
+   }
+  },
+  "CaregiverGroup": {
+   "Type": "AWS::Cognito::UserPoolGroup",
+   "Properties": {
+    "Description": "Donver caregiver role",
+    "GroupName": "caregiver",
+    "UserPoolId": {
+     "Ref": "DonverUserPool69F4E0B3"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverAuth-dev/CaregiverGroup"
+   }
+  },
+  "CDKMetadata": {
+   "Type": "AWS::CDK::Metadata",
+   "Properties": {
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/zPSMzI10DNQTCwv1k1OydbNyUzSqw4uSUzO1kksL45Pzk/PyyzJ16sOLU4tCsjPz9FxTsuDs2EM55zM1LwSZClMEfei/NKCWpCIf2lJQWlJrU5efkqqXlaxfpmRgZ4RyA1ZxZmZukWleSWZual6QRAaAL3i/MCgAAAA"
+   },
+   "Metadata": {
+    "aws:cdk:path": "DonverAuth-dev/CDKMetadata/Default"
+   }
+  }
+ },
+ "Outputs": {
+  "UserPoolId": {
+   "Value": {
+    "Ref": "DonverUserPool69F4E0B3"
+   }
+  },
+  "UserPoolClientId": {
+   "Value": {
+    "Ref": "DonverUserPoolDonverWebClient55387986"
+   }
+  },
+  "ExportsOutputRefDonverUserPoolDonverWebClient55387986BD58B7AB": {
+   "Value": {
+    "Ref": "DonverUserPoolDonverWebClient55387986"
+   },
+   "Export": {
+    "Name": "DonverAuth-dev:ExportsOutputRefDonverUserPoolDonverWebClient55387986BD58B7AB"
+   }
+  },
+  "ExportsOutputRefDonverUserPool69F4E0B32DDB3652": {
+   "Value": {
+    "Ref": "DonverUserPool69F4E0B3"
+   },
+   "Export": {
+    "Name": "DonverAuth-dev:ExportsOutputRefDonverUserPool69F4E0B32DDB3652"
+   }
+  }
+ },
+ "Parameters": {
+  "BootstrapVersion": {
+   "Type": "AWS::SSM::Parameter::Value<String>",
+   "Default": "/cdk-bootstrap/donver/version",
+   "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]"
+  }
+ },
+ "Rules": {
+  "CheckBootstrapVersion": {
+   "Assertions": [
+    {
+     "Assert": {
+      "Fn::Not": [
+       {
+        "Fn::Contains": [
+         [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+         ],
+         {
+          "Ref": "BootstrapVersion"
+         }
+        ]
+       }
+      ]
+     },
+     "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI."
+    }
+   ]
+  }
+ }
+}

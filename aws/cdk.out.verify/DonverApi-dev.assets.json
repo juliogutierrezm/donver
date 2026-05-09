@@ -1,0 +1,486 @@
+{
+  "version": "53.0.0",
+  "files": {
+    "99d6574372416cb4f08683d6394e1f422bae5b7add4e65a446e8fc8c91be782f": {
+      "displayName": "AuthRegisterFn/Code",
+      "source": {
+        "path": "asset.99d6574372416cb4f08683d6394e1f422bae5b7add4e65a446e8fc8c91be782f",
+        "packaging": "zip"
+      },
+      "destinations": {
+        "183192606101-us-east-1-9e4d9d31": {
+          "bucketName": "cdk-donver-assets-183192606101-us-east-1",
+          "objectKey": "99d6574372416cb4f08683d6394e1f422bae5b7add4e65a446e8fc8c91be782f.zip",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::183192606101:role/cdk-donver-file-publishing-role-183192606101-us-east-1"
+        }
+      }
+    },
+    "f761db831b735743c1177f5b1efa6704ded2307d27dc801ece97759c34fa38e8": {
+      "displayName": "AuthBootstrapFn/Code",
+      "source": {
+        "path": "asset.f761db831b735743c1177f5b1efa6704ded2307d27dc801ece97759c34fa38e8",
+        "packaging": "zip"
+      },
+      "destinations": {
+        "183192606101-us-east-1-a5b04164": {
+          "bucketName": "cdk-donver-assets-183192606101-us-east-1",
+          "objectKey": "f761db831b735743c1177f5b1efa6704ded2307d27dc801ece97759c34fa38e8.zip",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::183192606101:role/cdk-donver-file-publishing-role-183192606101-us-east-1"
+        }
+      }
+    },
+    "c468b4082bb352cbafad292a6b780a163421b11d95dfa030d8d2276cee68fb86": {
+      "displayName": "GetMeFn/Code",
+      "source": {
+        "path": "asset.c468b4082bb352cbafad292a6b780a163421b11d95dfa030d8d2276cee68fb86",
+        "packaging": "zip"
+      },
+      "destinations": {
+        "183192606101-us-east-1-24fc7783": {
+          "bucketName": "cdk-donver-assets-183192606101-us-east-1",
+          "objectKey": "c468b4082bb352cbafad292a6b780a163421b11d95dfa030d8d2276cee68fb86.zip",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::183192606101:role/cdk-donver-file-publishing-role-183192606101-us-east-1"
+        }
+      }
+    },
+    "f938a142b9dcc2b197c8079ed348e7cb26de92582173eaed7570e380bcf98c5f": {
+      "displayName": "UpdateProfileFn/Code",
+      "source": {
+        "path": "asset.f938a142b9dcc2b197c8079ed348e7cb26de92582173eaed7570e380bcf98c5f",
+        "packaging": "zip"
+      },
+      "destinations": {
+        "183192606101-us-east-1-c5b54cd9": {
+          "bucketName": "cdk-donver-assets-183192606101-us-east-1",
+          "objectKey": "f938a142b9dcc2b197c8079ed348e7cb26de92582173eaed7570e380bcf98c5f.zip",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::183192606101:role/cdk-donver-file-publishing-role-183192606101-us-east-1"
+        }
+      }
+    },
+    "5c7d435d7dc65661a4e662fb270106e6323ad8746608027a707b7a5608a551cd": {
+      "displayName": "ActivateOwnerProfileFn/Code",
+      "source": {
+        "path": "asset.5c7d435d7dc65661a4e662fb270106e6323ad8746608027a707b7a5608a551cd",
+        "packaging": "zip"
+      },
+      "destinations": {
+        "183192606101-us-east-1-a828b2f9": {
+          "bucketName": "cdk-donver-assets-183192606101-us-east-1",
+          "objectKey": "5c7d435d7dc65661a4e662fb270106e6323ad8746608027a707b7a5608a551cd.zip",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::183192606101:role/cdk-donver-file-publishing-role-183192606101-us-east-1"
+        }
+      }
+    },
+    "95227e6ff7ca37dc4c4db7b769405c5b952a7854340c8f0e4841c9582d6a0544": {
+      "displayName": "ListSpacesFn/Code",
+      "source": {
+        "path": "asset.95227e6ff7ca37dc4c4db7b769405c5b952a7854340c8f0e4841c9582d6a0544",
+        "packaging": "zip"
+      },
+      "destinations": {
+        "183192606101-us-east-1-0216c277": {
+          "bucketName": "cdk-donver-assets-183192606101-us-east-1",
+          "objectKey": "95227e6ff7ca37dc4c4db7b769405c5b952a7854340c8f0e4841c9582d6a0544.zip",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::183192606101:role/cdk-donver-file-publishing-role-183192606101-us-east-1"
+        }
+      }
+    },
+    "a9e701671d13be363f51706c555be68848f5fa91729bf99c1ec33ec15780308b": {
+      "displayName": "GetSpaceDetailFn/Code",
+      "source": {
+        "path": "asset.a9e701671d13be363f51706c555be68848f5fa91729bf99c1ec33ec15780308b",
+        "packaging": "zip"
+      },
+      "destinations": {
+        "183192606101-us-east-1-56513347": {
+          "bucketName": "cdk-donver-assets-183192606101-us-east-1",
+          "objectKey": "a9e701671d13be363f51706c555be68848f5fa91729bf99c1ec33ec15780308b.zip",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::183192606101:role/cdk-donver-file-publishing-role-183192606101-us-east-1"
+        }
+      }
+    },
+    "d564a3fb47b38354cb3c9636cc500278f860e2241e7f22df5d57c5a79998fe65": {
+      "displayName": "ListMySpacesFn/Code",
+      "source": {
+        "path": "asset.d564a3fb47b38354cb3c9636cc500278f860e2241e7f22df5d57c5a79998fe65",
+        "packaging": "zip"
+      },
+      "destinations": {
+        "183192606101-us-east-1-f9a0565c": {
+          "bucketName": "cdk-donver-assets-183192606101-us-east-1",
+          "objectKey": "d564a3fb47b38354cb3c9636cc500278f860e2241e7f22df5d57c5a79998fe65.zip",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::183192606101:role/cdk-donver-file-publishing-role-183192606101-us-east-1"
+        }
+      }
+    },
+    "1d46c58f61b4b57ae1e0b811c98d1e509043343d72d72f6a3e1de635cbc1d9ad": {
+      "displayName": "CreateSpaceFn/Code",
+      "source": {
+        "path": "asset.1d46c58f61b4b57ae1e0b811c98d1e509043343d72d72f6a3e1de635cbc1d9ad",
+        "packaging": "zip"
+      },
+      "destinations": {
+        "183192606101-us-east-1-fa4a74a6": {
+          "bucketName": "cdk-donver-assets-183192606101-us-east-1",
+          "objectKey": "1d46c58f61b4b57ae1e0b811c98d1e509043343d72d72f6a3e1de635cbc1d9ad.zip",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::183192606101:role/cdk-donver-file-publishing-role-183192606101-us-east-1"
+        }
+      }
+    },
+    "0cd13416f050674327b7165cbc34c7f53ba2b6bbeef26a2fe0c15b2511a5f975": {
+      "displayName": "UpdateSpaceFn/Code",
+      "source": {
+        "path": "asset.0cd13416f050674327b7165cbc34c7f53ba2b6bbeef26a2fe0c15b2511a5f975",
+        "packaging": "zip"
+      },
+      "destinations": {
+        "183192606101-us-east-1-409a3a6f": {
+          "bucketName": "cdk-donver-assets-183192606101-us-east-1",
+          "objectKey": "0cd13416f050674327b7165cbc34c7f53ba2b6bbeef26a2fe0c15b2511a5f975.zip",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::183192606101:role/cdk-donver-file-publishing-role-183192606101-us-east-1"
+        }
+      }
+    },
+    "bd483b12a03bd197d619c995780da0ba22ac13aa4b79227b1286b915bc91b25b": {
+      "displayName": "ListPetsFn/Code",
+      "source": {
+        "path": "asset.bd483b12a03bd197d619c995780da0ba22ac13aa4b79227b1286b915bc91b25b",
+        "packaging": "zip"
+      },
+      "destinations": {
+        "183192606101-us-east-1-717764fc": {
+          "bucketName": "cdk-donver-assets-183192606101-us-east-1",
+          "objectKey": "bd483b12a03bd197d619c995780da0ba22ac13aa4b79227b1286b915bc91b25b.zip",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::183192606101:role/cdk-donver-file-publishing-role-183192606101-us-east-1"
+        }
+      }
+    },
+    "46b61eea2c0dc45d2e360401bd564c3e606837b3f6885d966325e3113e9edac3": {
+      "displayName": "CreatePetFn/Code",
+      "source": {
+        "path": "asset.46b61eea2c0dc45d2e360401bd564c3e606837b3f6885d966325e3113e9edac3",
+        "packaging": "zip"
+      },
+      "destinations": {
+        "183192606101-us-east-1-2ef87de2": {
+          "bucketName": "cdk-donver-assets-183192606101-us-east-1",
+          "objectKey": "46b61eea2c0dc45d2e360401bd564c3e606837b3f6885d966325e3113e9edac3.zip",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::183192606101:role/cdk-donver-file-publishing-role-183192606101-us-east-1"
+        }
+      }
+    },
+    "eebc455602ac7d90e75ce0ce976f60591f2ae462a38832d0159304ff029ac58c": {
+      "displayName": "UpdatePetFn/Code",
+      "source": {
+        "path": "asset.eebc455602ac7d90e75ce0ce976f60591f2ae462a38832d0159304ff029ac58c",
+        "packaging": "zip"
+      },
+      "destinations": {
+        "183192606101-us-east-1-b375b76d": {
+          "bucketName": "cdk-donver-assets-183192606101-us-east-1",
+          "objectKey": "eebc455602ac7d90e75ce0ce976f60591f2ae462a38832d0159304ff029ac58c.zip",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::183192606101:role/cdk-donver-file-publishing-role-183192606101-us-east-1"
+        }
+      }
+    },
+    "296d9484b34bee4be0e06e15233fde32b3d7c92f9d598ab927be6f0a5c96b4f0": {
+      "displayName": "DeletePetFn/Code",
+      "source": {
+        "path": "asset.296d9484b34bee4be0e06e15233fde32b3d7c92f9d598ab927be6f0a5c96b4f0",
+        "packaging": "zip"
+      },
+      "destinations": {
+        "183192606101-us-east-1-cc1ed975": {
+          "bucketName": "cdk-donver-assets-183192606101-us-east-1",
+          "objectKey": "296d9484b34bee4be0e06e15233fde32b3d7c92f9d598ab927be6f0a5c96b4f0.zip",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::183192606101:role/cdk-donver-file-publishing-role-183192606101-us-east-1"
+        }
+      }
+    },
+    "522b4cd65c561a6c2b24681e7986eb416c7ecd406ee342bf6e23175deac3f509": {
+      "displayName": "ListOwnerBookingsFn/Code",
+      "source": {
+        "path": "asset.522b4cd65c561a6c2b24681e7986eb416c7ecd406ee342bf6e23175deac3f509",
+        "packaging": "zip"
+      },
+      "destinations": {
+        "183192606101-us-east-1-4fb82c10": {
+          "bucketName": "cdk-donver-assets-183192606101-us-east-1",
+          "objectKey": "522b4cd65c561a6c2b24681e7986eb416c7ecd406ee342bf6e23175deac3f509.zip",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::183192606101:role/cdk-donver-file-publishing-role-183192606101-us-east-1"
+        }
+      }
+    },
+    "4108b020451e0a581a9ba7a6b64852e4f98c957151bf7303125493e5a408b606": {
+      "displayName": "ListCgBookingsFn/Code",
+      "source": {
+        "path": "asset.4108b020451e0a581a9ba7a6b64852e4f98c957151bf7303125493e5a408b606",
+        "packaging": "zip"
+      },
+      "destinations": {
+        "183192606101-us-east-1-9c32fa4a": {
+          "bucketName": "cdk-donver-assets-183192606101-us-east-1",
+          "objectKey": "4108b020451e0a581a9ba7a6b64852e4f98c957151bf7303125493e5a408b606.zip",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::183192606101:role/cdk-donver-file-publishing-role-183192606101-us-east-1"
+        }
+      }
+    },
+    "db8349c9908afa8aa57a3c7e9fffc6061504a18664e132deda1146613295088e": {
+      "displayName": "GetBookingDetailFn/Code",
+      "source": {
+        "path": "asset.db8349c9908afa8aa57a3c7e9fffc6061504a18664e132deda1146613295088e",
+        "packaging": "zip"
+      },
+      "destinations": {
+        "183192606101-us-east-1-46daba49": {
+          "bucketName": "cdk-donver-assets-183192606101-us-east-1",
+          "objectKey": "db8349c9908afa8aa57a3c7e9fffc6061504a18664e132deda1146613295088e.zip",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::183192606101:role/cdk-donver-file-publishing-role-183192606101-us-east-1"
+        }
+      }
+    },
+    "57168335c825251c20c9fbea74e2a1da170018e6d1fce42d73e26441b4415197": {
+      "displayName": "CreateBookingFn/Code",
+      "source": {
+        "path": "asset.57168335c825251c20c9fbea74e2a1da170018e6d1fce42d73e26441b4415197",
+        "packaging": "zip"
+      },
+      "destinations": {
+        "183192606101-us-east-1-9b01de54": {
+          "bucketName": "cdk-donver-assets-183192606101-us-east-1",
+          "objectKey": "57168335c825251c20c9fbea74e2a1da170018e6d1fce42d73e26441b4415197.zip",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::183192606101:role/cdk-donver-file-publishing-role-183192606101-us-east-1"
+        }
+      }
+    },
+    "af897a821729ec53b22e0e8f8399f13d8c9b90509a647123b3dbc772e7c9f820": {
+      "displayName": "ConfirmBookingFn/Code",
+      "source": {
+        "path": "asset.af897a821729ec53b22e0e8f8399f13d8c9b90509a647123b3dbc772e7c9f820",
+        "packaging": "zip"
+      },
+      "destinations": {
+        "183192606101-us-east-1-8459ea43": {
+          "bucketName": "cdk-donver-assets-183192606101-us-east-1",
+          "objectKey": "af897a821729ec53b22e0e8f8399f13d8c9b90509a647123b3dbc772e7c9f820.zip",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::183192606101:role/cdk-donver-file-publishing-role-183192606101-us-east-1"
+        }
+      }
+    },
+    "882bb8ad8867e52a7e89de2e00d79c5233881beb12d3f1b31df1638fc11a9f59": {
+      "displayName": "CancelBookingFn/Code",
+      "source": {
+        "path": "asset.882bb8ad8867e52a7e89de2e00d79c5233881beb12d3f1b31df1638fc11a9f59",
+        "packaging": "zip"
+      },
+      "destinations": {
+        "183192606101-us-east-1-58828a47": {
+          "bucketName": "cdk-donver-assets-183192606101-us-east-1",
+          "objectKey": "882bb8ad8867e52a7e89de2e00d79c5233881beb12d3f1b31df1638fc11a9f59.zip",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::183192606101:role/cdk-donver-file-publishing-role-183192606101-us-east-1"
+        }
+      }
+    },
+    "588ebe9092aa70be655f7850c4f3eacac9a13e87e66280092ff3bfa6f13bd957": {
+      "displayName": "CreateBlockedDateFn/Code",
+      "source": {
+        "path": "asset.588ebe9092aa70be655f7850c4f3eacac9a13e87e66280092ff3bfa6f13bd957",
+        "packaging": "zip"
+      },
+      "destinations": {
+        "183192606101-us-east-1-a6ae6a1e": {
+          "bucketName": "cdk-donver-assets-183192606101-us-east-1",
+          "objectKey": "588ebe9092aa70be655f7850c4f3eacac9a13e87e66280092ff3bfa6f13bd957.zip",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::183192606101:role/cdk-donver-file-publishing-role-183192606101-us-east-1"
+        }
+      }
+    },
+    "efba11c07c861a7b3c36efbda504961ea196e36dbea6b75d5ef119ea959631fe": {
+      "displayName": "DeleteBlockedDateFn/Code",
+      "source": {
+        "path": "asset.efba11c07c861a7b3c36efbda504961ea196e36dbea6b75d5ef119ea959631fe",
+        "packaging": "zip"
+      },
+      "destinations": {
+        "183192606101-us-east-1-3f34e4f0": {
+          "bucketName": "cdk-donver-assets-183192606101-us-east-1",
+          "objectKey": "efba11c07c861a7b3c36efbda504961ea196e36dbea6b75d5ef119ea959631fe.zip",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::183192606101:role/cdk-donver-file-publishing-role-183192606101-us-east-1"
+        }
+      }
+    },
+    "28e65e213317a102b29f9439001c8853c3820a0e7d7ec79ee752f2b4fee1e43c": {
+      "displayName": "CaregiverOnboardingFn/Code",
+      "source": {
+        "path": "asset.28e65e213317a102b29f9439001c8853c3820a0e7d7ec79ee752f2b4fee1e43c",
+        "packaging": "zip"
+      },
+      "destinations": {
+        "183192606101-us-east-1-24a7a606": {
+          "bucketName": "cdk-donver-assets-183192606101-us-east-1",
+          "objectKey": "28e65e213317a102b29f9439001c8853c3820a0e7d7ec79ee752f2b4fee1e43c.zip",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::183192606101:role/cdk-donver-file-publishing-role-183192606101-us-east-1"
+        }
+      }
+    },
+    "604e1cb6b6fc1bb0558373277d26708d989cd7eaf4cffca3490c6726f5e5d2f1": {
+      "displayName": "ListReviewsFn/Code",
+      "source": {
+        "path": "asset.604e1cb6b6fc1bb0558373277d26708d989cd7eaf4cffca3490c6726f5e5d2f1",
+        "packaging": "zip"
+      },
+      "destinations": {
+        "183192606101-us-east-1-5f914baf": {
+          "bucketName": "cdk-donver-assets-183192606101-us-east-1",
+          "objectKey": "604e1cb6b6fc1bb0558373277d26708d989cd7eaf4cffca3490c6726f5e5d2f1.zip",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::183192606101:role/cdk-donver-file-publishing-role-183192606101-us-east-1"
+        }
+      }
+    },
+    "233111106f76e055a6b8f31c98ddc2a9fac971c074b9fc8af87a27546e3e119c": {
+      "displayName": "CreateReviewFn/Code",
+      "source": {
+        "path": "asset.233111106f76e055a6b8f31c98ddc2a9fac971c074b9fc8af87a27546e3e119c",
+        "packaging": "zip"
+      },
+      "destinations": {
+        "183192606101-us-east-1-b0f563e9": {
+          "bucketName": "cdk-donver-assets-183192606101-us-east-1",
+          "objectKey": "233111106f76e055a6b8f31c98ddc2a9fac971c074b9fc8af87a27546e3e119c.zip",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::183192606101:role/cdk-donver-file-publishing-role-183192606101-us-east-1"
+        }
+      }
+    },
+    "8c0bd636007ed4394acd24d1041d9861f734aece83eb2a88e36dade9b85bcfe8": {
+      "displayName": "CreateUploadUrlFn/Code",
+      "source": {
+        "path": "asset.8c0bd636007ed4394acd24d1041d9861f734aece83eb2a88e36dade9b85bcfe8",
+        "packaging": "zip"
+      },
+      "destinations": {
+        "183192606101-us-east-1-0a1f2761": {
+          "bucketName": "cdk-donver-assets-183192606101-us-east-1",
+          "objectKey": "8c0bd636007ed4394acd24d1041d9861f734aece83eb2a88e36dade9b85bcfe8.zip",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::183192606101:role/cdk-donver-file-publishing-role-183192606101-us-east-1"
+        }
+      }
+    },
+    "168c1c558de05ea58d274d1e085757aee03da76ea34519ce5697731f71c3d4d2": {
+      "displayName": "ListConvsFn/Code",
+      "source": {
+        "path": "asset.168c1c558de05ea58d274d1e085757aee03da76ea34519ce5697731f71c3d4d2",
+        "packaging": "zip"
+      },
+      "destinations": {
+        "183192606101-us-east-1-62634a53": {
+          "bucketName": "cdk-donver-assets-183192606101-us-east-1",
+          "objectKey": "168c1c558de05ea58d274d1e085757aee03da76ea34519ce5697731f71c3d4d2.zip",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::183192606101:role/cdk-donver-file-publishing-role-183192606101-us-east-1"
+        }
+      }
+    },
+    "3a8109f5e74a0d9cd59bc81381441ce2358f4795a158d91f542ae4d954cb6eda": {
+      "displayName": "ListMessagesFn/Code",
+      "source": {
+        "path": "asset.3a8109f5e74a0d9cd59bc81381441ce2358f4795a158d91f542ae4d954cb6eda",
+        "packaging": "zip"
+      },
+      "destinations": {
+        "183192606101-us-east-1-27cd2d14": {
+          "bucketName": "cdk-donver-assets-183192606101-us-east-1",
+          "objectKey": "3a8109f5e74a0d9cd59bc81381441ce2358f4795a158d91f542ae4d954cb6eda.zip",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::183192606101:role/cdk-donver-file-publishing-role-183192606101-us-east-1"
+        }
+      }
+    },
+    "1d38129539e82ce0a5b7177f3ebcdeccee1b23013274630a86d4b156b7e1ad16": {
+      "displayName": "WsConnectFn/Code",
+      "source": {
+        "path": "asset.1d38129539e82ce0a5b7177f3ebcdeccee1b23013274630a86d4b156b7e1ad16",
+        "packaging": "zip"
+      },
+      "destinations": {
+        "183192606101-us-east-1-4ce34395": {
+          "bucketName": "cdk-donver-assets-183192606101-us-east-1",
+          "objectKey": "1d38129539e82ce0a5b7177f3ebcdeccee1b23013274630a86d4b156b7e1ad16.zip",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::183192606101:role/cdk-donver-file-publishing-role-183192606101-us-east-1"
+        }
+      }
+    },
+    "6d7ff859092487bfcc36fd1460fef5a163f3efad05b0a83a495fcf793f7d9c2e": {
+      "displayName": "WsDisconnectFn/Code",
+      "source": {
+        "path": "asset.6d7ff859092487bfcc36fd1460fef5a163f3efad05b0a83a495fcf793f7d9c2e",
+        "packaging": "zip"
+      },
+      "destinations": {
+        "183192606101-us-east-1-189cf317": {
+          "bucketName": "cdk-donver-assets-183192606101-us-east-1",
+          "objectKey": "6d7ff859092487bfcc36fd1460fef5a163f3efad05b0a83a495fcf793f7d9c2e.zip",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::183192606101:role/cdk-donver-file-publishing-role-183192606101-us-east-1"
+        }
+      }
+    },
+    "079f20ea010e7fd91f1777fe80578a0900cdc11df2303b6e22803d8750aee496": {
+      "displayName": "WsSendMessageFn/Code",
+      "source": {
+        "path": "asset.079f20ea010e7fd91f1777fe80578a0900cdc11df2303b6e22803d8750aee496",
+        "packaging": "zip"
+      },
+      "destinations": {
+        "183192606101-us-east-1-e2ebb710": {
+          "bucketName": "cdk-donver-assets-183192606101-us-east-1",
+          "objectKey": "079f20ea010e7fd91f1777fe80578a0900cdc11df2303b6e22803d8750aee496.zip",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::183192606101:role/cdk-donver-file-publishing-role-183192606101-us-east-1"
+        }
+      }
+    },
+    "ceca69e9124d0f62f75bf7f59de56abf98f7de6bf358890f2c65e1163eebf5c9": {
+      "displayName": "DonverApi-dev Template",
+      "source": {
+        "path": "DonverApi-dev.template.json",
+        "packaging": "file"
+      },
+      "destinations": {
+        "183192606101-us-east-1-3be7f81c": {
+          "bucketName": "cdk-donver-assets-183192606101-us-east-1",
+          "objectKey": "ceca69e9124d0f62f75bf7f59de56abf98f7de6bf358890f2c65e1163eebf5c9.json",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::183192606101:role/cdk-donver-file-publishing-role-183192606101-us-east-1"
+        }
+      }
+    }
+  },
+  "dockerImages": {}
+}
