@@ -9,10 +9,11 @@ import { BookingsTab } from "@/components/profile/BookingsTab";
 import { PetsTab } from "@/components/profile/PetsTab";
 import { FavoritesTab } from "@/components/profile/FavoritesTab";
 import { CaregiverStatusBanner } from "@/components/profile/CaregiverStatusBanner";
-import { getMockFavoriteSpaces } from "@/data/mockProfileData";
-import { IS_API_CONFIGURED, authApi, bookingsApi, getUserExperienceMode, petsApi, spacesApi } from "@/services/api";
+import { useFavorites } from "@/hooks/useFavorites";
+import { authApi, bookingsApi, getUserExperienceMode, petsApi, spacesApi } from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
 import { APP_ROUTES } from "@/lib/routes";
+import { cn } from "@/lib/utils";
 import type { Booking, Pet, Space, User } from "@/types";
 
 const statusLabels: Record<string, string> = {
@@ -31,7 +32,12 @@ export default function ProfilePage() {
   const [caregiverBookings, setCaregiverBookings] = useState<Booking[]>([]);
   const [caregiverSpaces, setCaregiverSpaces] = useState<Space[]>([]);
   const [loadingData, setLoadingData] = useState(true);
-  const favoriteSpaces = getMockFavoriteSpaces();
+  const {
+    favorites,
+    isLoading: loadingFavorites,
+    isError: favoritesError,
+    error: favoritesErrorValue,
+  } = useFavorites();
 
   useEffect(() => {
     let cancelled = false;
@@ -146,11 +152,12 @@ export default function ProfilePage() {
   const experienceMode = getUserExperienceMode(user);
   const showRoleSelector = user.roles.includes("caregiver") && user.roles.includes("owner");
   const isCaregiverOnly = user.roles.includes("caregiver") && !user.roles.includes("owner");
+  const showFavoritesTab = user.roles.includes("owner");
   const showCaregiverExperience = activeView === "caregiver" || activeView === "pending";
 
   const caregiverContent = (
     <>
-      <div className="rounded-xl border border-border bg-card p-6">
+      <div className="rounded-2xl border border-border bg-card p-5 shadow-soft transition-shadow duration-200 hover:shadow-medium sm:p-6">
         <h2 className="text-xl font-bold text-foreground">Como cuidador</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           {experienceMode === "caregiver_pending"
@@ -159,7 +166,7 @@ export default function ProfilePage() {
         </p>
       </div>
 
-      <div className="rounded-xl border border-border bg-card p-6">
+      <div className="rounded-2xl border border-border bg-card p-5 shadow-soft transition-shadow duration-200 hover:shadow-medium sm:p-6">
         <h3 className="mb-4 text-lg font-semibold text-foreground">Espacios publicados o en borrador</h3>
         {loadingData ? (
           <p className="text-sm text-muted-foreground">Cargando espacios...</p>
@@ -168,7 +175,7 @@ export default function ProfilePage() {
         ) : (
           <div className="space-y-3">
             {caregiverSpaces.map((space) => (
-              <div key={space.id} className="rounded-lg border border-border p-4">
+              <div key={space.id} className="rounded-xl border border-border/70 bg-background/70 p-4 transition-colors duration-200 hover:bg-muted/30">
                 <div className="flex items-center justify-between gap-4">
                   <div>
                     <p className="font-semibold text-foreground">{space.title}</p>
@@ -186,7 +193,7 @@ export default function ProfilePage() {
         )}
       </div>
 
-      <div className="rounded-xl border border-border bg-card p-6">
+      <div className="rounded-2xl border border-border bg-card p-5 shadow-soft transition-shadow duration-200 hover:shadow-medium sm:p-6">
         <h3 className="mb-4 text-lg font-semibold text-foreground">Reservas recibidas</h3>
         {loadingData ? (
           <p className="text-sm text-muted-foreground">Cargando reservas...</p>
@@ -195,7 +202,7 @@ export default function ProfilePage() {
         ) : (
           <div className="space-y-3">
             {caregiverBookings.map((booking) => (
-              <div key={booking.id} className="rounded-lg border border-border p-4">
+              <div key={booking.id} className="rounded-xl border border-border/70 bg-background/70 p-4 transition-colors duration-200 hover:bg-muted/30">
                 <p className="font-semibold text-foreground">{booking.spaceName ?? "Espacio Donver"}</p>
                 <p className="text-sm text-muted-foreground">
                   {booking.ownerName ?? "Usuario Donver"} • {booking.petIds.length} mascota(s)
@@ -220,12 +227,12 @@ export default function ProfilePage() {
       </div>
 
       {isCaregiverOnly && (
-        <div className="rounded-xl border border-border bg-card p-6">
+        <div className="rounded-2xl border border-border bg-card p-5 shadow-soft transition-shadow duration-200 hover:shadow-medium sm:p-6">
           <h3 className="text-lg font-semibold text-foreground">Quiero reservar como dueño</h3>
           <p className="mt-1 text-sm text-muted-foreground">
             Activa tu perfil de dueño para registrar mascotas y reservar espacios para tus mascotas.
           </p>
-          <Button className="mt-4" onClick={() => navigate(APP_ROUTES.becomeOwner)}>
+          <Button className="mt-4 rounded-xl" onClick={() => navigate(APP_ROUTES.becomeOwner)}>
             Activar perfil de dueño
           </Button>
         </div>
@@ -237,16 +244,16 @@ export default function ProfilePage() {
     <>
       <Header />
       <main className="min-h-screen bg-background">
-        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-          <div className="mb-12">
+        <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+          <div className="mb-10">
             <h1 className="text-4xl font-heading font-bold text-foreground">Mi Perfil</h1>
             <p className="mt-2 text-muted-foreground">
               Gestiona tu cuenta, tus mascotas y tu experiencia dentro de Donver.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
-            <div className="lg:col-span-1">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-4 lg:gap-8">
+            <div className="lg:col-span-1 lg:sticky lg:top-24 lg:self-start">
               <UserInfoCard
                 user={user}
                 onLogout={() => void handleLogout()}
@@ -261,17 +268,39 @@ export default function ProfilePage() {
                 <div className="space-y-6">{caregiverContent}</div>
               ) : (
                 <Tabs defaultValue="bookings" className="w-full">
-                  <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="bookings">Reservaciones</TabsTrigger>
-                    <TabsTrigger value="pets">Mascotas</TabsTrigger>
-                    <TabsTrigger value="favorites">Favoritos</TabsTrigger>
+                  <TabsList
+                    className={cn(
+                      "grid h-auto w-full gap-2 rounded-2xl bg-muted/60 p-1.5",
+                      showFavoritesTab ? "grid-cols-1 sm:grid-cols-3" : "grid-cols-1 sm:grid-cols-2"
+                    )}
+                  >
+                    <TabsTrigger
+                      value="bookings"
+                      className="min-h-11 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-200 hover:bg-background/80 hover:text-foreground data-[state=active]:bg-background data-[state=active]:shadow-soft"
+                    >
+                      Reservaciones
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="pets"
+                      className="min-h-11 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-200 hover:bg-background/80 hover:text-foreground data-[state=active]:bg-background data-[state=active]:shadow-soft"
+                    >
+                      Mascotas
+                    </TabsTrigger>
+                    {showFavoritesTab && (
+                      <TabsTrigger
+                        value="favorites"
+                        className="min-h-11 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-200 hover:bg-background/80 hover:text-foreground data-[state=active]:bg-background data-[state=active]:shadow-soft"
+                      >
+                        Favoritos
+                      </TabsTrigger>
+                    )}
                   </TabsList>
 
-                  <TabsContent value="bookings" className="mt-6 space-y-6">
+                  <TabsContent value="bookings" className="mt-5 space-y-6">
                     <BookingsTab bookings={bookings} />
                   </TabsContent>
 
-                  <TabsContent value="pets" className="mt-6 space-y-6">
+                  <TabsContent value="pets" className="mt-5 space-y-6">
                     <PetsTab
                       pets={pets}
                       onPetAdded={(pet) => void handlePetAdded(pet)}
@@ -280,18 +309,26 @@ export default function ProfilePage() {
                     />
                   </TabsContent>
 
-                  <TabsContent value="favorites" className="mt-6 space-y-6">
-                    {IS_API_CONFIGURED ? (
-                      <div className="rounded-xl border border-border bg-card p-6">
-                        <h3 className="text-lg font-semibold text-foreground">Favoritos</h3>
-                        <p className="mt-1 text-sm text-muted-foreground">
-                          Próximamente podrás guardar tus espacios favoritos.
-                        </p>
-                      </div>
-                    ) : (
-                      <FavoritesTab favorites={favoriteSpaces} />
-                    )}
-                  </TabsContent>
+                  {showFavoritesTab && (
+                    <TabsContent value="favorites" className="mt-5 space-y-6">
+                      {loadingFavorites ? (
+                        <div className="rounded-2xl border border-border bg-card p-6 shadow-soft">
+                          <p className="text-sm text-muted-foreground">Cargando favoritos...</p>
+                        </div>
+                      ) : favoritesError ? (
+                        <div className="rounded-2xl border border-border bg-card p-6 shadow-soft">
+                          <h3 className="text-lg font-semibold text-foreground">Favoritos</h3>
+                          <p className="mt-2 text-sm text-muted-foreground">
+                            {favoritesErrorValue instanceof Error
+                              ? favoritesErrorValue.message
+                              : "No se pudieron cargar tus favoritos."}
+                          </p>
+                        </div>
+                      ) : (
+                        <FavoritesTab favorites={favorites} />
+                      )}
+                    </TabsContent>
+                  )}
                 </Tabs>
               )}
             </div>

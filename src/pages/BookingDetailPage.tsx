@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { ArrowLeft, Calendar, Clock3, DollarSign, Home, Mail, MessageSquare, PawPrint, Phone, ShieldAlert, UserRound } from "lucide-react";
+import { ArrowLeft, Calendar, Clock3, DollarSign, Home, Mail, MessageSquare, PawPrint, Phone, ShieldAlert, Star, UserRound } from "lucide-react";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { Badge } from "@/components/ui/badge";
@@ -17,7 +17,8 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { getPetSizeLabel, getPetTypeSingularLabel } from "@/lib/pet-labels";
-import { ApiError, authApi, bookingsApi, messagesApi, type BookingDetail, type BookingPartySummary } from "@/services/api";
+import { ApiError, authApi, bookingsApi, messagesApi, reviewsApi, type BookingDetail, type BookingPartySummary } from "@/services/api";
+import { cn } from "@/lib/utils";
 import type { User } from "@/types";
 
 type ViewState = "loading" | "ready" | "forbidden" | "not-found" | "error";
@@ -152,6 +153,10 @@ export default function BookingDetailPage() {
   const [pendingAction, setPendingAction] = useState<PendingAction>(null);
   const [contactState, setContactState] = useState<ContactState>("idle");
   const [contactConversationId, setContactConversationId] = useState<string | null>(null);
+  const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
+  const [reviewRating, setReviewRating] = useState(0);
+  const [reviewComment, setReviewComment] = useState("");
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
 
   const reloadDetail = async (bookingId: string) => {
     const bookingDetail = await bookingsApi.getById(bookingId);
@@ -273,6 +278,17 @@ export default function BookingDetailPage() {
       ((isOwner && (detail.status === "pending" || detail.status === "confirmed")) ||
         (isCaregiver && detail.status === "confirmed"))
   );
+  const canOpenReview = Boolean(detail && isOwner && detail.canReview && !detail.reviewSubmitted);
+  const hasSubmittedReview = Boolean(detail && isOwner && detail.reviewSubmitted);
+
+  const handleReviewDialogChange = (open: boolean) => {
+    if (!open && reviewSubmitting) return;
+    setReviewDialogOpen(open);
+    if (!open) {
+      setReviewRating(0);
+      setReviewComment("");
+    }
+  };
 
   const handleAction = async () => {
     if (!detail || !pendingAction) return;
@@ -315,6 +331,45 @@ export default function BookingDetailPage() {
               : "Esta acción cancelará la reserva actual.",
           button: "Confirmar acción",
         };
+
+  const handleSubmitReview = async () => {
+    if (!detail) return;
+    if (reviewRating < 1 || reviewRating > 5) {
+      toast({
+        title: "Selecciona una calificación",
+        description: "Elige entre 1 y 5 estrellas para continuar.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setReviewSubmitting(true);
+      await reviewsApi.create({
+        bookingId: detail.id,
+        spaceId: detail.spaceId,
+        rating: reviewRating,
+        comment: reviewComment.trim(),
+      });
+      await reloadDetail(detail.id);
+      setReviewDialogOpen(false);
+      setReviewRating(0);
+      setReviewComment("");
+      toast({
+        title: "Reseña enviada",
+        description: "Gracias por compartir tu experiencia.",
+      });
+    } catch (error) {
+      toast({
+        title: "No se pudo enviar tu reseña",
+        description:
+          error instanceof Error ? error.message : "Intenta nuevamente en unos minutos.",
+        variant: "destructive",
+      });
+    } finally {
+      setReviewSubmitting(false);
+    }
+  };
 
   return (
     <>
@@ -637,6 +692,26 @@ export default function BookingDetailPage() {
                     )}
                   </div>
 
+                  {(canOpenReview || hasSubmittedReview) && (
+                    <div className="rounded-xl border border-border bg-card p-6">
+                      <h2 className="text-lg font-semibold text-foreground">Calificar experiencia</h2>
+                      {canOpenReview ? (
+                        <div className="mt-3 space-y-3">
+                          <p className="text-sm text-muted-foreground">
+                            Tu reserva ya finalizó. Comparte cómo fue la experiencia para ayudar a otras familias.
+                          </p>
+                          <Button className="w-full" onClick={() => setReviewDialogOpen(true)}>
+                            Dejar reseña
+                          </Button>
+                        </div>
+                      ) : (
+                        <p className="mt-3 text-sm text-muted-foreground">
+                          Ya calificaste esta experiencia. Gracias por tu reseña.
+                        </p>
+                      )}
+                    </div>
+                  )}
+
                   <div className="rounded-xl border border-border bg-card p-6">
                     <h2 className="text-lg font-semibold text-foreground">Acciones</h2>
                     {canConfirm || canReject || canCancel ? (
@@ -682,6 +757,67 @@ export default function BookingDetailPage() {
           )}
         </div>
       </main>
+      <Dialog open={reviewDialogOpen} onOpenChange={handleReviewDialogChange}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Calificar experiencia</DialogTitle>
+            <DialogDescription>
+              Deja una calificación de 1 a 5 estrellas y agrega un comentario opcional.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-5">
+            <div>
+              <p className="text-sm font-medium text-foreground">Tu calificación</p>
+              <div className="mt-3 flex items-center gap-2">
+                {[1, 2, 3, 4, 5].map((value) => (
+                  <button
+                    key={value}
+                    type="button"
+                    className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-background transition hover:scale-105 disabled:cursor-not-allowed"
+                    onClick={() => setReviewRating(value)}
+                    disabled={reviewSubmitting}
+                    aria-label={`Calificar con ${value} estrella${value === 1 ? "" : "s"}`}
+                  >
+                    <Star
+                      className={cn(
+                        "h-5 w-5",
+                        value <= reviewRating ? "fill-accent text-accent" : "text-muted-foreground"
+                      )}
+                    />
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="review-comment" className="text-sm font-medium text-foreground">
+                Comentario
+              </label>
+              <textarea
+                id="review-comment"
+                value={reviewComment}
+                onChange={(event) => setReviewComment(event.target.value)}
+                rows={4}
+                maxLength={600}
+                disabled={reviewSubmitting}
+                className="mt-2 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground outline-none ring-offset-background placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                placeholder="Cuéntanos cómo fue el cuidado, la comunicación o el espacio."
+              />
+              <p className="mt-2 text-xs text-muted-foreground">El comentario es opcional.</p>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => handleReviewDialogChange(false)} disabled={reviewSubmitting}>
+              Cancelar
+            </Button>
+            <Button onClick={() => void handleSubmitReview()} disabled={reviewSubmitting || reviewRating < 1}>
+              {reviewSubmitting ? "Enviando..." : "Publicar reseña"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <Dialog open={pendingAction !== null} onOpenChange={(open) => !open && setPendingAction(null)}>
         <DialogContent>
           <DialogHeader>

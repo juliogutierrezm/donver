@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { PawPrint } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { authApi, getDefaultPostAuthPath } from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
+import Logo from "@/assets/Logo.png";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -75,17 +75,18 @@ export default function LoginPage() {
       <Header />
       <main className="min-h-screen bg-background flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-md">
-          {/* Logo */}
-          <Link
-            to="/"
-            className="flex items-center justify-center gap-2 mb-8 font-heading font-bold text-primary"
-          >
-            <PawPrint className="w-8 h-8" />
-            <span className="text-2xl">Donver</span>
-          </Link>
-
           {/* Card */}
           <div className="bg-card border border-border rounded-xl p-8 space-y-6">
+            <Link to="/" className="flex items-center justify-center">
+              <img
+                src={Logo}
+                alt="Donver logo"
+                className="h-14 w-auto"
+                style={{ maxHeight: 56 }}
+              />
+              <span className="sr-only">Donver</span>
+            </Link>
+
             <div className="text-center">
               <h1 className="text-2xl font-heading font-bold text-foreground">
                 Inicia sesión

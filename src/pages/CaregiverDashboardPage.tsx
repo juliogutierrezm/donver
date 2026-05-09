@@ -117,16 +117,30 @@ export default function CaregiverDashboardPage() {
           currentSpaces.map((space) => (space.id === updated.id ? updated : space))
         );
       } else {
+        if (
+          !spaceData.title ||
+          !spaceData.description ||
+          !spaceData.province ||
+          !spaceData.canton ||
+          !spaceData.address ||
+          spaceData.latitude === undefined ||
+          spaceData.longitude === undefined
+        ) {
+          throw new Error("Completa la ubicación del espacio antes de guardarlo.");
+        }
+
         const created = await spacesApi.create({
           caregiverId: user?.id ?? "",
-          title: spaceData.title ?? "",
-          description: spaceData.description ?? "",
+          title: spaceData.title,
+          description: spaceData.description,
           photos: spaceData.photos ?? [],
-          province: spaceData.province ?? "San José",
-          canton: spaceData.canton ?? "San José",
-          address: spaceData.address ?? "",
-          latitude: spaceData.latitude ?? 9.93,
-          longitude: spaceData.longitude ?? -84.08,
+          province: spaceData.province,
+          canton: spaceData.canton,
+          district: spaceData.district,
+          address: spaceData.address,
+          formattedAddress: spaceData.formattedAddress,
+          latitude: spaceData.latitude,
+          longitude: spaceData.longitude,
           pricePerNight: spaceData.pricePerNight ?? 0,
           pricePerHour: spaceData.pricePerHour ?? 0,
           minHours: spaceData.minHours ?? 1,
@@ -443,6 +457,14 @@ export default function CaregiverDashboardPage() {
         onOpenChange={setFormOpen}
         onSave={(spaceData) => void handleSaveSpace(spaceData)}
         space={selectedSpace}
+        caregiverDefaults={
+          user
+            ? {
+                province: user.province,
+                canton: user.canton,
+              }
+            : undefined
+        }
       />
 
       <Footer />

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { MapPin, LayoutGrid, Map, Maximize2 } from "lucide-react";
+import { MapPin, LayoutGrid, Map, Maximize2, Loader2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
@@ -42,6 +42,8 @@ export default function SpacesPage() {
   const { toast } = useToast();
   const { coords, loading: geoLoading, getCurrentPosition } = useGeolocation();
   const [spaces, setSpaces] = useState<Space[]>([]);
+  const [loadingSpaces, setLoadingSpaces] = useState(true);
+  const [spacesError, setSpacesError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [selectedProvince, setSelectedProvince] = useState<string>("");
   const [selectedCanton, setSelectedCanton] = useState<string>("");
@@ -65,6 +67,8 @@ export default function SpacesPage() {
     let cancelled = false;
 
     async function loadSpaces() {
+      setLoadingSpaces(true);
+      setSpacesError(null);
       try {
         const data = await spacesApi.list({
           province: (selectedProvince || undefined) as Province | undefined,
@@ -75,12 +79,18 @@ export default function SpacesPage() {
         setSpaces(data);
       } catch (error) {
         if (cancelled) return;
+        const message =
+          error instanceof Error ? error.message : "Intenta nuevamente en unos minutos.";
+        setSpacesError(message);
         toast({
           title: "No se pudieron cargar los espacios",
-          description:
-            error instanceof Error ? error.message : "Intenta nuevamente en unos minutos.",
+          description: message,
           variant: "destructive",
         });
+      } finally {
+        if (!cancelled) {
+          setLoadingSpaces(false);
+        }
       }
     }
 
@@ -289,7 +299,29 @@ export default function SpacesPage() {
           <div className={viewMode === "split" ? "flex flex-col gap-6 lg:flex-row" : ""}>
             {(viewMode === "grid" || viewMode === "split") && (
               <div className={viewMode === "split" ? "lg:w-1/2 lg:pr-4" : ""}>
-                {filteredSpaces.length === 0 ? (
+                {loadingSpaces ? (
+                  <div className="py-12 text-center">
+                    <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-muted mb-4">
+                      <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-foreground mb-2">
+                      Cargando espacios...
+                    </h3>
+                    <p className="text-muted-foreground max-w-md mx-auto">
+                      Estamos buscando opciones disponibles para tu mascota.
+                    </p>
+                  </div>
+                ) : spacesError ? (
+                  <div className="py-12 text-center">
+                    <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-muted mb-4">
+                      <AlertCircle className="w-8 h-8 text-destructive" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-foreground mb-2">
+                      No se pudieron cargar los espacios
+                    </h3>
+                    <p className="text-muted-foreground max-w-md mx-auto">{spacesError}</p>
+                  </div>
+                ) : filteredSpaces.length === 0 ? (
                   <div className="text-center py-12">
                     <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-muted mb-4">
                       <MapPin className="w-8 h-8 text-muted-foreground" />

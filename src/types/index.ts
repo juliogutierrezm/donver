@@ -65,7 +65,9 @@ export interface Space {
   photos: string[];
   province: Province;
   canton: string;
+  district?: string;
   address: string;
+  formattedAddress?: string;
   latitude: number;
   longitude: number;
   pricePerNight: number;
@@ -121,7 +123,7 @@ export interface Review {
   id: string;
   bookingId: string;
   spaceId: string;
-  ownerId: string;
+  reviewerName: string;
   rating: number;
   comment: string;
   createdAt: Date;

@@ -26,8 +26,8 @@ export function UserInfoCard({ user, onLogout, onSetActiveRole }: UserInfoCardPr
         : "Dueño";
 
   return (
-    <div className="rounded-xl border border-border bg-card p-8 text-center">
-      <div className="mb-6 flex justify-center">
+    <div className="rounded-2xl border border-border bg-card p-6 text-center shadow-soft transition-shadow duration-200 hover:shadow-medium sm:p-7">
+      <div className="mb-5 flex justify-center">
         <img
           src={user.avatar || `https://api.dicebear.com/9.x/avataaars/svg?seed=${user.name}`}
           alt={user.name}
@@ -36,22 +36,23 @@ export function UserInfoCard({ user, onLogout, onSetActiveRole }: UserInfoCardPr
       </div>
 
       <h2 className="mb-1 text-2xl font-heading font-bold text-foreground">{user.name}</h2>
-      <p className="mb-4 text-muted-foreground">{user.email}</p>
+      <p className="mb-5 text-sm text-muted-foreground">{user.email}</p>
 
-      <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-sm font-semibold text-primary">
+      <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/10 bg-primary/10 px-3 py-1 text-sm font-semibold text-primary">
         {roleLabel}
       </div>
 
       {experienceMode === "both" && onSetActiveRole && (
-        <div className="mb-6 space-y-2 text-left">
+        <div className="mb-6 rounded-2xl border border-border/70 bg-muted/30 p-4 text-left">
           <p className="text-sm font-medium text-muted-foreground">Vista activa</p>
-          <div className="flex flex-wrap gap-2">
+          <div className="mt-3 flex flex-wrap gap-2">
             {(["owner", "caregiver"] as const).map((role) => (
               <Button
                 key={role}
                 type="button"
                 size="sm"
                 variant={role === activeRole ? "default" : "outline"}
+                className="rounded-full"
                 onClick={() => onSetActiveRole(role)}
               >
                 {role === "owner" ? "Como dueño" : "Como cuidador"}
@@ -61,37 +62,38 @@ export function UserInfoCard({ user, onLogout, onSetActiveRole }: UserInfoCardPr
         </div>
       )}
 
-      <div className="mb-6 space-y-2 border-y border-border py-4">
-        <p className="text-sm text-muted-foreground">📍 Ubicación</p>
-        <p className="font-semibold text-foreground">
-          {user.canton}, {user.province}
-        </p>
+      <div className="mb-6 space-y-4 rounded-2xl border border-border/70 bg-muted/30 p-4 text-left">
+        <div className="space-y-1">
+          <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">Ubicación</p>
+          <p className="text-sm font-medium text-foreground/85">
+            {user.canton}, {user.province}
+          </p>
+        </div>
+        <div className="space-y-1 border-t border-border/60 pt-4">
+          <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">Teléfono</p>
+          <p className="text-sm font-medium text-foreground/85">{user.phone || "No registrado"}</p>
+        </div>
       </div>
 
-      <div className="mb-6 space-y-2 py-4">
-        <p className="text-sm text-muted-foreground">Teléfono</p>
-        <p className="font-semibold text-foreground">{user.phone || "No registrado"}</p>
-      </div>
-
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-3">
         {experienceMode === "caregiver_pending" ? (
-          <Button asChild className="w-full">
+          <Button asChild size="lg" className="h-11 w-full rounded-xl shadow-soft transition-all duration-200 hover:-translate-y-0.5 hover:shadow-medium">
             <Link to={APP_ROUTES.becomeCaregiver}>Continuar registro de cuidador</Link>
           </Button>
         ) : experienceMode === "caregiver" ? (
-          <Button asChild className="w-full">
+          <Button asChild size="lg" className="h-11 w-full rounded-xl shadow-soft transition-all duration-200 hover:-translate-y-0.5 hover:shadow-medium">
             <Link to={APP_ROUTES.becomeOwner}>Activar perfil de dueño</Link>
           </Button>
         ) : hasCaregiverRole ? (
-          <Button asChild className="w-full">
+          <Button asChild size="lg" className="h-11 w-full rounded-xl shadow-soft transition-all duration-200 hover:-translate-y-0.5 hover:shadow-medium">
             <Link to={APP_ROUTES.caregiverDashboard}>Ir al dashboard</Link>
           </Button>
         ) : (
-          <Button asChild className="w-full">
+          <Button asChild size="lg" className="h-11 w-full rounded-xl shadow-soft transition-all duration-200 hover:-translate-y-0.5 hover:shadow-medium">
             <Link to={APP_ROUTES.becomeCaregiver}>Quiero ser cuidador</Link>
           </Button>
         )}
-        <Button variant="outline" className="w-full" onClick={onLogout}>
+        <Button variant="outline" className="w-full rounded-xl text-muted-foreground transition-colors duration-200 hover:text-foreground" onClick={onLogout}>
           Cerrar Sesión
         </Button>
       </div>

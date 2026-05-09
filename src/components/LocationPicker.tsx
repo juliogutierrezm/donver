@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from "react-leaflet";
 import { AlertCircle, MapPin, Navigation } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { LocationSearch } from "@/components/LocationSearch";
+import { LocationSearch, parseNominatimLocation, type LocationResult } from "@/components/LocationSearch";
 import L from "leaflet";
 
 // Fix leaflet default marker icons
@@ -17,7 +17,13 @@ const COSTA_RICA_CENTER: [number, number] = [9.7489, -83.7534];
 
 interface LocationPickerProps {
   coordinates: { lat: number; lng: number } | null;
-  onLocationChange: (coords: { lat: number; lng: number }, address: string) => void;
+  onLocationChange: (location: {
+    coords: { lat: number; lng: number };
+    formattedAddress: string;
+    province?: string;
+    canton?: string;
+    district?: string;
+  }) => void;
 }
 
 function ClickHandler({ onMapClick }: { onMapClick: (lat: number, lng: number) => void }) {
@@ -63,20 +69,34 @@ export function LocationPicker({ coordinates, onLocationChange }: LocationPicker
     try {
       setMapError(null);
       const res = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=es`,
+        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1&accept-language=es`,
         { headers: { "Accept-Language": "es" } }
       );
       if (!res.ok) {
         throw new Error("No se pudo resolver la direccion.");
       }
       const data = await res.json();
-      const displayName = data.display_name || `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-      setAddress(displayName);
-      onLocationChange({ lat, lng }, displayName);
+      const location = parseNominatimLocation({
+        lat: String(lat),
+        lon: String(lng),
+        display_name: typeof data.display_name === "string" ? data.display_name : `${lat.toFixed(5)}, ${lng.toFixed(5)}`,
+        address: typeof data.address === "object" && data.address ? data.address : undefined,
+      });
+      setAddress(location.formattedAddress);
+      onLocationChange({
+        coords: { lat, lng },
+        formattedAddress: location.formattedAddress,
+        province: location.province,
+        canton: location.canton,
+        district: location.district,
+      });
     } catch {
-      const displayName = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-      setAddress(displayName);
-      onLocationChange({ lat, lng }, displayName);
+      const formattedAddress = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+      setAddress(formattedAddress);
+      onLocationChange({
+        coords: { lat, lng },
+        formattedAddress,
+      });
     }
   };
 
@@ -84,15 +104,17 @@ export function LocationPicker({ coordinates, onLocationChange }: LocationPicker
     await reverseGeocode(lat, lng);
   };
 
-  const handleLocationSearchSelect = (location: {
-    lat: number;
-    lon: number;
-    displayName: string;
-  }) => {
+  const handleLocationSearchSelect = (location: LocationResult) => {
     setMapError(null);
-    setAddress(location.displayName);
+    setAddress(location.formattedAddress);
     setFlyTarget([location.lat, location.lon]);
-    onLocationChange({ lat: location.lat, lng: location.lon }, location.displayName);
+    onLocationChange({
+      coords: { lat: location.lat, lng: location.lon },
+      formattedAddress: location.formattedAddress,
+      province: location.province,
+      canton: location.canton,
+      district: location.district,
+    });
   };
 
   const handleUseGPS = () => {
@@ -122,25 +144,30 @@ export function LocationPicker({ coordinates, onLocationChange }: LocationPicker
     : COSTA_RICA_CENTER;
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {/* Address search */}
       <LocationSearch onLocationSelect={handleLocationSearchSelect} value={address} />
 
       {/* GPS button */}
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        onClick={handleUseGPS}
-        disabled={loading}
-        className="gap-2 w-full"
-      >
-        <Navigation className="w-4 h-4" />
-        {loading ? "Obteniendo ubicación…" : "Usar mi GPS"}
-      </Button>
+      <div className="space-y-2 pt-1">
+        <Button
+          type="button"
+          variant="default"
+          size="lg"
+          onClick={handleUseGPS}
+          disabled={loading}
+          className="h-11 w-full cursor-pointer justify-center gap-2 rounded-xl px-5 font-semibold shadow-soft transition-all duration-200 hover:-translate-y-0.5 hover:shadow-medium sm:w-auto"
+        >
+          <Navigation className="h-4 w-4" />
+          {loading ? "Obteniendo ubicación…" : "Usar mi GPS"}
+        </Button>
+        <p className="text-xs leading-relaxed text-muted-foreground">
+          Usa tu ubicación actual para colocar el pin automáticamente.
+        </p>
+      </div>
 
       {/* Interactive map */}
-      <div className="h-56 rounded-lg overflow-hidden border border-border">
+      <div className="h-56 overflow-hidden rounded-xl border border-border shadow-soft">
         <MapContainer
           center={center}
           zoom={coordinates ? 14 : 8}

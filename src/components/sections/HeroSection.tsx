@@ -40,10 +40,8 @@ export function HeroSection() {
 
             <div className="space-y-4">
               <h1 className="text-5xl md:text-6xl font-heading font-extrabold leading-tight">
-                Cuida tu mascota con
-                <span className="block text-gradient-hero">
-                  confianza en Costa Rica
-                </span>
+                El hogar perfecto para tu mascota
+                <span className="block text-gradient-hero">mientras no estás</span>
               </h1>
               <p className="text-lg md:text-xl text-muted-foreground max-w-2xl leading-relaxed">
                 Conecta con cuidadores verificados que aman los animales. Reserva

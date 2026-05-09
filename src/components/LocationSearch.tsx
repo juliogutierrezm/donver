@@ -2,11 +2,16 @@ import { useEffect, useRef, useState } from "react";
 import { MapPin, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { PROVINCES } from "@/types";
 
 export interface LocationResult {
   lat: number;
   lon: number;
   displayName: string;
+  formattedAddress: string;
+  province?: string;
+  canton?: string;
+  district?: string;
 }
 
 interface LocationSearchProps {
@@ -19,6 +24,62 @@ interface NominatimResult {
   lat: string;
   lon: string;
   display_name: string;
+  address?: {
+    state?: string;
+    province?: string;
+    county?: string;
+    municipality?: string;
+    city?: string;
+    city_district?: string;
+    suburb?: string;
+    neighbourhood?: string;
+    village?: string;
+    town?: string;
+    hamlet?: string;
+  };
+}
+
+function normalizeLocationValue(value?: string) {
+  return (value ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase();
+}
+
+function normalizeProvinceName(value?: string) {
+  if (!value) return undefined;
+
+  const normalizedValue = normalizeLocationValue(value);
+  return PROVINCES.find((province) => normalizeLocationValue(province) === normalizedValue);
+}
+
+function cleanAdministrativeName(value?: string) {
+  const nextValue = value?.trim();
+  return nextValue ? nextValue : undefined;
+}
+
+export function parseNominatimLocation(result: NominatimResult): LocationResult {
+  const formattedAddress = result.display_name || `${result.lat}, ${result.lon}`;
+
+  return {
+    lat: parseFloat(result.lat),
+    lon: parseFloat(result.lon),
+    displayName: formattedAddress,
+    formattedAddress,
+    province: normalizeProvinceName(result.address?.state ?? result.address?.province),
+    canton: cleanAdministrativeName(
+      result.address?.county ?? result.address?.municipality ?? result.address?.city
+    ),
+    district: cleanAdministrativeName(
+      result.address?.city_district ??
+        result.address?.suburb ??
+        result.address?.neighbourhood ??
+        result.address?.village ??
+        result.address?.town ??
+        result.address?.hamlet
+    ),
+  };
 }
 
 export function LocationSearch({
@@ -33,14 +94,25 @@ export function LocationSearch({
   const [feedback, setFeedback] = useState<string | null>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout>();
   const blurTimerRef = useRef<NodeJS.Timeout>();
+  const skipNextSearchRef = useRef(false);
 
   useEffect(() => {
     if (typeof value === "string" && value !== query) {
+      skipNextSearchRef.current = true;
       setQuery(value);
+      setResults([]);
+      setFeedback(null);
+      setShowResults(false);
     }
   }, [query, value]);
 
   useEffect(() => {
+    if (skipNextSearchRef.current) {
+      skipNextSearchRef.current = false;
+      setLoading(false);
+      return;
+    }
+
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
     }
@@ -60,7 +132,7 @@ export function LocationSearch({
         const response = await fetch(
           `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
             query
-          )}&format=json&accept-language=es&countrycodes=cr&limit=5`
+          )}&format=json&addressdetails=1&accept-language=es&countrycodes=cr&limit=5`
         );
         const data = await response.json();
         const nextResults = Array.isArray(data) ? data : [];
@@ -87,12 +159,10 @@ export function LocationSearch({
   }, [query]);
 
   const handleSelectLocation = (result: NominatimResult) => {
-    onLocationSelect({
-      lat: parseFloat(result.lat),
-      lon: parseFloat(result.lon),
-      displayName: result.display_name,
-    });
-    setQuery(result.display_name);
+    const location = parseNominatimLocation(result);
+    onLocationSelect(location);
+    skipNextSearchRef.current = true;
+    setQuery(location.formattedAddress);
     setShowResults(false);
     setResults([]);
   };

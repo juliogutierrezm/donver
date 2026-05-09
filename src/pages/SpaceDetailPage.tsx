@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Heart, Loader2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -15,7 +15,9 @@ import { SpaceReviews } from "@/components/SpaceReviews";
 import { BookingCard } from "@/components/BookingCard";
 import { BookingSummary } from "@/components/BookingSummary";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { getPetSizeHelp, getPetSizeLabel, getPetTypeLabel } from "@/lib/pet-labels";
+import { useFavorites } from "@/hooks/useFavorites";
 import {
   ApiError,
   authApi,
@@ -29,6 +31,7 @@ import {
 } from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
 import { APP_ROUTES } from "@/lib/routes";
+import { cn } from "@/lib/utils";
 import type { BookingPricingBreakdown } from "@/lib/bookingPricing";
 import type { BlockedDate, Booking, Pet, Review, Space } from "@/types";
 
@@ -47,11 +50,13 @@ export default function SpaceDetailPage() {
   const [pets, setPets] = useState<Pet[]>([]);
   const [blockedDates, setBlockedDates] = useState<BlockedDate[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [ownedSpaceIds, setOwnedSpaceIds] = useState<string[]>([]);
   const [errorMessage, setErrorMessage] = useState("");
   const [bookingSummaryOpen, setBookingSummaryOpen] = useState(false);
   const [bookingData, setBookingData] = useState<BookingPreview | null>(null);
   const [confirmingBooking, setConfirmingBooking] = useState(false);
   const [sessionUser, setSessionUser] = useState(() => getAuthSession()?.user ?? null);
+  const { canUseFavorites, isFavorite, isUpdatingFavorite, toggleFavorite } = useFavorites();
   const isCaregiverOnly = Boolean(
     sessionUser?.roles.includes("caregiver") && !sessionUser.roles.includes("owner")
   );
@@ -63,7 +68,9 @@ export default function SpaceDetailPage() {
   const canReserveByRole =
     !sessionUser ||
     (sessionUser.roles.includes("owner") && (!sessionUser.roles.includes("caregiver") || sessionUser.activeRole !== "caregiver"));
-  const isOwnSpace = Boolean(space && sessionUser && space.caregiverId === sessionUser.id);
+  const isOwnSpace = Boolean(space && ownedSpaceIds.includes(space.id));
+  const favorite = Boolean(space && isFavorite(space.id));
+  const favoriteUpdating = Boolean(space && isUpdatingFavorite(space.id));
 
   useEffect(() => {
     if (!id) {
@@ -81,17 +88,19 @@ export default function SpaceDetailPage() {
         if (!cancelled) {
           setSessionUser(session?.user ?? null);
         }
-        const [spaceData, blockedData, reviewData, petData] = await Promise.all([
+        const [spaceData, blockedData, reviewData, petData, ownSpaces] = await Promise.all([
           spacesApi.getById(spaceId),
           availabilityApi.list(spaceId),
           reviewsApi.listForSpace(spaceId),
           session?.user.roles.includes("owner") ? petsApi.listMine() : Promise.resolve([]),
+          session?.user.roles.includes("caregiver") ? spacesApi.getMine() : Promise.resolve([]),
         ]);
         if (cancelled) return;
         setSpace(spaceData);
         setBlockedDates(blockedData);
         setReviews(reviewData);
         setPets(petData);
+        setOwnedSpaceIds(ownSpaces.map((item: Space) => item.id));
         setViewState("ready");
       } catch (error) {
         if (cancelled) return;
@@ -105,6 +114,7 @@ export default function SpaceDetailPage() {
         const message =
           error instanceof Error ? error.message : "Intenta nuevamente en unos minutos.";
         setErrorMessage(message);
+        setOwnedSpaceIds([]);
         setViewState("error");
         toast({
           title: "No se pudo cargar el espacio",
@@ -201,6 +211,21 @@ export default function SpaceDetailPage() {
     }
   };
 
+  const handleFavoriteToggle = async () => {
+    if (!space) return;
+
+    try {
+      await toggleFavorite(space);
+    } catch (error) {
+      toast({
+        title: "No se pudieron actualizar tus favoritos",
+        description:
+          error instanceof Error ? error.message : "Intenta nuevamente en unos minutos.",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (viewState === "loading") {
     return (
       <>
@@ -287,15 +312,42 @@ export default function SpaceDetailPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-8">
               <div>
-                <h1 className="text-4xl font-heading font-bold text-foreground mb-2">
-                  {space.title}
-                </h1>
-                <p className="text-lg text-muted-foreground">
-                  📍 {space.canton}, {space.province}
-                </p>
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <h1 className="mb-2 text-4xl font-heading font-bold text-foreground">
+                      {space.title}
+                    </h1>
+                    <p className="text-lg text-muted-foreground">
+                      📍 {space.canton}, {space.province}
+                    </p>
+                  </div>
+                  {canUseFavorites && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="gap-2 self-start"
+                      onClick={() => void handleFavoriteToggle()}
+                      disabled={favoriteUpdating}
+                    >
+                      {favoriteUpdating ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Heart
+                          className={cn(
+                            "h-4 w-4",
+                            favorite ? "fill-primary text-primary" : "text-muted-foreground"
+                          )}
+                        />
+                      )}
+                      {favorite ? "Guardado" : "Guardar"}
+                    </Button>
+                  )}
+                </div>
                 <div className="flex items-center gap-2 mt-3">
                   <span className="text-xl">⭐</span>
-                  <span className="font-semibold text-foreground">{space.rating.toFixed(1)}</span>
+                  <span className="font-semibold text-foreground">
+                    {space.rating > 0 ? space.rating.toFixed(1) : "Nuevo"}
+                  </span>
                   <span className="text-muted-foreground">({space.reviewCount} reseñas)</span>
                 </div>
               </div>

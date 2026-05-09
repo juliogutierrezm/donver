@@ -34,12 +34,20 @@ export function CaregiverStepTwo({
 
   const isComplete = formData.province && formData.canton && formData.coordinates;
 
-  const handleLocationChange = (
-    coords: { lat: number; lng: number },
-    address: string
-  ) => {
-    onChange("coordinates", coords);
-    onChange("locationName", address);
+  const handleLocationChange = (location: {
+    coords: { lat: number; lng: number };
+    formattedAddress: string;
+    province?: string;
+    canton?: string;
+  }) => {
+    onChange("coordinates", location.coords);
+    onChange("locationName", location.formattedAddress);
+    if (location.province) {
+      onChange("province", location.province);
+    }
+    if (location.canton) {
+      onChange("canton", location.canton);
+    }
   };
 
   return (

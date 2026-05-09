@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { AMENITIES, CANTONES, PET_SIZES, PET_TYPES, PROVINCES } from "@/types";
+import { AMENITIES, CANTONES, PET_SIZES, PET_TYPES, PROVINCES, type Province } from "@/types";
 import {
   Dialog,
   DialogContent,
@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { LocationPicker } from "@/components/LocationPicker";
 import { PhotoUpload } from "@/components/PhotoUpload";
+import { useToast } from "@/hooks/use-toast";
 import { getPetSizeLabel, getPetTypeIcon, getPetTypeLabel } from "@/lib/pet-labels";
 import type { Space } from "@/types";
 
@@ -18,17 +19,39 @@ interface SpaceFormDialogProps {
   onOpenChange: (open: boolean) => void;
   onSave: (spaceData: Partial<Space>) => void;
   space?: Space;
+  caregiverDefaults?: {
+    province?: Province;
+    canton?: string;
+  };
 }
 
-function createDefaultForm(space?: Space) {
+const DEFAULT_COORDINATES_BY_PROVINCE: Record<Province, { latitude: number; longitude: number }> = {
+  "San José": { latitude: 9.9281, longitude: -84.0907 },
+  Alajuela: { latitude: 10.0163, longitude: -84.2116 },
+  Cartago: { latitude: 9.8644, longitude: -83.9194 },
+  Heredia: { latitude: 9.9986, longitude: -84.1165 },
+  Guanacaste: { latitude: 10.6346, longitude: -85.4400 },
+  Puntarenas: { latitude: 9.9763, longitude: -84.8384 },
+  Limón: { latitude: 9.9907, longitude: -83.0350 },
+};
+
+function createDefaultForm(
+  space?: Space,
+  caregiverDefaults?: SpaceFormDialogProps["caregiverDefaults"]
+) {
+  const defaultProvince = space?.province ?? caregiverDefaults?.province ?? "San José";
+  const defaultCoordinates = DEFAULT_COORDINATES_BY_PROVINCE[defaultProvince];
+
   return {
     title: space?.title ?? "",
     description: space?.description ?? "",
-    province: space?.province ?? "San José",
-    canton: space?.canton ?? "",
+    province: defaultProvince,
+    canton: space?.canton ?? caregiverDefaults?.canton ?? "",
+    district: space?.district ?? "",
     address: space?.address ?? "",
-    latitude: space?.latitude ?? 9.7489,
-    longitude: space?.longitude ?? -83.7534,
+    formattedAddress: space?.formattedAddress ?? space?.address ?? "",
+    latitude: space?.latitude ?? defaultCoordinates.latitude,
+    longitude: space?.longitude ?? defaultCoordinates.longitude,
     pricePerNight: space?.pricePerNight ?? 45000,
     pricePerHour: space?.pricePerHour ?? 12000,
     minHours: space?.minHours ?? 2,
@@ -46,16 +69,21 @@ export function SpaceFormDialog({
   onOpenChange,
   onSave,
   space,
+  caregiverDefaults,
 }: SpaceFormDialogProps) {
+  const { toast } = useToast();
   const [isUploadingPhotos, setIsUploadingPhotos] = useState(false);
-  const [formData, setFormData] = useState(createDefaultForm(space));
+  const [formData, setFormData] = useState(createDefaultForm(space, caregiverDefaults));
+
+  const isProvinceOption = (value?: string): value is Province =>
+    Boolean(value && PROVINCES.includes(value as Province));
 
   useEffect(() => {
     if (open) {
-      setFormData(createDefaultForm(space));
+      setFormData(createDefaultForm(space, caregiverDefaults));
       setIsUploadingPhotos(false);
     }
-  }, [open, space]);
+  }, [caregiverDefaults, open, space]);
 
   const availableCantons = useMemo(() => {
     if (!formData.province) return [];
@@ -79,7 +107,30 @@ export function SpaceFormDialog({
 
   const handleSave = () => {
     if (isUploadingPhotos) return;
-    if (!formData.title.trim() || !formData.description.trim() || !formData.province || !formData.canton) {
+    if (!formData.title.trim() || !formData.description.trim()) {
+      toast({
+        title: "Completa la información básica",
+        description: "Agrega un nombre y una descripción antes de guardar el espacio.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!formData.province || !formData.canton || !formData.address.trim()) {
+      toast({
+        title: "Completa la ubicación",
+        description: "Selecciona la ubicación en el mapa o buscador y confirma provincia, cantón y dirección visible.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!Number.isFinite(formData.latitude) || !Number.isFinite(formData.longitude)) {
+      toast({
+        title: "Ubicación inválida",
+        description: "No pudimos guardar las coordenadas. Intenta marcar la ubicación nuevamente.",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -88,7 +139,9 @@ export function SpaceFormDialog({
       description: formData.description,
       province: formData.province,
       canton: formData.canton,
+      district: formData.district || undefined,
       address: formData.address,
+      formattedAddress: formData.formattedAddress || formData.address,
       latitude: formData.latitude,
       longitude: formData.longitude,
       pricePerNight: formData.pricePerNight,
@@ -201,7 +254,13 @@ export function SpaceFormDialog({
               <input
                 type="text"
                 value={formData.address}
-                onChange={(event) => setFormData((prev) => ({ ...prev, address: event.target.value }))}
+                onChange={(event) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    address: event.target.value,
+                    formattedAddress: event.target.value,
+                  }))
+                }
                 className="w-full rounded-lg border border-input bg-background px-4 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
@@ -213,12 +272,16 @@ export function SpaceFormDialog({
             </label>
             <LocationPicker
               coordinates={{ lat: formData.latitude, lng: formData.longitude }}
-              onLocationChange={(coords, address) =>
+              onLocationChange={(location) =>
                 setFormData((prev) => ({
                   ...prev,
-                  latitude: coords.lat,
-                  longitude: coords.lng,
-                  address: prev.address || address,
+                  latitude: location.coords.lat,
+                  longitude: location.coords.lng,
+                  address: location.formattedAddress,
+                  formattedAddress: location.formattedAddress,
+                  province: isProvinceOption(location.province) ? location.province : prev.province,
+                  canton: location.canton ?? prev.canton,
+                  district: location.district ?? prev.district,
                 }))
               }
             />

@@ -1,5 +1,8 @@
+import type { MouseEvent } from "react";
 import { Link } from "react-router-dom";
-import { Star, MapPin } from "lucide-react";
+import { Heart, Loader2, MapPin, Star } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { useFavorites } from "@/hooks/useFavorites";
 import type { Space } from "@/types";
 import { getPetTypeIcon, getPetTypeLabel } from "@/lib/pet-labels";
 import { cn } from "@/lib/utils";
@@ -9,12 +12,32 @@ interface SpaceCardProps {
 }
 
 export function SpaceCard({ space }: SpaceCardProps) {
+  const { toast } = useToast();
+  const { canUseFavorites, isFavorite, isUpdatingFavorite, toggleFavorite } = useFavorites();
+  const favorite = isFavorite(space.id);
+  const updatingFavorite = isUpdatingFavorite(space.id);
+
+  const handleFavoriteClick = async (event: MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    try {
+      await toggleFavorite(space);
+    } catch (error) {
+      toast({
+        title: "No se pudieron actualizar tus favoritos",
+        description:
+          error instanceof Error ? error.message : "Intenta nuevamente en unos minutos.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <Link
       to={`/spaces/${space.id}`}
-      className="group overflow-hidden rounded-xl border border-border bg-card hover-lift shadow-soft transition-all"
+      className="group overflow-hidden rounded-xl border border-border bg-card shadow-soft transition-all hover-lift"
     >
-      {/* Image */}
       <div className="relative h-48 w-full overflow-hidden bg-muted">
         <img
           src={space.photos[0]}
@@ -23,46 +46,61 @@ export function SpaceCard({ space }: SpaceCardProps) {
           loading="lazy"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+        {canUseFavorites && (
+          <button
+            type="button"
+            aria-label={favorite ? "Quitar de favoritos" : "Guardar en favoritos"}
+            aria-pressed={favorite}
+            className="absolute right-3 top-3 inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card/90 text-foreground shadow-sm transition hover:scale-105 disabled:cursor-not-allowed disabled:opacity-70"
+            onClick={(event) => void handleFavoriteClick(event)}
+            disabled={updatingFavorite}
+          >
+            {updatingFavorite ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Heart
+                className={cn(
+                  "h-4 w-4 transition-colors",
+                  favorite ? "fill-primary text-primary" : "text-muted-foreground"
+                )}
+              />
+            )}
+          </button>
+        )}
       </div>
 
-      {/* Content */}
-      <div className="p-4 space-y-3">
+      <div className="space-y-3 p-4">
         <div>
-          <h3 className="font-heading font-semibold text-foreground line-clamp-2 group-hover:text-primary transition-colors">
+          <h3 className="line-clamp-2 font-heading font-semibold text-foreground transition-colors group-hover:text-primary">
             {space.title}
           </h3>
         </div>
 
-        {/* Location */}
         <div className="flex items-center gap-1 text-sm text-muted-foreground">
-          <MapPin className="w-4 h-4 flex-shrink-0" />
+          <MapPin className="h-4 w-4 flex-shrink-0" />
           <span>
             {space.canton}, {space.province}
           </span>
         </div>
 
-        {/* Rating */}
         <div className="flex items-center gap-1">
           <div className="flex items-center gap-0.5">
-            {[...Array(5)].map((_, i) => (
+            {[...Array(5)].map((_, index) => (
               <Star
-                key={i}
+                key={index}
                 className={cn(
-                  "w-4 h-4",
-                  i < Math.floor(space.rating)
-                    ? "fill-accent text-accent"
-                    : "text-muted"
+                  "h-4 w-4",
+                  index < Math.floor(space.rating) ? "fill-accent text-accent" : "text-muted"
                 )}
               />
             ))}
           </div>
           <span className="text-sm text-muted-foreground">
-            ({space.reviewCount})
+            {space.rating > 0 ? space.rating.toFixed(1) : "Nuevo"} ({space.reviewCount})
           </span>
         </div>
 
-        {/* Prices */}
-        <div className="pt-2 border-t border-border flex items-center justify-between text-sm">
+        <div className="flex items-center justify-between border-t border-border pt-2 text-sm">
           <div>
             <p className="text-xs text-muted-foreground">Por noche</p>
             <p className="font-semibold text-primary">
@@ -77,7 +115,6 @@ export function SpaceCard({ space }: SpaceCardProps) {
           </div>
         </div>
 
-        {/* Pet Types */}
         <div className="flex flex-wrap gap-1">
           {space.acceptedPetTypes.map((type) => (
             <span

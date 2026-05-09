@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { PawPrint } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { CANTONES, PROVINCES, type UserRole } from "@/types";
 import { authApi } from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
+import Logo from "@/assets/Logo.png";
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -110,15 +110,17 @@ export default function RegisterPage() {
       <Header />
       <main className="min-h-screen bg-background py-12">
         <div className="mx-auto max-w-2xl px-4">
-          <Link
-            to="/"
-            className="mb-8 flex items-center justify-center gap-2 font-heading font-bold text-primary"
-          >
-            <PawPrint className="h-8 w-8" />
-            <span className="text-2xl">Donver</span>
-          </Link>
-
           <div className="rounded-xl border border-border bg-card p-8">
+            <Link to="/" className="mb-6 flex items-center justify-center">
+              <img
+                src={Logo}
+                alt="Donver logo"
+                className="h-14 w-auto"
+                style={{ maxHeight: 56 }}
+              />
+              <span className="sr-only">Donver</span>
+            </Link>
+
             <div className="mb-8 text-center">
               <h1 className="text-2xl font-heading font-bold text-foreground">
                 Crea tu cuenta

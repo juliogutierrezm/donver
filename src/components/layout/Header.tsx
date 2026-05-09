@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Menu, MessageSquare, User, X } from "lucide-react";
+import { Menu, User, X } from "lucide-react";
 import { useState } from "react";
 import DonverLogo from "@/assets/Donver-logo.png";
 import Logo from "@/assets/Logo.png";
@@ -11,7 +11,6 @@ import { useAuthSessionUser } from "@/hooks/useAuthSessionUser";
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { authenticated, experienceMode } = useAuthSessionUser();
-  const unreadCount = authenticated ? 1 : 0;
 
   const navLinks = [
     { label: "Inicio", to: "/" },
@@ -55,16 +54,6 @@ export function Header() {
                 <Button variant={experienceMode === "owner" ? "outline" : "default"}>
                   {caregiverCta.label}
                 </Button>
-              </Link>
-              <Link to="/messages" className="relative">
-                <Button variant="ghost" size="icon">
-                  <MessageSquare className="h-5 w-5" />
-                </Button>
-                {unreadCount > 0 && (
-                  <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-xs font-bold text-white">
-                    {unreadCount}
-                  </span>
-                )}
               </Link>
               <Link to="/profile">
                 <Button variant="ghost" size="icon">
@@ -115,17 +104,6 @@ export function Header() {
                 <>
                   <Link to={caregiverCta.to} onClick={() => setIsMenuOpen(false)}>
                     <Button className="w-full">{caregiverCta.label}</Button>
-                  </Link>
-                  <Link to="/messages" onClick={() => setIsMenuOpen(false)}>
-                    <Button variant="outline" className="w-full justify-start gap-2">
-                      <MessageSquare className="h-4 w-4" />
-                      Mensajes
-                      {unreadCount > 0 && (
-                        <span className="ml-auto rounded bg-destructive px-2 py-0.5 text-xs font-bold text-white">
-                          {unreadCount}
-                        </span>
-                      )}
-                    </Button>
                   </Link>
                   <Link to="/profile" onClick={() => setIsMenuOpen(false)}>
                     <Button variant="outline" className="w-full justify-start gap-2">

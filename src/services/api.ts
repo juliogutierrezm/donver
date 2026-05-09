@@ -24,7 +24,7 @@ import type {
   Message,
 } from "@/types/messaging";
 import { mockUser, mockSpaces } from "@/data/mockData";
-import { mockPets, mockBookings } from "@/data/mockProfileData";
+import { mockFavoriteSpaceIds, mockPets, mockBookings } from "@/data/mockProfileData";
 import {
   mockCaregiverSpaces,
   mockBlockedDates,
@@ -184,6 +184,8 @@ export interface BookingDetail extends Booking {
   pets?: BookingPetSummary[];
   owner?: BookingPartySummary;
   caregiver?: BookingPartySummary;
+  canReview?: boolean;
+  reviewSubmitted?: boolean;
 }
 
 export class ApiError extends Error {
@@ -530,12 +532,13 @@ let blockedDatesStore = Object.values(mockBlockedDates).flat().map(cloneBlockedD
 let conversationsStore = mockConversations.map(cloneConversation);
 let participantsStore = mockParticipants.map(cloneParticipant);
 let messagesStore = mockMessages.map(cloneMessage);
+let favoriteSpaceIdsStore = [...mockFavoriteSpaceIds];
 let reviewsStore: Review[] = [
   {
     id: "review-1",
     bookingId: "booking-1",
     spaceId: "space-1",
-    ownerId: "user-2",
+    reviewerName: "María Fernanda",
     rating: 5,
     comment: "Excelente espacio, mi perro lo paso increible. Muy atento el cuidador.",
     createdAt: new Date("2024-04-08"),
@@ -544,7 +547,7 @@ let reviewsStore: Review[] = [
     id: "review-2",
     bookingId: "booking-2",
     spaceId: "space-1",
-    ownerId: "user-3",
+    reviewerName: "Carlos Jiménez",
     rating: 4,
     comment: "Muy buen lugar, limpio y con comunicacion rapida.",
     createdAt: new Date("2024-04-14"),
@@ -552,8 +555,8 @@ let reviewsStore: Review[] = [
   {
     id: "review-3",
     bookingId: "booking-3",
-    spaceId: "space-3",
-    ownerId: currentUserStore.id,
+    spaceId: "space-2",
+    reviewerName: currentUserStore.name,
     rating: 5,
     comment: "La experiencia fue excelente y mis mascotas estuvieron felices.",
     createdAt: new Date("2024-04-18"),
@@ -566,6 +569,37 @@ function currentUserProfile() {
     name: currentUserStore.name,
     avatar: currentUserStore.avatar ?? "",
   };
+}
+
+function hasMockBookingEnded(booking: Booking) {
+  const bookingEnd = new Date(booking.endDate);
+  if (booking.bookingType === "hourly" && booking.endTime) {
+    const [hours, minutes] = booking.endTime.split(":").map(Number);
+    bookingEnd.setHours(Number.isFinite(hours) ? hours : 23, Number.isFinite(minutes) ? minutes : 59, 0, 0);
+    return Date.now() > bookingEnd.getTime();
+  }
+
+  bookingEnd.setHours(23, 59, 59, 999);
+  return Date.now() > bookingEnd.getTime();
+}
+
+function recalculateMockSpaceReviews(spaceId: string) {
+  const spaceReviews = reviewsStore.filter((review) => review.spaceId === spaceId);
+  const reviewCount = spaceReviews.length;
+  const rating =
+    reviewCount > 0
+      ? Math.round((spaceReviews.reduce((sum, review) => sum + review.rating, 0) / reviewCount) * 10) / 10
+      : 0;
+
+  spacesStore = spacesStore.map((space) =>
+    space.id === spaceId
+      ? {
+          ...space,
+          rating,
+          reviewCount,
+        }
+      : space
+  );
 }
 
 function getConversationDetails(conversation: Conversation): ConversationWithDetails {
@@ -614,6 +648,8 @@ async function parseResponse(res: Response) {
     const message =
       typeof json === "object" && json && "error" in json && typeof json.error === "string"
         ? json.error
+        : typeof json === "object" && json && "message" in json && typeof json.message === "string"
+          ? json.message
         : text || `Error ${res.status}`;
     throw new ApiError(message, res.status, json);
   }
@@ -888,7 +924,14 @@ function mapBackendSpace(space: Record<string, unknown>): Space {
     photos,
     province: normalizeProvince(space.province as string | undefined),
     canton: String(space.canton ?? "San Jose"),
+    district: typeof space.district === "string" ? space.district : undefined,
     address: String(space.address ?? ""),
+    formattedAddress:
+      typeof space.formatted_address === "string"
+        ? space.formatted_address
+        : typeof space.formattedAddress === "string"
+          ? space.formattedAddress
+          : undefined,
     latitude,
     longitude,
     pricePerNight: Number(space.price_per_night ?? 0),
@@ -1058,6 +1101,8 @@ function mapBackendBookingDetail(booking: Record<string, unknown>): BookingDetai
       : undefined,
     owner: mapBookingPartySummary(booking.owner),
     caregiver: mapBookingPartySummary(booking.caregiver),
+    canReview: Boolean(booking.can_review ?? false),
+    reviewSubmitted: Boolean(booking.review_submitted ?? false),
   };
 }
 
@@ -1077,7 +1122,10 @@ function mapBackendReview(review: Record<string, unknown>): Review {
     id: String(review.id ?? ""),
     bookingId: String(review.booking_id ?? ""),
     spaceId: String(review.space_id ?? ""),
-    ownerId: String(review.reviewer_id ?? review.owner_id ?? ""),
+    reviewerName:
+      typeof review.reviewer_name === "string" && review.reviewer_name.trim()
+        ? review.reviewer_name
+        : "Usuario Donver",
     rating: Number(review.rating ?? 0),
     comment: String(review.comment ?? ""),
     createdAt: toDate(review.created_at as string | undefined),
@@ -1214,6 +1262,12 @@ function buildMockBookingDetail(booking: Booking): BookingDetail {
     pets,
     owner,
     caregiver,
+    canReview:
+      booking.ownerId === currentUserStore.id &&
+      booking.status === "confirmed" &&
+      hasMockBookingEnded(booking) &&
+      !reviewsStore.some((review) => review.bookingId === booking.id),
+    reviewSubmitted: reviewsStore.some((review) => review.bookingId === booking.id),
   };
 }
 
@@ -1803,7 +1857,9 @@ export const spacesApi = {
         description: input.description,
         province: toBackendProvince(input.province),
         canton: input.canton,
+        district: input.district,
         address: input.address,
+        formatted_address: input.formattedAddress,
         latitude: input.latitude,
         longitude: input.longitude,
         accepted_pet_types: input.acceptedPetTypes,
@@ -1838,7 +1894,9 @@ export const spacesApi = {
     if (patch.description !== undefined) body.description = patch.description;
     if (patch.province !== undefined) body.province = toBackendProvince(patch.province);
     if (patch.canton !== undefined) body.canton = patch.canton;
+    if (patch.district !== undefined) body.district = patch.district;
     if (patch.address !== undefined) body.address = patch.address;
+    if (patch.formattedAddress !== undefined) body.formatted_address = patch.formattedAddress;
     if (patch.latitude !== undefined) body.latitude = patch.latitude;
     if (patch.longitude !== undefined) body.longitude = patch.longitude;
     if (patch.acceptedPetTypes !== undefined) body.accepted_pet_types = patch.acceptedPetTypes;
@@ -2096,14 +2154,22 @@ export const reviewsApi = {
       undefined,
       { auth: false }
     );
-    return Array.isArray(data) ? data.map(mapBackendReview) : [];
+    return Array.isArray(data)
+      ? data.map(mapBackendReview).sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+      : [];
   },
 
-  async create(input: Omit<Review, "id" | "createdAt">) {
+  async create(input: Pick<Review, "bookingId" | "spaceId" | "rating" | "comment">) {
     if (!IS_API_CONFIGURED) {
       await delay();
-      const review: Review = { ...input, id: createId("review"), createdAt: new Date() };
+      const review: Review = {
+        ...input,
+        id: createId("review"),
+        reviewerName: currentUserStore.name || "Usuario Donver",
+        createdAt: new Date(),
+      };
       reviewsStore = [review, ...reviewsStore];
+      recalculateMockSpaceReviews(input.spaceId);
       return cloneReview(review);
     }
 
@@ -2116,6 +2182,54 @@ export const reviewsApi = {
       }),
     });
     return mapBackendReview(data);
+  },
+};
+
+export const favoritesApi = {
+  async list() {
+    if (!IS_API_CONFIGURED) {
+      await delay();
+      return favoriteSpaceIdsStore
+        .map((spaceId) => spacesStore.find((space) => space.id === spaceId))
+        .filter((space): space is Space => Boolean(space))
+        .map(cloneSpace);
+    }
+
+    const data = await apiRequest<Record<string, unknown>[]>("/favorites");
+    return Array.isArray(data) ? data.map(mapBackendSpace) : [];
+  },
+
+  async add(spaceId: string) {
+    if (!IS_API_CONFIGURED) {
+      await delay();
+      if (!favoriteSpaceIdsStore.includes(spaceId)) {
+        favoriteSpaceIdsStore = [spaceId, ...favoriteSpaceIdsStore];
+      }
+
+      const space = requireEntity(
+        spacesStore.find((item) => item.id === spaceId),
+        "Espacio no encontrado."
+      );
+      return cloneSpace(space);
+    }
+
+    const data = await apiRequest<Record<string, unknown>>(`/favorites/${spaceId}`, {
+      method: "POST",
+    });
+    return mapBackendSpace(data);
+  },
+
+  async remove(spaceId: string) {
+    if (!IS_API_CONFIGURED) {
+      await delay();
+      favoriteSpaceIdsStore = favoriteSpaceIdsStore.filter((id) => id !== spaceId);
+      return { success: true };
+    }
+
+    await apiRequest(`/favorites/${spaceId}`, {
+      method: "DELETE",
+    });
+    return { success: true };
   },
 };
 
