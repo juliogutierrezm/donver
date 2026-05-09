@@ -1,0 +1,1364 @@
+{
+  "/DonverApi-prod/ApiBaseUrl": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ApiBaseUrl"
+    }
+  ],
+  "/DonverApi-prod/WebSocketUrl": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "WebSocketUrl"
+    }
+  ],
+  "/DonverApi-prod/BootstrapVersion": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "BootstrapVersion"
+    }
+  ],
+  "/DonverApi-prod/CheckBootstrapVersion": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CheckBootstrapVersion"
+    }
+  ],
+  "/DonverApi-prod/AuthRegisterFnLogs/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AuthRegisterFnLogs911A39F8"
+    }
+  ],
+  "/DonverApi-prod/AuthRegisterFn/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AuthRegisterFnA61FDC02"
+    }
+  ],
+  "/DonverApi-prod/AuthBootstrapFnLogs/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AuthBootstrapFnLogs90E56850"
+    }
+  ],
+  "/DonverApi-prod/AuthBootstrapFn/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AuthBootstrapFn03BDFDDA"
+    }
+  ],
+  "/DonverApi-prod/GetMeFnLogs/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "GetMeFnLogsB515344C"
+    }
+  ],
+  "/DonverApi-prod/GetMeFn/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "GetMeFn9F44A8FA"
+    }
+  ],
+  "/DonverApi-prod/UpdateProfileFnLogs/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "UpdateProfileFnLogs664E2ECC"
+    }
+  ],
+  "/DonverApi-prod/UpdateProfileFn/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "UpdateProfileFnB789FCAD"
+    }
+  ],
+  "/DonverApi-prod/ActivateOwnerProfileFnLogs/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ActivateOwnerProfileFnLogs4F8DA987"
+    }
+  ],
+  "/DonverApi-prod/ActivateOwnerProfileFn/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ActivateOwnerProfileFnE5BB280D"
+    }
+  ],
+  "/DonverApi-prod/ListSpacesFnLogs/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ListSpacesFnLogs06D51E2B"
+    }
+  ],
+  "/DonverApi-prod/ListSpacesFn/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ListSpacesFn4CFA17FB"
+    }
+  ],
+  "/DonverApi-prod/GetSpaceDetailFnLogs/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "GetSpaceDetailFnLogsA397F1E0"
+    }
+  ],
+  "/DonverApi-prod/GetSpaceDetailFn/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "GetSpaceDetailFnA4B11542"
+    }
+  ],
+  "/DonverApi-prod/ListMySpacesFnLogs/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ListMySpacesFnLogs0DDBD173"
+    }
+  ],
+  "/DonverApi-prod/ListMySpacesFn/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ListMySpacesFnE87DA6F1"
+    }
+  ],
+  "/DonverApi-prod/CreateSpaceFnLogs/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CreateSpaceFnLogsFE895366"
+    }
+  ],
+  "/DonverApi-prod/CreateSpaceFn/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CreateSpaceFn86A81536"
+    }
+  ],
+  "/DonverApi-prod/UpdateSpaceFnLogs/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "UpdateSpaceFnLogs8A9A1DD3"
+    }
+  ],
+  "/DonverApi-prod/UpdateSpaceFn/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "UpdateSpaceFnFE64284A"
+    }
+  ],
+  "/DonverApi-prod/ListPetsFnLogs/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ListPetsFnLogsDB621F2F"
+    }
+  ],
+  "/DonverApi-prod/ListPetsFn/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ListPetsFn86059951"
+    }
+  ],
+  "/DonverApi-prod/CreatePetFnLogs/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CreatePetFnLogs1CDCB709"
+    }
+  ],
+  "/DonverApi-prod/CreatePetFn/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CreatePetFn4E8DD9B6"
+    }
+  ],
+  "/DonverApi-prod/UpdatePetFnLogs/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "UpdatePetFnLogs76931AFB"
+    }
+  ],
+  "/DonverApi-prod/UpdatePetFn/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "UpdatePetFn9AEAF6B5"
+    }
+  ],
+  "/DonverApi-prod/DeletePetFnLogs/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DeletePetFnLogs4F552235"
+    }
+  ],
+  "/DonverApi-prod/DeletePetFn/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DeletePetFn8582A5B3"
+    }
+  ],
+  "/DonverApi-prod/ListOwnerBookingsFnLogs/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ListOwnerBookingsFnLogs8C96D2E4"
+    }
+  ],
+  "/DonverApi-prod/ListOwnerBookingsFn/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ListOwnerBookingsFnF00BFDDC"
+    }
+  ],
+  "/DonverApi-prod/ListCgBookingsFnLogs/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ListCgBookingsFnLogs6127F04E"
+    }
+  ],
+  "/DonverApi-prod/ListCgBookingsFn/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ListCgBookingsFn856CFA41"
+    }
+  ],
+  "/DonverApi-prod/GetBookingDetailFnLogs/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "GetBookingDetailFnLogs42062B9D"
+    }
+  ],
+  "/DonverApi-prod/GetBookingDetailFn/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "GetBookingDetailFnD51BD946"
+    }
+  ],
+  "/DonverApi-prod/CreateBookingFnLogs/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CreateBookingFnLogs98A09054"
+    }
+  ],
+  "/DonverApi-prod/CreateBookingFn/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CreateBookingFn2E139998"
+    }
+  ],
+  "/DonverApi-prod/ConfirmBookingFnLogs/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ConfirmBookingFnLogsFB1D6D3F"
+    }
+  ],
+  "/DonverApi-prod/ConfirmBookingFn/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ConfirmBookingFnCE71731F"
+    }
+  ],
+  "/DonverApi-prod/CancelBookingFnLogs/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CancelBookingFnLogsB48E74A4"
+    }
+  ],
+  "/DonverApi-prod/CancelBookingFn/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CancelBookingFnFA83E4FA"
+    }
+  ],
+  "/DonverApi-prod/CreateBlockedDateFnLogs/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CreateBlockedDateFnLogsD5C7D66A"
+    }
+  ],
+  "/DonverApi-prod/CreateBlockedDateFn/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CreateBlockedDateFn339D739E"
+    }
+  ],
+  "/DonverApi-prod/DeleteBlockedDateFnLogs/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DeleteBlockedDateFnLogs943B2A28"
+    }
+  ],
+  "/DonverApi-prod/DeleteBlockedDateFn/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DeleteBlockedDateFnB264CC3D"
+    }
+  ],
+  "/DonverApi-prod/CaregiverOnboardingFnLogs/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CaregiverOnboardingFnLogs67B06372"
+    }
+  ],
+  "/DonverApi-prod/CaregiverOnboardingFn/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CaregiverOnboardingFn9037866F"
+    }
+  ],
+  "/DonverApi-prod/ListReviewsFnLogs/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ListReviewsFnLogsDC050EF0"
+    }
+  ],
+  "/DonverApi-prod/ListReviewsFn/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ListReviewsFn39F49A4B"
+    }
+  ],
+  "/DonverApi-prod/CreateReviewFnLogs/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CreateReviewFnLogs06BD4833"
+    }
+  ],
+  "/DonverApi-prod/CreateReviewFn/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CreateReviewFn0922C7A2"
+    }
+  ],
+  "/DonverApi-prod/CreateUploadUrlFnLogs/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CreateUploadUrlFnLogs30FEAE5B"
+    }
+  ],
+  "/DonverApi-prod/CreateUploadUrlFn/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CreateUploadUrlFn400256AD"
+    }
+  ],
+  "/DonverApi-prod/ListConvsFnLogs/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ListConvsFnLogs4505E587"
+    }
+  ],
+  "/DonverApi-prod/ListConvsFn/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ListConvsFn6BD3C94F"
+    }
+  ],
+  "/DonverApi-prod/ListMessagesFnLogs/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ListMessagesFnLogs52A7B197"
+    }
+  ],
+  "/DonverApi-prod/ListMessagesFn/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ListMessagesFnD6515307"
+    }
+  ],
+  "/DonverApi-prod/WsConnectFnLogs/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "WsConnectFnLogs006A22CB"
+    }
+  ],
+  "/DonverApi-prod/WsConnectFn/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "WsConnectFnB17D99F3"
+    }
+  ],
+  "/DonverApi-prod/WsDisconnectFnLogs/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "WsDisconnectFnLogsF1C2D440"
+    }
+  ],
+  "/DonverApi-prod/WsDisconnectFn/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "WsDisconnectFn9523C1B1"
+    }
+  ],
+  "/DonverApi-prod/WsSendMessageFnLogs/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "WsSendMessageFnLogs3824CD5F"
+    }
+  ],
+  "/DonverApi-prod/WsSendMessageFn/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "WsSendMessageFn00921F75"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiDB0970D0"
+    }
+  ],
+  "/DonverApi-prod/DonverWebSocketApi/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverWebSocketApiBA9543F3"
+    }
+  ],
+  "/DonverApi-prod/WsStage/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "WsStage9AD02499"
+    }
+  ],
+  "/DonverApi-prod/CDKMetadata/Default": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CDKMetadata"
+    }
+  ],
+  "/DonverApi-prod/AuthRegisterFn/ServiceRole/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AuthRegisterFnServiceRole00E0F1DA"
+    }
+  ],
+  "/DonverApi-prod/AuthBootstrapFn/ServiceRole/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AuthBootstrapFnServiceRole8BCC0448"
+    }
+  ],
+  "/DonverApi-prod/GetMeFn/ServiceRole/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "GetMeFnServiceRole9C264DD5"
+    }
+  ],
+  "/DonverApi-prod/UpdateProfileFn/ServiceRole/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "UpdateProfileFnServiceRoleED5B46AC"
+    }
+  ],
+  "/DonverApi-prod/ActivateOwnerProfileFn/ServiceRole/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ActivateOwnerProfileFnServiceRoleBE359AE8"
+    }
+  ],
+  "/DonverApi-prod/ListSpacesFn/ServiceRole/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ListSpacesFnServiceRoleEBEE992A"
+    }
+  ],
+  "/DonverApi-prod/GetSpaceDetailFn/ServiceRole/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "GetSpaceDetailFnServiceRoleB55F98CC"
+    }
+  ],
+  "/DonverApi-prod/ListMySpacesFn/ServiceRole/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ListMySpacesFnServiceRole2207F728"
+    }
+  ],
+  "/DonverApi-prod/CreateSpaceFn/ServiceRole/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CreateSpaceFnServiceRoleA5A18D56"
+    }
+  ],
+  "/DonverApi-prod/UpdateSpaceFn/ServiceRole/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "UpdateSpaceFnServiceRoleB1C49FA3"
+    }
+  ],
+  "/DonverApi-prod/ListPetsFn/ServiceRole/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ListPetsFnServiceRoleF8E3F4DA"
+    }
+  ],
+  "/DonverApi-prod/CreatePetFn/ServiceRole/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CreatePetFnServiceRole1E8F302B"
+    }
+  ],
+  "/DonverApi-prod/UpdatePetFn/ServiceRole/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "UpdatePetFnServiceRoleDC708176"
+    }
+  ],
+  "/DonverApi-prod/DeletePetFn/ServiceRole/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DeletePetFnServiceRoleEE05E6D6"
+    }
+  ],
+  "/DonverApi-prod/ListOwnerBookingsFn/ServiceRole/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ListOwnerBookingsFnServiceRole0C4DC9CA"
+    }
+  ],
+  "/DonverApi-prod/ListCgBookingsFn/ServiceRole/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ListCgBookingsFnServiceRoleA3F6D0B6"
+    }
+  ],
+  "/DonverApi-prod/GetBookingDetailFn/ServiceRole/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "GetBookingDetailFnServiceRole75888085"
+    }
+  ],
+  "/DonverApi-prod/CreateBookingFn/ServiceRole/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CreateBookingFnServiceRole2A6D32F4"
+    }
+  ],
+  "/DonverApi-prod/ConfirmBookingFn/ServiceRole/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ConfirmBookingFnServiceRoleBE6B217A"
+    }
+  ],
+  "/DonverApi-prod/CancelBookingFn/ServiceRole/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CancelBookingFnServiceRoleC702E58E"
+    }
+  ],
+  "/DonverApi-prod/CreateBlockedDateFn/ServiceRole/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CreateBlockedDateFnServiceRole9B4C7FFF"
+    }
+  ],
+  "/DonverApi-prod/DeleteBlockedDateFn/ServiceRole/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DeleteBlockedDateFnServiceRoleD2F37CD3"
+    }
+  ],
+  "/DonverApi-prod/CaregiverOnboardingFn/ServiceRole/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CaregiverOnboardingFnServiceRoleA96E95BF"
+    }
+  ],
+  "/DonverApi-prod/ListReviewsFn/ServiceRole/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ListReviewsFnServiceRole9160381F"
+    }
+  ],
+  "/DonverApi-prod/CreateReviewFn/ServiceRole/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CreateReviewFnServiceRole91B4E4BA"
+    }
+  ],
+  "/DonverApi-prod/CreateUploadUrlFn/ServiceRole/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CreateUploadUrlFnServiceRole62A02E0B"
+    }
+  ],
+  "/DonverApi-prod/ListConvsFn/ServiceRole/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ListConvsFnServiceRole340A6E65"
+    }
+  ],
+  "/DonverApi-prod/ListMessagesFn/ServiceRole/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ListMessagesFnServiceRole08AD6C06"
+    }
+  ],
+  "/DonverApi-prod/WsConnectFn/ServiceRole/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "WsConnectFnServiceRole749353A4"
+    }
+  ],
+  "/DonverApi-prod/WsDisconnectFn/ServiceRole/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "WsDisconnectFnServiceRoleF36033AD"
+    }
+  ],
+  "/DonverApi-prod/WsSendMessageFn/ServiceRole/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "WsSendMessageFnServiceRole402D7D23"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/DefaultStage/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiDefaultStage32C950B4"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/POST--auth--register/AuthRegister-Permission": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiPOSTauthregisterAuthRegisterPermissionF6D8F567"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/POST--auth--register/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiPOSTauthregisterE99D02C0"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/POST--auth--bootstrap/AuthBootstrap-Permission": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiPOSTauthbootstrapAuthBootstrapPermission42ECF05A"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/POST--auth--bootstrap/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiPOSTauthbootstrapE334D075"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/DonverJwtAuthorizer/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiDonverJwtAuthorizer96D37763"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/GET--me/GetMe-Permission": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiGETmeGetMePermissionD154E66E"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/GET--me/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiGETme09CF37B4"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/PUT--me--profile/UpdateProfile-Permission": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiPUTmeprofileUpdateProfilePermissionA257780C"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/PUT--me--profile/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiPUTmeprofile8A98643A"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/POST--profile--activate-owner/ActivateOwnerProfile-Permission": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiPOSTprofileactivateownerActivateOwnerProfilePermission518D8156"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/POST--profile--activate-owner/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiPOSTprofileactivateownerCA79541A"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/POST--caregiver--onboarding/CaregiverOnboarding-Permission": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiPOSTcaregiveronboardingCaregiverOnboardingPermission07EB1038"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/POST--caregiver--onboarding/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiPOSTcaregiveronboarding54302546"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/GET--spaces/ListSpaces-Permission": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiGETspacesListSpacesPermission18EA1891"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/GET--spaces/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiGETspacesF7C54592"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/GET--spaces--{id}/GetSpaceDetail-Permission": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiGETspacesidGetSpaceDetailPermission53561D1B"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/GET--spaces--{id}/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiGETspacesid4BB03B1B"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/GET--spaces--{id}--reviews/ListReviews-Permission": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiGETspacesidreviewsListReviewsPermissionC980A9EF"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/GET--spaces--{id}--reviews/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiGETspacesidreviews31C68BE1"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/POST--spaces--{id}--reviews/CreateReview-Permission": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiPOSTspacesidreviewsCreateReviewPermissionBB008AD4"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/POST--spaces--{id}--reviews/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiPOSTspacesidreviewsF89901B0"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/GET--caregiver--spaces/ListMySpaces-Permission": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiGETcaregiverspacesListMySpacesPermission0AD9B764"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/GET--caregiver--spaces/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiGETcaregiverspacesBBC6CF27"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/POST--caregiver--spaces/CreateSpace-Permission": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiPOSTcaregiverspacesCreateSpacePermission22F15C44"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/POST--caregiver--spaces/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiPOSTcaregiverspaces08CE5524"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/PUT--caregiver--spaces--{id}/UpdateSpace-Permission": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiPUTcaregiverspacesidUpdateSpacePermission23553192"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/PUT--caregiver--spaces--{id}/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiPUTcaregiverspacesidF9896CAC"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/POST--caregiver--spaces--{id}--blocked-dates/CreateBlockedDate-Permission": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiPOSTcaregiverspacesidblockeddatesCreateBlockedDatePermissionB00ACBAA"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/POST--caregiver--spaces--{id}--blocked-dates/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiPOSTcaregiverspacesidblockeddates64BF41AC"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/DELETE--caregiver--spaces--{id}--blocked-dates--{blockedDateId}/DeleteBlockedDate-Permission": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiDELETEcaregiverspacesidblockeddatesblockedDateIdDeleteBlockedDatePermission6F89DFDE"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/DELETE--caregiver--spaces--{id}--blocked-dates--{blockedDateId}/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiDELETEcaregiverspacesidblockeddatesblockedDateIdB579EC55"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/GET--caregiver--bookings/ListCgBookings-Permission": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiGETcaregiverbookingsListCgBookingsPermissionB78B817D"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/GET--caregiver--bookings/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiGETcaregiverbookings4EB7476E"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/GET--owner--pets/ListPets-Permission": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiGETownerpetsListPetsPermission7003812D"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/GET--owner--pets/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiGETownerpets03FEC562"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/POST--owner--pets/CreatePet-Permission": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiPOSTownerpetsCreatePetPermission366103F4"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/POST--owner--pets/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiPOSTownerpets5080B833"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/PUT--owner--pets--{id}/UpdatePet-Permission": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiPUTownerpetsidUpdatePetPermissionB9B2BCD0"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/PUT--owner--pets--{id}/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiPUTownerpetsid98595617"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/DELETE--owner--pets--{id}/DeletePet-Permission": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiDELETEownerpetsidDeletePetPermission06F72D2E"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/DELETE--owner--pets--{id}/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiDELETEownerpetsidBE9F0350"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/GET--owner--bookings/ListOwnerBookings-Permission": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiGETownerbookingsListOwnerBookingsPermission8CDA93B6"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/GET--owner--bookings/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiGETownerbookings7E23BE28"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/GET--bookings--{id}/GetBookingDetail-Permission": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiGETbookingsidGetBookingDetailPermission0935FB41"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/GET--bookings--{id}/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiGETbookingsid2B8C6666"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/POST--bookings/CreateBooking-Permission": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiPOSTbookingsCreateBookingPermission2E17E740"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/POST--bookings/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiPOSTbookings46B27965"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/POST--bookings--{id}--confirm/ConfirmBooking-Permission": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiPOSTbookingsidconfirmConfirmBookingPermission3C600815"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/POST--bookings--{id}--confirm/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiPOSTbookingsidconfirm7DBA8DA9"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/POST--bookings--{id}--cancel/CancelBooking-Permission": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiPOSTbookingsidcancelCancelBookingPermission05DB1061"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/POST--bookings--{id}--cancel/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiPOSTbookingsidcancel978D62BB"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/POST--uploads--presign/CreateUploadUrl-Permission": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiPOSTuploadspresignCreateUploadUrlPermissionCDF1114F"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/POST--uploads--presign/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiPOSTuploadspresign9AD1A47B"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/GET--messages--conversations/ListConvs-Permission": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiGETmessagesconversationsListConvsPermission6D324455"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/GET--messages--conversations/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiGETmessagesconversationsE3D2FEC1"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/GET--messages--conversations--{id}--messages/ListMessages-Permission": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiGETmessagesconversationsidmessagesListMessagesPermission45DDC9B2"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/GET--messages--conversations--{id}--messages/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiGETmessagesconversationsidmessages40D8B7E4"
+    }
+  ],
+  "/DonverApi-prod/DonverWebSocketApi/$connect-Route/WsConnectInt-Permission": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverWebSocketApiconnectRouteWsConnectIntPermissionA39DEF57"
+    }
+  ],
+  "/DonverApi-prod/DonverWebSocketApi/$connect-Route/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverWebSocketApiconnectRoute7D63A9BF"
+    }
+  ],
+  "/DonverApi-prod/DonverWebSocketApi/$disconnect-Route/WsDisconnectInt-Permission": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverWebSocketApidisconnectRouteWsDisconnectIntPermission6D74384E"
+    }
+  ],
+  "/DonverApi-prod/DonverWebSocketApi/$disconnect-Route/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverWebSocketApidisconnectRoute2A3955D0"
+    }
+  ],
+  "/DonverApi-prod/DonverWebSocketApi/sendMessage-Route/WsSendMessageInt-Permission": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverWebSocketApisendMessageRouteWsSendMessageIntPermissionCF3A3CF9"
+    }
+  ],
+  "/DonverApi-prod/DonverWebSocketApi/sendMessage-Route/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverWebSocketApisendMessageRoute4347D7B4"
+    }
+  ],
+  "/DonverApi-prod/AuthRegisterFn/ServiceRole/DefaultPolicy/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AuthRegisterFnServiceRoleDefaultPolicy7E1BA211"
+    }
+  ],
+  "/DonverApi-prod/AuthBootstrapFn/ServiceRole/DefaultPolicy/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AuthBootstrapFnServiceRoleDefaultPolicyBF1CC82F"
+    }
+  ],
+  "/DonverApi-prod/GetMeFn/ServiceRole/DefaultPolicy/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "GetMeFnServiceRoleDefaultPolicy5BFF2156"
+    }
+  ],
+  "/DonverApi-prod/UpdateProfileFn/ServiceRole/DefaultPolicy/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "UpdateProfileFnServiceRoleDefaultPolicy10896920"
+    }
+  ],
+  "/DonverApi-prod/ActivateOwnerProfileFn/ServiceRole/DefaultPolicy/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ActivateOwnerProfileFnServiceRoleDefaultPolicy45448A4D"
+    }
+  ],
+  "/DonverApi-prod/ListSpacesFn/ServiceRole/DefaultPolicy/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ListSpacesFnServiceRoleDefaultPolicy28125501"
+    }
+  ],
+  "/DonverApi-prod/GetSpaceDetailFn/ServiceRole/DefaultPolicy/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "GetSpaceDetailFnServiceRoleDefaultPolicy27BC059C"
+    }
+  ],
+  "/DonverApi-prod/ListMySpacesFn/ServiceRole/DefaultPolicy/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ListMySpacesFnServiceRoleDefaultPolicy28CFB07A"
+    }
+  ],
+  "/DonverApi-prod/CreateSpaceFn/ServiceRole/DefaultPolicy/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CreateSpaceFnServiceRoleDefaultPolicy9F098FE9"
+    }
+  ],
+  "/DonverApi-prod/UpdateSpaceFn/ServiceRole/DefaultPolicy/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "UpdateSpaceFnServiceRoleDefaultPolicy4BE15D3A"
+    }
+  ],
+  "/DonverApi-prod/ListPetsFn/ServiceRole/DefaultPolicy/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ListPetsFnServiceRoleDefaultPolicyC629961E"
+    }
+  ],
+  "/DonverApi-prod/CreatePetFn/ServiceRole/DefaultPolicy/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CreatePetFnServiceRoleDefaultPolicy066A9EFE"
+    }
+  ],
+  "/DonverApi-prod/UpdatePetFn/ServiceRole/DefaultPolicy/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "UpdatePetFnServiceRoleDefaultPolicyE13F3D73"
+    }
+  ],
+  "/DonverApi-prod/DeletePetFn/ServiceRole/DefaultPolicy/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DeletePetFnServiceRoleDefaultPolicyE9717971"
+    }
+  ],
+  "/DonverApi-prod/ListOwnerBookingsFn/ServiceRole/DefaultPolicy/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ListOwnerBookingsFnServiceRoleDefaultPolicy5D6059CC"
+    }
+  ],
+  "/DonverApi-prod/ListCgBookingsFn/ServiceRole/DefaultPolicy/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ListCgBookingsFnServiceRoleDefaultPolicyB69D2492"
+    }
+  ],
+  "/DonverApi-prod/GetBookingDetailFn/ServiceRole/DefaultPolicy/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "GetBookingDetailFnServiceRoleDefaultPolicy80F42EA6"
+    }
+  ],
+  "/DonverApi-prod/CreateBookingFn/ServiceRole/DefaultPolicy/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CreateBookingFnServiceRoleDefaultPolicyCCAF2DD1"
+    }
+  ],
+  "/DonverApi-prod/ConfirmBookingFn/ServiceRole/DefaultPolicy/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ConfirmBookingFnServiceRoleDefaultPolicyFC52788F"
+    }
+  ],
+  "/DonverApi-prod/CancelBookingFn/ServiceRole/DefaultPolicy/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CancelBookingFnServiceRoleDefaultPolicy06329049"
+    }
+  ],
+  "/DonverApi-prod/CreateBlockedDateFn/ServiceRole/DefaultPolicy/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CreateBlockedDateFnServiceRoleDefaultPolicy702D0D60"
+    }
+  ],
+  "/DonverApi-prod/DeleteBlockedDateFn/ServiceRole/DefaultPolicy/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DeleteBlockedDateFnServiceRoleDefaultPolicy8689D5D6"
+    }
+  ],
+  "/DonverApi-prod/CaregiverOnboardingFn/ServiceRole/DefaultPolicy/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CaregiverOnboardingFnServiceRoleDefaultPolicy0E9FBD10"
+    }
+  ],
+  "/DonverApi-prod/ListReviewsFn/ServiceRole/DefaultPolicy/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ListReviewsFnServiceRoleDefaultPolicy01F55E5E"
+    }
+  ],
+  "/DonverApi-prod/CreateReviewFn/ServiceRole/DefaultPolicy/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CreateReviewFnServiceRoleDefaultPolicy04A15F56"
+    }
+  ],
+  "/DonverApi-prod/CreateUploadUrlFn/ServiceRole/DefaultPolicy/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CreateUploadUrlFnServiceRoleDefaultPolicyABA3ED25"
+    }
+  ],
+  "/DonverApi-prod/ListConvsFn/ServiceRole/DefaultPolicy/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ListConvsFnServiceRoleDefaultPolicyCF0FF4F7"
+    }
+  ],
+  "/DonverApi-prod/ListMessagesFn/ServiceRole/DefaultPolicy/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ListMessagesFnServiceRoleDefaultPolicyAD70552F"
+    }
+  ],
+  "/DonverApi-prod/WsConnectFn/ServiceRole/DefaultPolicy/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "WsConnectFnServiceRoleDefaultPolicyE8538EDC"
+    }
+  ],
+  "/DonverApi-prod/WsDisconnectFn/ServiceRole/DefaultPolicy/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "WsDisconnectFnServiceRoleDefaultPolicy76179A14"
+    }
+  ],
+  "/DonverApi-prod/WsSendMessageFn/ServiceRole/DefaultPolicy/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "WsSendMessageFnServiceRoleDefaultPolicy11820FA4"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/POST--auth--register/AuthRegister/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiPOSTauthregisterAuthRegister8C3F3D8D"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/POST--auth--bootstrap/AuthBootstrap/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiPOSTauthbootstrapAuthBootstrap186899C8"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/GET--me/GetMe/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiGETmeGetMe12BC5AA6"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/PUT--me--profile/UpdateProfile/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiPUTmeprofileUpdateProfileE680229A"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/POST--profile--activate-owner/ActivateOwnerProfile/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiPOSTprofileactivateownerActivateOwnerProfile3D81B99F"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/POST--caregiver--onboarding/CaregiverOnboarding/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiPOSTcaregiveronboardingCaregiverOnboarding008DD9E1"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/GET--spaces/ListSpaces/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiGETspacesListSpaces0B32B6AD"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/GET--spaces--{id}/GetSpaceDetail/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiGETspacesidGetSpaceDetail8ED0FFA9"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/GET--spaces--{id}--reviews/ListReviews/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiGETspacesidreviewsListReviews2D944548"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/POST--spaces--{id}--reviews/CreateReview/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiPOSTspacesidreviewsCreateReviewC6F6302D"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/GET--caregiver--spaces/ListMySpaces/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiGETcaregiverspacesListMySpaces3EA4A1B5"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/POST--caregiver--spaces/CreateSpace/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiPOSTcaregiverspacesCreateSpace6A675C37"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/PUT--caregiver--spaces--{id}/UpdateSpace/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiPUTcaregiverspacesidUpdateSpaceDE3F4905"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/POST--caregiver--spaces--{id}--blocked-dates/CreateBlockedDate/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiPOSTcaregiverspacesidblockeddatesCreateBlockedDate95CA7E7F"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/DELETE--caregiver--spaces--{id}--blocked-dates--{blockedDateId}/DeleteBlockedDate/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiDELETEcaregiverspacesidblockeddatesblockedDateIdDeleteBlockedDateAFEC47A4"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/GET--caregiver--bookings/ListCgBookings/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiGETcaregiverbookingsListCgBookings054712AA"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/GET--owner--pets/ListPets/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiGETownerpetsListPets3E9A1EFA"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/POST--owner--pets/CreatePet/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiPOSTownerpetsCreatePetB3859CA9"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/PUT--owner--pets--{id}/UpdatePet/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiPUTownerpetsidUpdatePetAB375410"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/DELETE--owner--pets--{id}/DeletePet/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiDELETEownerpetsidDeletePet49C23D30"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/GET--owner--bookings/ListOwnerBookings/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiGETownerbookingsListOwnerBookings5F19C43A"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/GET--bookings--{id}/GetBookingDetail/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiGETbookingsidGetBookingDetail5D1DA6C7"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/POST--bookings/CreateBooking/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiPOSTbookingsCreateBookingF4D90EA7"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/POST--bookings--{id}--confirm/ConfirmBooking/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiPOSTbookingsidconfirmConfirmBookingF6FCA505"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/POST--bookings--{id}--cancel/CancelBooking/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiPOSTbookingsidcancelCancelBookingB733D47F"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/POST--uploads--presign/CreateUploadUrl/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiPOSTuploadspresignCreateUploadUrl660DA913"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/GET--messages--conversations/ListConvs/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiGETmessagesconversationsListConvs7CF84B4B"
+    }
+  ],
+  "/DonverApi-prod/DonverHttpApi/GET--messages--conversations--{id}--messages/ListMessages/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverHttpApiGETmessagesconversationsidmessagesListMessages2E92D9C8"
+    }
+  ],
+  "/DonverApi-prod/DonverWebSocketApi/$connect-Route/WsConnectInt/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverWebSocketApiconnectRouteWsConnectIntE5C694F2"
+    }
+  ],
+  "/DonverApi-prod/DonverWebSocketApi/$disconnect-Route/WsDisconnectInt/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverWebSocketApidisconnectRouteWsDisconnectIntBCACC384"
+    }
+  ],
+  "/DonverApi-prod/DonverWebSocketApi/sendMessage-Route/WsSendMessageInt/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverWebSocketApisendMessageRouteWsSendMessageInt8F2C6DEA"
+    }
+  ]
+}

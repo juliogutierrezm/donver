@@ -1,0 +1,122 @@
+{
+  "/DonverShared-dev/SpacePhotosBucketName": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "SpacePhotosBucketName"
+    }
+  ],
+  "/DonverShared-dev/PetPhotosBucketName": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "PetPhotosBucketName"
+    }
+  ],
+  "/DonverShared-dev/StripeSecretParameterName": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "StripeSecretParameterName"
+    }
+  ],
+  "/DonverShared-dev/GoogleOAuthClientIdParameterName": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "GoogleOAuthClientIdParameterName"
+    }
+  ],
+  "/DonverShared-dev/DeployRoleArn": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DeployRoleArn"
+    }
+  ],
+  "/DonverShared-dev/BootstrapVersion": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "BootstrapVersion"
+    }
+  ],
+  "/DonverShared-dev/CheckBootstrapVersion": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CheckBootstrapVersion"
+    }
+  ],
+  "/DonverShared-dev/SpacePhotosBucket/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "SpacePhotosBucket9FD3EAE1"
+    }
+  ],
+  "/DonverShared-dev/PetPhotosBucket/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "PetPhotosBucket146E4037"
+    }
+  ],
+  "/DonverShared-dev/StripeSecretKeyParameter/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "StripeSecretKeyParameterCD5A69AE"
+    }
+  ],
+  "/DonverShared-dev/GoogleOAuthClientIdParameter/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "GoogleOAuthClientIdParameter254EF3EF"
+    }
+  ],
+  "/DonverShared-dev/DonverDeployPolicy/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverDeployPolicyB9972F74"
+    }
+  ],
+  "/DonverShared-dev/DonverDeployRole/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DonverDeployRoleC40F0D32"
+    }
+  ],
+  "/DonverShared-dev/CDKMetadata/Default": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CDKMetadata"
+    }
+  ],
+  "/DonverShared-dev/Exports/Output{\"Ref\":\"SpacePhotosBucket9FD3EAE1\"}": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ExportsOutputRefSpacePhotosBucket9FD3EAE15F11F63D"
+    }
+  ],
+  "/DonverShared-dev/Exports/Output{\"Ref\":\"PetPhotosBucket146E4037\"}": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ExportsOutputRefPetPhotosBucket146E40377706B8E9"
+    }
+  ],
+  "/DonverShared-dev/Exports/Output{\"Fn::GetAtt\":[\"SpacePhotosBucket9FD3EAE1\",\"Arn\"]}": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ExportsOutputFnGetAttSpacePhotosBucket9FD3EAE1ArnA61BB112"
+    }
+  ],
+  "/DonverShared-dev/Exports/Output{\"Fn::GetAtt\":[\"PetPhotosBucket146E4037\",\"Arn\"]}": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ExportsOutputFnGetAttPetPhotosBucket146E4037ArnC184780F"
+    }
+  ],
+  "/DonverShared-dev/SpacePhotosBucket/Policy/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "SpacePhotosBucketPolicyC796F53D"
+    }
+  ],
+  "/DonverShared-dev/PetPhotosBucket/Policy/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "PetPhotosBucketPolicy38817945"
+    }
+  ]
+}

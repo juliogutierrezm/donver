@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Star, MapPin } from "lucide-react";
 import type { Space } from "@/types";
+import { getPetTypeIcon, getPetTypeLabel } from "@/lib/pet-labels";
 import { cn } from "@/lib/utils";
 
 interface SpaceCardProps {
@@ -81,15 +82,10 @@ export function SpaceCard({ space }: SpaceCardProps) {
           {space.acceptedPetTypes.map((type) => (
             <span
               key={type}
-              className="text-xs bg-secondary text-secondary-foreground px-2 py-1 rounded"
+              className="inline-flex items-center gap-1 rounded-full bg-secondary px-2 py-1 text-xs text-secondary-foreground"
             >
-              {type === "dog"
-                ? "🐕"
-                : type === "cat"
-                  ? "🐱"
-                  : type === "bird"
-                    ? "🦜"
-                    : "🐾"}
+              <span>{getPetTypeIcon(type)}</span>
+              <span>{getPetTypeLabel(type)}</span>
             </span>
           ))}
         </div>

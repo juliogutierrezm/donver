@@ -1,12 +1,15 @@
 import type { APIGatewayProxyEventV2WithJWTAuthorizer } from 'aws-lambda';
 import { GetCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 import { ddb, CORE_TABLE_NAME, coreKeys } from '../../shared/core-db';
-import { getAuthClaims } from '../../shared/auth';
+import { getAuthClaims, userHasRole } from '../../shared/auth';
 import { ok, forbidden, notFound, serverError } from '../../shared/response';
 
 export async function handler(event: APIGatewayProxyEventV2WithJWTAuthorizer) {
   try {
     const { sub } = getAuthClaims(event);
+    if (!(await userHasRole(sub, 'owner'))) {
+      return forbidden('No tienes perfil de dueño activo.');
+    }
     const id = event.pathParameters?.['id'];
     if (!id) return notFound('Pet not found');
 

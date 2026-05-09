@@ -12,6 +12,11 @@ import type {
   User,
   UserRole,
 } from "@/types";
+import {
+  calculateBookingPricing,
+  DEFAULT_ADDITIONAL_PET_RATE,
+  type BookingPricingBreakdown,
+} from "@/lib/bookingPricing";
 import type {
   Conversation,
   ConversationParticipant,
@@ -31,9 +36,9 @@ import {
   mockMessages,
   mockParticipants,
 } from "@/data/mockMessagingData";
+import { APP_ROUTES } from "@/lib/routes";
 
 const API_PLACEHOLDER_BASE_URL = "aws-placeholder://donver-phase-12";
-const AUTH_SESSION_STORAGE_KEY = "donver.auth.session";
 const AUTH_SESSION_EVENT = "donver:auth-session-changed";
 
 export const API_BASE_URL =
@@ -47,6 +52,13 @@ const COGNITO_USER_POOL_ID =
 const COGNITO_CLIENT_ID =
   (import.meta.env.VITE_COGNITO_CLIENT_ID as string | undefined)?.trim() || "";
 const WS_URL = (import.meta.env.VITE_WS_URL as string | undefined)?.trim() || "";
+const LEGACY_AUTH_SESSION_STORAGE_KEY = "donver.auth.session";
+const AUTH_SESSION_STORAGE_KEY = [
+  LEGACY_AUTH_SESSION_STORAGE_KEY,
+  API_BASE_URL || "no-api",
+  COGNITO_USER_POOL_ID || "no-pool",
+  COGNITO_CLIENT_ID || "no-client",
+].join(":");
 
 const PLACEHOLDER_DELAY_MS = 120;
 
@@ -136,6 +148,56 @@ export interface PaymentIntent {
   checkoutUrl: string;
 }
 
+export interface BookingPartySummary {
+  id: string;
+  name: string;
+  email?: string;
+  phone?: string;
+  avatarUrl?: string;
+}
+
+export interface BookingSpaceSummary {
+  id: string;
+  title: string;
+  province?: Province;
+  canton?: string;
+  address?: string;
+}
+
+export interface BookingPetSummary {
+  id: string;
+  name: string;
+  type: PetType;
+  breed?: string;
+  size?: PetSize;
+  age?: number;
+  description?: string;
+  photos?: string[];
+  specialNeeds?: string;
+}
+
+export interface BookingDetail extends Booking {
+  caregiverId?: string;
+  updatedAt?: Date;
+  pricing?: BookingPricingBreakdown;
+  space?: BookingSpaceSummary;
+  pets?: BookingPetSummary[];
+  owner?: BookingPartySummary;
+  caregiver?: BookingPartySummary;
+}
+
+export class ApiError extends Error {
+  status: number;
+  body?: unknown;
+
+  constructor(message: string, status: number, body?: unknown) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+    this.body = body;
+  }
+}
+
 function delay(ms = PLACEHOLDER_DELAY_MS) {
   return new Promise<void>((resolve) => setTimeout(resolve, ms));
 }
@@ -179,10 +241,26 @@ function cloneSpace(space: Space): Space {
 function cloneBooking(booking: Booking): Booking {
   return {
     ...booking,
+    spaceName: booking.spaceName,
+    ownerName: booking.ownerName,
+    caregiverName: booking.caregiverName,
     petIds: [...booking.petIds],
     startDate: cloneDate(booking.startDate),
     endDate: cloneDate(booking.endDate),
     createdAt: cloneDate(booking.createdAt),
+  };
+}
+
+function cloneBookingDetail(booking: BookingDetail): BookingDetail {
+  return {
+    ...cloneBooking(booking),
+    caregiverId: booking.caregiverId,
+    updatedAt: booking.updatedAt ? cloneDate(booking.updatedAt) : undefined,
+    pricing: booking.pricing ? { ...booking.pricing } : undefined,
+    space: booking.space ? { ...booking.space } : undefined,
+    pets: booking.pets ? booking.pets.map((pet) => ({ ...pet })) : undefined,
+    owner: booking.owner ? { ...booking.owner } : undefined,
+    caregiver: booking.caregiver ? { ...booking.caregiver } : undefined,
   };
 }
 
@@ -238,10 +316,25 @@ function normalizeRoles(value: unknown): UserRole[] {
   return Array.from(new Set(normalized));
 }
 
-function deriveActiveRole(roles: UserRole[], activeRole?: unknown): UserRole {
+function isOwnerProfileActive(value: unknown) {
+  if (value === false || value === "false" || value === 0 || value === "0") {
+    return false;
+  }
+
+  return true;
+}
+
+function deriveActiveRole(
+  roles: UserRole[],
+  activeRole?: unknown,
+  signupIntent?: "caregiver" | null
+): UserRole {
   const candidate = typeof activeRole === "string" ? activeRole : "";
-  if (candidate === "owner" || candidate === "caregiver") {
+  if ((candidate === "owner" || candidate === "caregiver") && roles.includes(candidate)) {
     return candidate;
+  }
+  if (roles.length === 0 && signupIntent === "caregiver") {
+    return "caregiver";
   }
   return roles[0] ?? "owner";
 }
@@ -263,7 +356,17 @@ function toBackendProvince(value?: string): string {
 }
 
 function normalizePetType(value?: string): PetType {
-  if (value === "dog" || value === "cat" || value === "bird" || value === "other") {
+  if (
+    value === "dog" ||
+    value === "cat" ||
+    value === "bird" ||
+    value === "rabbit" ||
+    value === "hamster" ||
+    value === "snake" ||
+    value === "reptile" ||
+    value === "fish" ||
+    value === "other"
+  ) {
     return value;
   }
   return "other";
@@ -361,6 +464,10 @@ function persistAuthSession(session: AuthSession | null) {
   authSessionStore = session ? cloneSession(session) : null;
   if (!isBrowserEnvironment()) return;
 
+  if (AUTH_SESSION_STORAGE_KEY !== LEGACY_AUTH_SESSION_STORAGE_KEY) {
+    window.localStorage.removeItem(LEGACY_AUTH_SESSION_STORAGE_KEY);
+  }
+
   if (authSessionStore) {
     window.localStorage.setItem(AUTH_SESSION_STORAGE_KEY, JSON.stringify(authSessionStore));
   } else {
@@ -374,11 +481,14 @@ export function getAuthSession() {
   return authSessionStore ? cloneSession(authSessionStore) : null;
 }
 
-export type UserExperienceMode = "owner" | "caregiver_pending" | "caregiver";
+export type UserExperienceMode = "owner" | "caregiver_pending" | "caregiver" | "both";
 
 export function getUserExperienceMode(user?: Pick<User, "roles" | "signupIntent"> | null): UserExperienceMode {
   if (!user) return "owner";
-  if (user.roles.includes("caregiver")) return "caregiver";
+  const hasOwnerRole = user.roles.includes("owner");
+  const hasCaregiverRole = user.roles.includes("caregiver");
+  if (hasOwnerRole && hasCaregiverRole) return "both";
+  if (hasCaregiverRole) return "caregiver";
   if (user.signupIntent === "caregiver") return "caregiver_pending";
   return "owner";
 }
@@ -387,9 +497,9 @@ export function getDefaultPostAuthPath(user?: Pick<User, "roles" | "signupIntent
   if (next?.trim()) return next.trim();
 
   const mode = getUserExperienceMode(user);
-  if (mode === "caregiver_pending") return "/become-caregiver";
-  if (mode === "caregiver") return "/caregiver/dashboard";
-  return "/profile";
+  if (mode === "caregiver_pending") return APP_ROUTES.becomeCaregiver;
+  if (mode === "caregiver" || mode === "both") return APP_ROUTES.caregiverDashboard;
+  return APP_ROUTES.profile;
 }
 
 export function getCurrentUserId() {
@@ -505,7 +615,7 @@ async function parseResponse(res: Response) {
       typeof json === "object" && json && "error" in json && typeof json.error === "string"
         ? json.error
         : text || `Error ${res.status}`;
-    throw new Error(message);
+    throw new ApiError(message, res.status, json);
   }
 
   return json;
@@ -540,7 +650,11 @@ async function refreshStoredSession() {
     );
     const expiresIn = Number(authResult.ExpiresIn ?? authResult.expiresIn ?? 3600);
     const user = await bootstrapProfile(idToken);
-    const activeRole = user.activeRole ?? session.activeRole ?? user.roles[0] ?? "owner";
+    const activeRole = deriveActiveRole(
+      user.roles,
+      user.activeRole ?? session.activeRole,
+      user.signupIntent ?? session.user.signupIntent
+    );
 
     const refreshedSession: AuthSession = {
       ...session,
@@ -714,8 +828,12 @@ async function cognitoRequest<T>(target: CognitoTarget, body: Record<string, unk
 }
 
 function mapBackendUser(profile: Record<string, unknown>): User {
-  const roles = normalizeRoles(profile.roles ?? profile.role ?? ["owner"]);
-  const activeRole = deriveActiveRole(roles, profile.active_role ?? profile.activeRole);
+  const signupIntent = profile.signup_intent === "caregiver" ? "caregiver" : null;
+  const rawRoles = normalizeRoles(profile.roles ?? profile.role ?? []);
+  const roles = isOwnerProfileActive(profile.owner_profile_active)
+    ? rawRoles
+    : rawRoles.filter((role) => role !== "owner");
+  const activeRole = deriveActiveRole(roles, profile.active_role ?? profile.activeRole, signupIntent);
   const caregiverStatusRaw =
     typeof profile.caregiver_status === "object" && profile.caregiver_status
       ? (profile.caregiver_status as Record<string, unknown>)
@@ -733,7 +851,7 @@ function mapBackendUser(profile: Record<string, unknown>): User {
     createdAt: toDate((profile.created_at as string | undefined) ?? new Date()),
     province: normalizeProvince(profile.province as string | undefined),
     canton: typeof profile.canton === "string" && profile.canton ? profile.canton : "San Jose",
-    signupIntent: profile.signup_intent === "caregiver" ? "caregiver" : null,
+    signupIntent,
     caregiverStatus: caregiverStatusRaw
       ? {
           profileComplete: Boolean(caregiverStatusRaw.profile_complete),
@@ -749,6 +867,19 @@ function mapBackendUser(profile: Record<string, unknown>): User {
 
 function mapBackendSpace(space: Record<string, unknown>): Space {
   const photos = Array.isArray(space.photos) ? space.photos.map(String) : [];
+  const latitude =
+    typeof space.latitude === "number"
+      ? space.latitude
+      : typeof space.latitude === "string" && space.latitude.trim()
+        ? Number(space.latitude)
+        : Number.NaN;
+  const longitude =
+    typeof space.longitude === "number"
+      ? space.longitude
+      : typeof space.longitude === "string" && space.longitude.trim()
+        ? Number(space.longitude)
+        : Number.NaN;
+
   return {
     id: String(space.id ?? ""),
     caregiverId: String(space.caregiver_id ?? ""),
@@ -758,8 +889,8 @@ function mapBackendSpace(space: Record<string, unknown>): Space {
     province: normalizeProvince(space.province as string | undefined),
     canton: String(space.canton ?? "San Jose"),
     address: String(space.address ?? ""),
-    latitude: Number(space.latitude ?? 9.935),
-    longitude: Number(space.longitude ?? -84.09),
+    latitude,
+    longitude,
     pricePerNight: Number(space.price_per_night ?? 0),
     pricePerHour: Number(space.price_per_hour ?? 0),
     minHours: Number(space.min_hours ?? 1),
@@ -795,10 +926,26 @@ function mapBackendPet(pet: Record<string, unknown>): Pet {
 
 function mapBackendBooking(booking: Record<string, unknown>): Booking {
   const status = (booking.status as BookingStatus) ?? "pending";
+  const spaceName =
+    (typeof booking.space_name === "string" && booking.space_name.trim()) ||
+    (typeof booking.spaceName === "string" && booking.spaceName.trim()) ||
+    undefined;
+  const ownerName =
+    (typeof booking.owner_name === "string" && booking.owner_name.trim()) ||
+    (typeof booking.ownerName === "string" && booking.ownerName.trim()) ||
+    undefined;
+  const caregiverName =
+    (typeof booking.caregiver_name === "string" && booking.caregiver_name.trim()) ||
+    (typeof booking.caregiverName === "string" && booking.caregiverName.trim()) ||
+    undefined;
+
   return {
     id: String(booking.id ?? ""),
     spaceId: String(booking.space_id ?? ""),
     ownerId: String(booking.owner_id ?? ""),
+    spaceName,
+    ownerName,
+    caregiverName,
     petIds: Array.isArray(booking.pet_ids) ? booking.pet_ids.map(String) : [],
     bookingType: (booking.booking_type as Booking["bookingType"]) ?? "overnight",
     startDate: toDate(booking.start_date as string | undefined),
@@ -813,6 +960,104 @@ function mapBackendBooking(booking: Record<string, unknown>): Booking {
     paymentStatus: status === "cancelled" ? "refunded" : "pending",
     createdAt: toDate(booking.created_at as string | undefined),
     notes: typeof booking.notes === "string" ? booking.notes : undefined,
+  };
+}
+
+function mapBookingPartySummary(value: unknown): BookingPartySummary | undefined {
+  if (typeof value !== "object" || !value) return undefined;
+  const party = value as Record<string, unknown>;
+  const name =
+    (typeof party.name === "string" && party.name) ||
+    (typeof party.full_name === "string" && party.full_name) ||
+    (typeof party.fullName === "string" && party.fullName) ||
+    (typeof party.email === "string" && party.email) ||
+    "Usuario Donver";
+
+    return {
+      id: String(party.id ?? ""),
+      name: name,
+      email:
+        typeof party.email === "string" && party.email.trim()
+          ? party.email
+          : undefined,
+      phone:
+        typeof party.phone === "string" && party.phone.trim()
+          ? party.phone
+          : undefined,
+      avatarUrl:
+        typeof party.avatar_url === "string" && party.avatar_url
+          ? party.avatar_url
+        : undefined,
+  };
+}
+
+function mapBookingSpaceSummary(value: unknown): BookingSpaceSummary | undefined {
+  if (typeof value !== "object" || !value) return undefined;
+  const space = value as Record<string, unknown>;
+
+  return {
+    id: String(space.id ?? ""),
+    title: String(space.name ?? space.title ?? ""),
+    province: typeof space.province === "string" ? normalizeProvince(space.province) : undefined,
+    canton: typeof space.canton === "string" ? space.canton : undefined,
+    address: typeof space.address === "string" ? space.address : undefined,
+  };
+}
+
+function mapBookingPetSummary(value: unknown): BookingPetSummary | undefined {
+  if (typeof value !== "object" || !value) return undefined;
+  const pet = value as Record<string, unknown>;
+
+    return {
+      id: String(pet.id ?? ""),
+      name: String(pet.name ?? ""),
+      type: normalizePetType(String(pet.species ?? pet.type ?? "other")),
+      breed: typeof pet.breed === "string" && pet.breed ? pet.breed : undefined,
+      size: typeof pet.size === "string" && pet.size ? normalizePetSize(pet.size) : undefined,
+      age: typeof pet.age === "number" ? pet.age : undefined,
+      description: typeof pet.description === "string" && pet.description ? pet.description : undefined,
+      photos: Array.isArray(pet.photos) ? pet.photos.map(String) : undefined,
+      specialNeeds:
+        typeof pet.medical_notes === "string" && pet.medical_notes
+          ? pet.medical_notes
+          : typeof pet.specialNeeds === "string" && pet.specialNeeds
+            ? pet.specialNeeds
+            : undefined,
+    };
+  }
+
+function mapBackendBookingDetail(booking: Record<string, unknown>): BookingDetail {
+  const baseBooking = mapBackendBooking(booking);
+  const petCount = Array.isArray(booking.pet_ids) ? booking.pet_ids.length : baseBooking.petIds.length;
+  const pricing =
+    typeof booking.space === "object" && booking.space
+      ? calculateBookingPricing({
+          bookingType: baseBooking.bookingType,
+          startDate: baseBooking.startDate,
+          endDate: baseBooking.endDate,
+          pricePerNight: Number((booking.space as Record<string, unknown>).price_per_night ?? 0),
+          pricePerHour: Number((booking.space as Record<string, unknown>).price_per_hour ?? 0),
+          hours: baseBooking.hours,
+          petCount,
+          additionalPetRate:
+            typeof (booking.space as Record<string, unknown>).additional_pet_rate === "number"
+              ? Number((booking.space as Record<string, unknown>).additional_pet_rate)
+              : DEFAULT_ADDITIONAL_PET_RATE,
+        })
+      : undefined;
+  return {
+    ...baseBooking,
+    caregiverId: typeof booking.caregiver_id === "string" ? booking.caregiver_id : undefined,
+    updatedAt: typeof booking.updated_at === "string" && booking.updated_at ? toDate(booking.updated_at) : undefined,
+    pricing,
+    space: mapBookingSpaceSummary(booking.space),
+    pets: Array.isArray(booking.pets)
+      ? booking.pets
+          .map(mapBookingPetSummary)
+          .filter((pet): pet is BookingPetSummary => Boolean(pet))
+      : undefined,
+    owner: mapBookingPartySummary(booking.owner),
+    caregiver: mapBookingPartySummary(booking.caregiver),
   };
 }
 
@@ -889,11 +1134,86 @@ function mapBackendConversation(conversation: Record<string, unknown>): Conversa
     otherParticipant: otherId
       ? {
           id: otherId,
-          name: otherId === currentUserId ? currentUserStore.name : `Usuario ${otherId.slice(0, 6)}`,
+          name: otherId === currentUserId ? currentUserStore.name : "Usuario Donver",
           avatar: "",
         }
       : undefined,
     spaceTitle: spacesStore.find((space) => space.id === String(conversation.space_id ?? ""))?.title,
+  };
+}
+
+function buildMockBookingDetail(booking: Booking): BookingDetail {
+  const space = spacesStore.find((item) => item.id === booking.spaceId);
+  const pets = petsStore
+    .filter((pet) => booking.petIds.includes(pet.id))
+    .map((pet) => ({
+      id: pet.id,
+      name: pet.name,
+      type: pet.type,
+      breed: pet.breed,
+      size: pet.size,
+      age: pet.age,
+      description: pet.description,
+      photos: [...pet.photos],
+      specialNeeds: pet.specialNeeds,
+    }));
+
+  const owner: BookingPartySummary = {
+    id: booking.ownerId,
+    name: mockUser.name,
+    email: mockUser.email,
+    phone: mockUser.phone,
+    avatarUrl: booking.ownerId === currentUserStore.id ? currentUserStore.avatar : mockUser.avatar,
+  };
+
+  const caregiver: BookingPartySummary | undefined = space
+    ? {
+        id: space.caregiverId,
+        name:
+          space.caregiverId === mockCaregiverProfile.id
+            ? mockCaregiverProfile.name
+            : space.caregiverId === currentUserStore.id
+              ? currentUserStore.name
+              : "Usuario Donver",
+        email: space.caregiverId === mockCaregiverProfile.id ? mockCaregiverProfile.email : undefined,
+        phone: space.caregiverId === mockCaregiverProfile.id ? mockCaregiverProfile.phone : undefined,
+        avatarUrl:
+          space.caregiverId === mockCaregiverProfile.id
+            ? mockCaregiverProfile.avatar
+            : space.caregiverId === currentUserStore.id
+              ? currentUserStore.avatar
+              : undefined,
+      }
+    : undefined;
+  const pricing = space
+    ? calculateBookingPricing({
+        bookingType: booking.bookingType,
+        startDate: booking.startDate,
+        endDate: booking.endDate,
+        pricePerNight: space.pricePerNight,
+        pricePerHour: space.pricePerHour,
+        hours: booking.hours,
+        petCount: booking.petIds.length,
+        additionalPetRate: DEFAULT_ADDITIONAL_PET_RATE,
+      })
+    : undefined;
+
+  return {
+    ...cloneBooking(booking),
+    caregiverId: space?.caregiverId,
+    pricing,
+    space: space
+      ? {
+          id: space.id,
+          title: space.title,
+          province: space.province,
+          canton: space.canton,
+          address: space.address,
+        }
+      : undefined,
+    pets,
+    owner,
+    caregiver,
   };
 }
 
@@ -914,7 +1234,7 @@ async function createSessionFromAuth(email: string, authResult: Record<string, u
   const refreshToken = String(authResult.RefreshToken ?? authResult.refreshToken ?? "");
   const expiresIn = Number(authResult.ExpiresIn ?? authResult.expiresIn ?? 3600);
   const user = await bootstrapProfile(idToken);
-  const activeRole = user.activeRole ?? user.roles[0] ?? "owner";
+  const activeRole = deriveActiveRole(user.roles, user.activeRole, user.signupIntent);
 
   const session: AuthSession = {
     user,
@@ -996,7 +1316,15 @@ export const authApi = {
 
     const session = getAuthSession();
     if (session) {
-      persistAuthSession({ ...session, user, activeRole: user.activeRole ?? session.activeRole ?? user.roles[0] });
+      persistAuthSession({
+        ...session,
+        user,
+        activeRole: deriveActiveRole(
+          user.roles,
+          user.activeRole ?? session.activeRole,
+          user.signupIntent ?? session.user.signupIntent
+        ),
+      });
     }
 
     return user;
@@ -1012,14 +1340,21 @@ export const authApi = {
       currentUserStore = {
         ...cloneUser(currentUserStore),
         email: credentials.email,
-        roles: currentUserStore.roles.length ? currentUserStore.roles : ["owner"],
-        activeRole: currentUserStore.activeRole ?? currentUserStore.roles[0] ?? "owner",
+        activeRole: deriveActiveRole(
+          currentUserStore.roles,
+          currentUserStore.activeRole,
+          currentUserStore.signupIntent
+        ),
       };
       const session: AuthSession = {
         user: cloneUser(currentUserStore),
         accessToken: `placeholder-access-token-${Date.now()}`,
         refreshToken: `placeholder-refresh-token-${Date.now()}`,
-        activeRole: currentUserStore.activeRole ?? currentUserStore.roles[0] ?? "owner",
+        activeRole: deriveActiveRole(
+          currentUserStore.roles,
+          currentUserStore.activeRole,
+          currentUserStore.signupIntent
+        ),
       };
       persistAuthSession(session);
       return { ...cloneSession(session), provider: API_BASE_URL };
@@ -1053,6 +1388,7 @@ export const authApi = {
 
     if (!IS_API_CONFIGURED) {
       await delay();
+      const roles: UserRole[] = input.signupIntent === "caregiver" ? [] : ["owner"];
       currentUserStore = {
         ...cloneUser(currentUserStore),
         name: input.name,
@@ -1060,8 +1396,12 @@ export const authApi = {
         phone: input.phone,
         province: input.province,
         canton: input.canton,
-        roles: ["owner"],
-        activeRole: "owner",
+        roles,
+        activeRole: deriveActiveRole(
+          roles,
+          input.signupIntent === "caregiver" ? "caregiver" : "owner",
+          input.signupIntent ?? null
+        ),
         signupIntent: input.signupIntent ?? null,
       };
       return { user: cloneUser(currentUserStore), confirmed: true };
@@ -1154,7 +1494,23 @@ export const authApi = {
         ...(input.canton !== undefined ? { canton: input.canton } : {}),
         ...(input.activeRole !== undefined ? { activeRole: input.activeRole } : {}),
       };
-      currentUserStore.activeRole = currentUserStore.activeRole ?? currentUserStore.roles[0] ?? "owner";
+      currentUserStore.activeRole = deriveActiveRole(
+        currentUserStore.roles,
+        currentUserStore.activeRole,
+        currentUserStore.signupIntent
+      );
+      const session = getAuthSession();
+      if (session) {
+        persistAuthSession({
+          ...session,
+          user: currentUserStore,
+          activeRole: deriveActiveRole(
+            currentUserStore.roles,
+            currentUserStore.activeRole,
+            currentUserStore.signupIntent
+          ),
+        });
+      }
       return cloneUser(currentUserStore);
     }
 
@@ -1175,7 +1531,96 @@ export const authApi = {
     currentUserStore = cloneUser(user);
     const session = getAuthSession();
     if (session) {
-      persistAuthSession({ ...session, user, activeRole: user.activeRole ?? session.activeRole });
+      persistAuthSession({
+        ...session,
+        user,
+        activeRole: deriveActiveRole(
+          user.roles,
+          user.activeRole ?? session.activeRole,
+          user.signupIntent ?? session.user.signupIntent
+        ),
+      });
+    }
+    return user;
+  },
+
+  async activateOwnerProfile(input?: {
+    name?: string;
+    phone?: string;
+    province?: Province;
+    canton?: string;
+  }) {
+    if (!IS_API_CONFIGURED) {
+      await delay();
+      const nextUser: User = {
+        ...cloneUser(currentUserStore),
+        ...(input?.name !== undefined ? { name: input.name } : {}),
+        ...(input?.phone !== undefined ? { phone: input.phone } : {}),
+        ...(input?.province !== undefined ? { province: input.province } : {}),
+        ...(input?.canton !== undefined ? { canton: input.canton } : {}),
+      };
+      const needsOwnerActivation =
+        nextUser.roles.includes("caregiver") && !nextUser.roles.includes("owner");
+
+      if (
+        needsOwnerActivation &&
+        (!nextUser.name.trim() ||
+          !nextUser.phone?.trim() ||
+          !nextUser.province ||
+          !nextUser.canton.trim())
+      ) {
+        throw new Error("Completa tu nombre, teléfono, provincia y cantón para activar tu perfil de dueño.");
+      }
+
+      currentUserStore = {
+        ...nextUser,
+        roles: needsOwnerActivation ? ["owner", "caregiver"] : nextUser.roles,
+        activeRole: deriveActiveRole(
+          needsOwnerActivation ? ["owner", "caregiver"] : nextUser.roles,
+          needsOwnerActivation ? "owner" : nextUser.activeRole
+        ),
+        signupIntent: null,
+      };
+
+      const session = getAuthSession();
+      if (session) {
+        persistAuthSession({
+          ...session,
+          user: currentUserStore,
+          activeRole: deriveActiveRole(
+            currentUserStore.roles,
+            currentUserStore.activeRole,
+            currentUserStore.signupIntent
+          ),
+        });
+      }
+
+      return cloneUser(currentUserStore);
+    }
+
+    const data = await apiRequest<Record<string, unknown>>("/profile/activate-owner", {
+      method: "POST",
+      body: JSON.stringify({
+        ...(input?.name !== undefined ? { name: input.name } : {}),
+        ...(input?.phone !== undefined ? { phone: input.phone } : {}),
+        ...(input?.province !== undefined ? { province: toBackendProvince(input.province) } : {}),
+        ...(input?.canton !== undefined ? { canton: input.canton } : {}),
+      }),
+    });
+
+    const user = mapBackendUser(data);
+    currentUserStore = cloneUser(user);
+    const session = getAuthSession();
+    if (session) {
+      persistAuthSession({
+        ...session,
+        user,
+        activeRole: deriveActiveRole(
+          user.roles,
+          user.activeRole ?? session.activeRole,
+          user.signupIntent ?? session.user.signupIntent
+        ),
+      });
     }
     return user;
   },
@@ -1189,6 +1634,10 @@ export const authApi = {
   }) {
     if (!IS_API_CONFIGURED) {
       await delay();
+      const nextRoles: UserRole[] =
+        currentUserStore.signupIntent === "caregiver"
+          ? ["caregiver"]
+          : Array.from(new Set([...currentUserStore.roles, "owner", "caregiver"]));
       currentUserStore = {
         ...cloneUser(currentUserStore),
         name: input.name,
@@ -1196,10 +1645,18 @@ export const authApi = {
         province: input.province,
         canton: input.canton,
         bio: input.bio,
-        roles: Array.from(new Set([...currentUserStore.roles, "owner", "caregiver"])),
+        roles: nextRoles,
         activeRole: "caregiver",
         signupIntent: null,
       };
+      const session = getAuthSession();
+      if (session) {
+        persistAuthSession({
+          ...session,
+          user: currentUserStore,
+          activeRole: deriveActiveRole(currentUserStore.roles, currentUserStore.activeRole, currentUserStore.signupIntent),
+        });
+      }
       return cloneUser(currentUserStore);
     }
 
@@ -1218,7 +1675,15 @@ export const authApi = {
     currentUserStore = cloneUser(user);
     const session = getAuthSession();
     if (session) {
-      persistAuthSession({ ...session, user, activeRole: user.activeRole ?? session.activeRole });
+      persistAuthSession({
+        ...session,
+        user,
+        activeRole: deriveActiveRole(
+          user.roles,
+          user.activeRole ?? session.activeRole,
+          user.signupIntent ?? session.user.signupIntent
+        ),
+      });
     }
     return user;
   },
@@ -1433,15 +1898,39 @@ export const bookingsApi = {
   },
 
   async getById(bookingId: string) {
-    await delay();
-    return cloneBooking(
-      requireEntity(bookingsStore.find((booking) => booking.id === bookingId), "Reservacion no encontrada.")
-    );
+    if (!IS_API_CONFIGURED) {
+      await delay();
+      const booking = requireEntity(
+        bookingsStore.find((item) => item.id === bookingId),
+        "Reservacion no encontrada."
+      );
+      return cloneBookingDetail(buildMockBookingDetail(booking));
+    }
+
+    const data = await apiRequest<Record<string, unknown>>(`/bookings/${bookingId}`);
+    return mapBackendBookingDetail(data);
   },
 
   async create(input: CreateBookingInput) {
     if (!IS_API_CONFIGURED) {
       await delay();
+      const space = requireEntity(
+        spacesStore.find((item) => item.id === input.spaceId),
+        "Espacio no encontrado."
+      );
+      if (input.petIds.length > space.maxPets) {
+        throw new Error(`Este espacio permite máximo ${space.maxPets} mascotas por reserva.`);
+      }
+      const pricing = calculateBookingPricing({
+        bookingType: input.bookingType,
+        startDate: input.startDate,
+        endDate: input.endDate,
+        pricePerNight: space.pricePerNight,
+        pricePerHour: space.pricePerHour,
+        hours: input.hours,
+        petCount: input.petIds.length,
+        additionalPetRate: DEFAULT_ADDITIONAL_PET_RATE,
+      });
       const newBooking: Booking = {
         id: createId("booking"),
         spaceId: input.spaceId,
@@ -1453,9 +1942,9 @@ export const bookingsApi = {
         startTime: input.startTime,
         endTime: input.endTime,
         hours: input.hours,
-        subtotal: input.subtotal,
-        serviceFee: input.serviceFee,
-        totalPrice: input.totalPrice,
+        subtotal: pricing.subtotal,
+        serviceFee: pricing.serviceFee,
+        totalPrice: pricing.total,
         status: "pending",
         paymentStatus: "pending",
         createdAt: new Date(),
@@ -1491,19 +1980,32 @@ export const bookingsApi = {
         bookingsStore.find((item) => item.id === bookingId),
         "No se puede actualizar una reservacion inexistente."
       );
+      if (status === "confirmed" && booking.status !== "pending") {
+        throw new Error("Solo se pueden confirmar reservaciones pendientes.");
+      }
+      if (status === "cancelled" && booking.status !== "pending" && booking.status !== "confirmed") {
+        throw new Error("Solo se pueden cancelar reservaciones pendientes o confirmadas.");
+      }
       const updated: Booking = { ...booking, status };
       bookingsStore = bookingsStore.map((item) => (item.id === bookingId ? updated : item));
       return cloneBooking(updated);
     }
 
-    if (status !== "cancelled") {
-      throw new Error("Solo se soporta cancelar reservaciones en la API real.");
+    if (status === "confirmed") {
+      const data = await apiRequest<Record<string, unknown>>(`/bookings/${bookingId}/confirm`, {
+        method: "POST",
+      });
+      return mapBackendBooking(data);
     }
 
-    const data = await apiRequest<Record<string, unknown>>(`/bookings/${bookingId}/cancel`, {
-      method: "POST",
-    });
-    return mapBackendBooking(data);
+    if (status === "cancelled") {
+      const data = await apiRequest<Record<string, unknown>>(`/bookings/${bookingId}/cancel`, {
+        method: "POST",
+      });
+      return mapBackendBooking(data);
+    }
+
+    throw new Error("Ese cambio de estado no está soportado en esta fase.");
   },
 };
 

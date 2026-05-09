@@ -1,6 +1,7 @@
 import { PET_TYPES, PET_SIZES, AMENITIES } from "@/types";
 import { Button } from "@/components/ui/button";
 import { PhotoUpload } from "@/components/PhotoUpload";
+import { getPetSizeLabel, getPetTypeIcon, getPetTypeLabel } from "@/lib/pet-labels";
 import { useState } from "react";
 
 interface CaregiverStepThreeProps {
@@ -21,19 +22,6 @@ interface CaregiverStepThreeProps {
   onSubmit: () => void;
   isSubmitting?: boolean;
 }
-
-const PET_TYPE_LABELS: Record<string, string> = {
-  dog: "🐕 Perros",
-  cat: "🐱 Gatos",
-  bird: "🦜 Aves",
-  other: "🐾 Otros",
-};
-
-const PET_SIZE_LABELS: Record<string, string> = {
-  small: "🐾 Pequeño (< 10 kg)",
-  medium: "🐕 Mediano (10–25 kg)",
-  large: "🦮 Grande (> 25 kg)",
-};
 
 export function CaregiverStepThree({
   formData,
@@ -175,7 +163,9 @@ export function CaregiverStepThree({
                 onChange={() => toggleItem("acceptedPetTypes", formData.acceptedPetTypes, type)}
                 className="w-4 h-4 rounded border-input cursor-pointer"
               />
-              <span className="text-sm text-foreground">{PET_TYPE_LABELS[type]}</span>
+              <span className="text-sm text-foreground">
+                {getPetTypeIcon(type)} {getPetTypeLabel(type)}
+              </span>
             </label>
           ))}
         </div>
@@ -195,7 +185,7 @@ export function CaregiverStepThree({
                 onChange={() => toggleItem("acceptedPetSizes", formData.acceptedPetSizes, size)}
                 className="w-4 h-4 rounded border-input cursor-pointer"
               />
-              <span className="text-sm text-foreground">{PET_SIZE_LABELS[size]}</span>
+              <span className="text-sm text-foreground">{getPetSizeLabel(size)}</span>
             </label>
           ))}
         </div>

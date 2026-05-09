@@ -100,6 +100,7 @@ export class DonverApiStack extends cdk.Stack {
     const authBootstrapFn     = createFn("AuthBootstrapFn",     "auth-bootstrap");
     const getMeFn             = createFn("GetMeFn",              "get-me");
     const updateProfileFn     = createFn("UpdateProfileFn",      "update-profile");
+    const activateOwnerProfileFn = createFn("ActivateOwnerProfileFn", "activate-owner-profile");
     const listSpacesFn        = createFn("ListSpacesFn",         "list-spaces");
     const getSpaceDetailFn    = createFn("GetSpaceDetailFn",     "get-space-detail");
     const listMySpacesFn      = createFn("ListMySpacesFn",       "list-my-spaces");
@@ -111,7 +112,9 @@ export class DonverApiStack extends cdk.Stack {
     const deletePetFn         = createFn("DeletePetFn",          "delete-pet");
     const listOwnerBookingsFn = createFn("ListOwnerBookingsFn",  "list-owner-bookings");
     const listCgBookingsFn    = createFn("ListCgBookingsFn",     "list-caregiver-bookings");
+    const getBookingDetailFn  = createFn("GetBookingDetailFn",   "get-booking-detail");
     const createBookingFn     = createFn("CreateBookingFn",      "create-booking");
+    const confirmBookingFn    = createFn("ConfirmBookingFn",     "confirm-booking");
     const cancelBookingFn     = createFn("CancelBookingFn",      "cancel-booking");
     const createBlockedDateFn = createFn("CreateBlockedDateFn",  "create-blocked-date");
     const deleteBlockedDateFn = createFn("DeleteBlockedDateFn",  "delete-blocked-date");
@@ -126,7 +129,7 @@ export class DonverApiStack extends cdk.Stack {
     const wsSendMessageFn     = createFn("WsSendMessageFn",      "ws-send-message");
 
     const coreFunctions = [
-      authRegisterFn, authBootstrapFn, getMeFn, updateProfileFn, caregiverOnboardingFn, listSpacesFn, getSpaceDetailFn,
+      authRegisterFn, authBootstrapFn, getMeFn, updateProfileFn, activateOwnerProfileFn, caregiverOnboardingFn, listSpacesFn, getSpaceDetailFn,
       listMySpacesFn, listCgBookingsFn, createSpaceFn, updateSpaceFn, listPetsFn, createPetFn,
       updatePetFn, deletePetFn, listReviewsFn, createReviewFn, createBookingFn,
     ];
@@ -134,9 +137,20 @@ export class DonverApiStack extends cdk.Stack {
 
     const bookingsFunctions = [
       getSpaceDetailFn, listOwnerBookingsFn, listCgBookingsFn, createBookingFn,
-      cancelBookingFn, createBlockedDateFn, deleteBlockedDateFn, createReviewFn,
+      confirmBookingFn, cancelBookingFn, createBlockedDateFn, deleteBlockedDateFn, createReviewFn,
     ];
     bookingsFunctions.forEach((fn) => grantDomainTableAccess(fn, bookingsTableName));
+
+    // Owner bookings enriches booking rows with caregiver and space data from Core.
+    grantDomainTableAccess(listOwnerBookingsFn, coreTableName, ["dynamodb:GetItem"]);
+
+    grantDomainTableAccess(getBookingDetailFn, bookingsTableName, ["dynamodb:GetItem"]);
+    grantDomainTableAccess(getBookingDetailFn, coreTableName, ["dynamodb:GetItem"]);
+
+    // Availability blocked-dates handlers call userHasRole() and read the space record from Core.
+    // Keep least-privilege: read-only access (GetItem) to the Core table.
+    grantDomainTableAccess(createBlockedDateFn, coreTableName, ["dynamodb:GetItem"]);
+    grantDomainTableAccess(deleteBlockedDateFn, coreTableName, ["dynamodb:GetItem"]);
 
     const messagingFunctions = [
       listConvsFn, listMessagesFn, wsConnectFn, wsDisconnectFn, wsSendMessageFn,
@@ -181,6 +195,7 @@ export class DonverApiStack extends cdk.Stack {
     httpApi.addRoutes({ path: "/auth/bootstrap",  methods: [apigwv2.HttpMethod.POST], integration: h(authBootstrapFn, "AuthBootstrap"),    authorizer: auth });
     httpApi.addRoutes({ path: "/me",               methods: [apigwv2.HttpMethod.GET],  integration: h(getMeFn, "GetMe"),                    authorizer: auth });
     httpApi.addRoutes({ path: "/me/profile",        methods: [apigwv2.HttpMethod.PUT],  integration: h(updateProfileFn, "UpdateProfile"),    authorizer: auth });
+    httpApi.addRoutes({ path: "/profile/activate-owner", methods: [apigwv2.HttpMethod.POST], integration: h(activateOwnerProfileFn, "ActivateOwnerProfile"), authorizer: auth });
     httpApi.addRoutes({ path: "/caregiver/onboarding", methods: [apigwv2.HttpMethod.POST], integration: h(caregiverOnboardingFn, "CaregiverOnboarding"), authorizer: auth });
     httpApi.addRoutes({ path: "/spaces",           methods: [apigwv2.HttpMethod.GET],  integration: h(listSpacesFn, "ListSpaces") });
     httpApi.addRoutes({ path: "/spaces/{id}",      methods: [apigwv2.HttpMethod.GET],  integration: h(getSpaceDetailFn, "GetSpaceDetail") });
@@ -197,7 +212,9 @@ export class DonverApiStack extends cdk.Stack {
     httpApi.addRoutes({ path: "/owner/pets/{id}",  methods: [apigwv2.HttpMethod.PUT],    integration: h(updatePetFn, "UpdatePet"),     authorizer: auth });
     httpApi.addRoutes({ path: "/owner/pets/{id}",  methods: [apigwv2.HttpMethod.DELETE], integration: h(deletePetFn, "DeletePet"),     authorizer: auth });
     httpApi.addRoutes({ path: "/owner/bookings",   methods: [apigwv2.HttpMethod.GET],    integration: h(listOwnerBookingsFn, "ListOwnerBookings"), authorizer: auth });
+    httpApi.addRoutes({ path: "/bookings/{id}",    methods: [apigwv2.HttpMethod.GET],    integration: h(getBookingDetailFn, "GetBookingDetail"), authorizer: auth });
     httpApi.addRoutes({ path: "/bookings",           methods: [apigwv2.HttpMethod.POST], integration: h(createBookingFn, "CreateBooking"), authorizer: auth });
+    httpApi.addRoutes({ path: "/bookings/{id}/confirm", methods: [apigwv2.HttpMethod.POST], integration: h(confirmBookingFn, "ConfirmBooking"), authorizer: auth });
     httpApi.addRoutes({ path: "/bookings/{id}/cancel", methods: [apigwv2.HttpMethod.POST], integration: h(cancelBookingFn, "CancelBooking"), authorizer: auth });
     httpApi.addRoutes({ path: "/uploads/presign",                      methods: [apigwv2.HttpMethod.POST], integration: h(createUploadUrlFn, "CreateUploadUrl"), authorizer: auth });
     httpApi.addRoutes({ path: "/messages/conversations",               methods: [apigwv2.HttpMethod.GET],  integration: h(listConvsFn, "ListConvs"),             authorizer: auth });

@@ -65,7 +65,7 @@ export const mockCaregiverSpaces: Space[] = [
     pricePerHour: 9000,
     minHours: 2,
     maxPets: 3,
-    acceptedPetTypes: ["cat", "bird"],
+    acceptedPetTypes: ["cat", "bird", "rabbit"],
     acceptedPetSizes: ["small", "medium"],
     amenities: ["Aire acondicionado", "Cámaras de seguridad"],
     isActive: true,

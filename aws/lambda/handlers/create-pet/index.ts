@@ -1,12 +1,15 @@
 import type { APIGatewayProxyEventV2WithJWTAuthorizer } from 'aws-lambda';
 import { PutCommand } from '@aws-sdk/lib-dynamodb';
 import { ddb, CORE_TABLE_NAME, coreGsi, coreKeys } from '../../shared/core-db';
-import { getAuthClaims } from '../../shared/auth';
-import { created, badRequest, serverError } from '../../shared/response';
+import { getAuthClaims, userHasRole } from '../../shared/auth';
+import { created, badRequest, forbidden, serverError } from '../../shared/response';
 
 export async function handler(event: APIGatewayProxyEventV2WithJWTAuthorizer) {
   try {
     const { sub } = getAuthClaims(event);
+    if (!(await userHasRole(sub, 'owner'))) {
+      return forbidden('No tienes perfil de dueño activo.');
+    }
     const body = JSON.parse(event.body ?? '{}') as {
       name?: string; species?: string; breed?: string; age?: number;
       weight?: number; size?: string; description?: string; photos?: string[]; medical_notes?: string;

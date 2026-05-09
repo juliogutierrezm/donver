@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { LocationPicker } from "@/components/LocationPicker";
 import { PhotoUpload } from "@/components/PhotoUpload";
+import { getPetSizeLabel, getPetTypeIcon, getPetTypeLabel } from "@/lib/pet-labels";
 import type { Space } from "@/types";
 
 interface SpaceFormDialogProps {
@@ -105,12 +106,12 @@ export function SpaceFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className="flex max-h-[90dvh] max-w-3xl flex-col overflow-hidden p-0">
+        <DialogHeader className="border-b border-border px-6 py-4">
           <DialogTitle>{space ? "Editar espacio" : "Nuevo espacio"}</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="space-y-6 overflow-y-auto px-6 py-4">
           <div className="rounded-xl border border-border bg-muted/30 p-4 text-sm text-muted-foreground">
             Los espacios nuevos se guardan como borrador. Solo podrás publicarlos cuando tu perfil de cuidador esté completo y el espacio tenga todos sus datos obligatorios.
           </div>
@@ -289,7 +290,7 @@ export function SpaceFormDialog({
                     className="h-4 w-4 rounded border-input"
                   />
                   <span className="text-sm text-foreground">
-                    {type === "dog" ? "Perros" : type === "cat" ? "Gatos" : type === "bird" ? "Aves" : "Otros"}
+                    {getPetTypeIcon(type)} {getPetTypeLabel(type)}
                   </span>
                 </label>
               ))}
@@ -309,9 +310,7 @@ export function SpaceFormDialog({
                     onChange={() => toggleListValue("acceptedPetSizes", size)}
                     className="h-4 w-4 rounded border-input"
                   />
-                  <span className="text-sm text-foreground">
-                    {size === "small" ? "Pequeño" : size === "medium" ? "Mediano" : "Grande"}
-                  </span>
+                  <span className="text-sm text-foreground">{getPetSizeLabel(size)}</span>
                 </label>
               ))}
             </div>
@@ -337,7 +336,7 @@ export function SpaceFormDialog({
           </div>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="border-t border-border px-6 py-4">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>

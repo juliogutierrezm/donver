@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { MessageSquare } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
@@ -9,10 +10,15 @@ import { useToast } from "@/hooks/use-toast";
 import type { ConversationWithDetails, Message } from "@/types/messaging";
 
 export default function MessagesPage() {
+  const location = useLocation();
   const { toast } = useToast();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [conversations, setConversations] = useState<ConversationWithDetails[]>([]);
   const [messagesByConv, setMessagesByConv] = useState<Record<string, Message[]>>({});
+  const initialConversationId =
+    typeof (location.state as { initialConversationId?: unknown } | null)?.initialConversationId === "string"
+      ? ((location.state as { initialConversationId?: string }).initialConversationId ?? null)
+      : null;
 
   useEffect(() => {
     let cancelled = false;
@@ -22,6 +28,10 @@ export default function MessagesPage() {
         const data = await messagesApi.listConversations();
         if (cancelled) return;
         setConversations(data);
+        if (initialConversationId && data.some((conversation) => conversation.id === initialConversationId)) {
+          setSelectedId(initialConversationId);
+          return;
+        }
         if (!selectedId && data.length > 0) {
           setSelectedId(data[0].id);
         }
@@ -40,7 +50,7 @@ export default function MessagesPage() {
     return () => {
       cancelled = true;
     };
-  }, [selectedId, toast]);
+  }, [initialConversationId, selectedId, toast]);
 
   useEffect(() => {
     if (!selectedId || messagesByConv[selectedId]) return;

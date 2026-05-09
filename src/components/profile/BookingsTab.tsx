@@ -1,9 +1,10 @@
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { Calendar, DollarSign, MapPin } from "lucide-react";
+import { Calendar, DollarSign } from "lucide-react";
+import { Link } from "react-router-dom";
 import type { Booking } from "@/types";
-import { getSpaceById } from "@/data/mockProfileData";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 interface BookingsTabProps {
   bookings: Booking[];
@@ -36,8 +37,6 @@ export function BookingsTab({ bookings }: BookingsTabProps) {
   return (
     <div className="space-y-4">
       {bookings.map((booking) => {
-        const space = getSpaceById(booking.spaceId);
-
         return (
           <div
             key={booking.id}
@@ -46,12 +45,11 @@ export function BookingsTab({ bookings }: BookingsTabProps) {
             <div className="flex items-start justify-between mb-3">
               <div className="flex-1">
                 <h3 className="font-semibold text-foreground">
-                  {space?.title ?? `Espacio ${booking.spaceId}`}
+                  {booking.spaceName ?? "Espacio Donver"}
                 </h3>
-                {space && (
-                  <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
-                    <MapPin className="w-4 h-4" />
-                    {space.canton}, {space.province}
+                {booking.caregiverName && (
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Cuidador: {booking.caregiverName}
                   </p>
                 )}
               </div>
@@ -91,9 +89,9 @@ export function BookingsTab({ bookings }: BookingsTabProps) {
             </div>
 
             <div className="pt-4 border-t border-border">
-              <button className="text-sm font-semibold text-primary hover:underline">
-                Ver detalles
-              </button>
+              <Button asChild variant="link" className="h-auto px-0 text-sm font-semibold">
+                <Link to={`/bookings/${booking.id}`}>Ver detalles</Link>
+              </Button>
             </div>
           </div>
         );

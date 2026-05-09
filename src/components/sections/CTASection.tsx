@@ -8,7 +8,7 @@ export function CTASection() {
   const primaryCta =
     experienceMode === "caregiver_pending"
       ? { to: "/become-caregiver", label: "Continuar como cuidador" }
-      : experienceMode === "caregiver"
+      : experienceMode === "caregiver" || experienceMode === "both"
         ? { to: "/caregiver/dashboard", label: "Ir a mi dashboard" }
         : { to: authenticated ? "/profile" : "/register", label: authenticated ? "Ir a mi perfil" : "Crear cuenta gratis" };
 

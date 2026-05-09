@@ -1,0 +1,21 @@
+{
+  "version": "53.0.0",
+  "files": {
+    "4b6806c76cce9d0ed3a1643b28a0b13fe94c71f2f89ebda125175fb3cacee5d2": {
+      "displayName": "DonverShared-dev Template",
+      "source": {
+        "path": "DonverShared-dev.template.json",
+        "packaging": "file"
+      },
+      "destinations": {
+        "183192606101-us-east-1-1622b27b": {
+          "bucketName": "cdk-donver-assets-183192606101-us-east-1",
+          "objectKey": "4b6806c76cce9d0ed3a1643b28a0b13fe94c71f2f89ebda125175fb3cacee5d2.json",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::183192606101:role/cdk-donver-file-publishing-role-183192606101-us-east-1"
+        }
+      }
+    }
+  },
+  "dockerImages": {}
+}

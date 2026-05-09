@@ -8,7 +8,9 @@ import LoginPage from "@/pages/LoginPage";
 import RegisterPage from "@/pages/RegisterPage";
 import VerifyEmailPage from "@/pages/VerifyEmailPage";
 import ProfilePage from "@/pages/ProfilePage";
+import BookingDetailPage from "@/pages/BookingDetailPage";
 import BecomeCaregiverPage from "@/pages/BecomeCaregiverPage";
+import BecomeOwnerPage from "@/pages/BecomeOwnerPage";
 import CaregiverDashboardPage from "@/pages/CaregiverDashboardPage";
 import MessagesPage from "@/pages/MessagesPage";
 import HelpCenterPage from "@/pages/HelpCenterPage";
@@ -16,6 +18,7 @@ import HowItWorksPage from "@/pages/HowItWorksPage";
 import NotFound from "@/pages/NotFound";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { APP_ROUTES } from "@/lib/routes";
 
 const queryClient = new QueryClient();
 
@@ -25,15 +28,17 @@ function App() {
       <TooltipProvider>
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Index />} />
+            <Route path={APP_ROUTES.home} element={<Index />} />
             <Route path="/spaces" element={<SpacesPage />} />
             <Route path="/spaces/:id" element={<SpaceDetailPage />} />
-            <Route path="/login" element={<LoginPage />} />
+            <Route path={APP_ROUTES.login} element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/verify-email" element={<VerifyEmailPage />} />
-            <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/become-caregiver" element={<BecomeCaregiverPage />} />
-            <Route path="/caregiver/dashboard" element={<CaregiverDashboardPage />} />
+            <Route path={APP_ROUTES.profile} element={<ProfilePage />} />
+            <Route path="/bookings/:id" element={<BookingDetailPage />} />
+            <Route path={APP_ROUTES.becomeCaregiver} element={<BecomeCaregiverPage />} />
+            <Route path={APP_ROUTES.becomeOwner} element={<BecomeOwnerPage />} />
+            <Route path={APP_ROUTES.caregiverDashboard} element={<CaregiverDashboardPage />} />
             <Route path="/messages" element={<MessagesPage />} />
             <Route path="/help" element={<HelpCenterPage />} />
             <Route path="/how-it-works" element={<HowItWorksPage />} />

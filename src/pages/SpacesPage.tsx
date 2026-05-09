@@ -7,6 +7,7 @@ import { LocationSearch, type LocationResult } from "@/components/LocationSearch
 import { SpacesMap } from "@/components/SpacesMap";
 import { SpaceCard } from "@/components/SpaceCard";
 import { useGeolocation } from "@/hooks/use-geolocation";
+import { getPetTypeLabel } from "@/lib/pet-labels";
 import { PROVINCES, CANTONES, PET_TYPES } from "@/types";
 import { spacesApi } from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
@@ -26,6 +27,15 @@ function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
       Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
+}
+
+function hasValidSpaceCoordinates(space: Space) {
+  return (
+    Number.isFinite(space.latitude) &&
+    Number.isFinite(space.longitude) &&
+    Math.abs(space.latitude) <= 90 &&
+    Math.abs(space.longitude) <= 180
+  );
 }
 
 export default function SpacesPage() {
@@ -88,6 +98,10 @@ export default function SpacesPage() {
     if (searchLocation) {
       filtered = filtered
         .filter((space) => {
+          if (!hasValidSpaceCoordinates(space)) {
+            return false;
+          }
+
           const distance = calculateDistance(
             searchLocation.lat,
             searchLocation.lon,
@@ -115,6 +129,18 @@ export default function SpacesPage() {
 
     return filtered;
   }, [priceRange, searchLocation, searchRadius, spaces]);
+
+  const mapUserLocation = useMemo(() => {
+    if (searchLocation) {
+      return searchLocation;
+    }
+
+    if (coords) {
+      return { lat: coords.latitude, lon: coords.longitude };
+    }
+
+    return null;
+  }, [coords, searchLocation]);
 
   return (
     <>
@@ -191,13 +217,7 @@ export default function SpacesPage() {
                   <option value="">Todas</option>
                   {PET_TYPES.map((type) => (
                     <option key={type} value={type}>
-                      {type === "dog"
-                        ? "Perros"
-                        : type === "cat"
-                          ? "Gatos"
-                          : type === "bird"
-                            ? "Pájaros"
-                            : "Otros"}
+                      {getPetTypeLabel(type)}
                     </option>
                   ))}
                 </select>
@@ -308,13 +328,11 @@ export default function SpacesPage() {
               >
                 <SpacesMap
                   spaces={filteredSpaces}
-                  userLocation={
-                    searchLocation ||
-                    (coords ? { lat: coords.latitude, lon: coords.longitude } : null)
-                  }
+                  userLocation={mapUserLocation}
                   searchRadius={searchRadius}
                   onRadiusChange={setSearchRadius}
                   resultCount={filteredSpaces.length}
+                  viewMode={viewMode}
                 />
               </div>
             )}

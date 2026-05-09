@@ -32,7 +32,16 @@ export interface User {
   caregiverStatus?: CaregiverStatus;
 }
 
-export type PetType = "dog" | "cat" | "bird" | "other";
+export type PetType =
+  | "dog"
+  | "cat"
+  | "bird"
+  | "rabbit"
+  | "hamster"
+  | "snake"
+  | "reptile"
+  | "fish"
+  | "other";
 export type PetSize = "small" | "medium" | "large";
 
 export interface Pet {
@@ -81,6 +90,9 @@ export interface Booking {
   id: string;
   spaceId: string;
   ownerId: string;
+  spaceName?: string;
+  ownerName?: string;
+  caregiverName?: string;
   petIds: string[];
   bookingType: BookingType;
   startDate: Date;
@@ -212,7 +224,16 @@ export const CANTONES: Record<Province, string[]> = {
   ],
 };
 
-export const PET_TYPES: PetType[] = ["dog", "cat", "bird", "other"];
+export const PET_TYPES: Array<Exclude<PetType, "other">> = [
+  "dog",
+  "cat",
+  "bird",
+  "rabbit",
+  "hamster",
+  "snake",
+  "reptile",
+  "fish",
+];
 
 export const PET_SIZES: PetSize[] = ["small", "medium", "large"];
 

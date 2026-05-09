@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Menu, MessageSquare, User, X } from "lucide-react";
 import { useState } from "react";
 import DonverLogo from "@/assets/Donver-logo.png";
+import Logo from "@/assets/Logo.png";
 import { Button } from "@/components/ui/button";
 import { NavLink } from "@/components/NavLink";
 import { cn } from "@/lib/utils";
@@ -22,7 +23,7 @@ export function Header() {
   const caregiverCta =
     experienceMode === "caregiver_pending"
       ? { label: "Continuar registro", to: "/become-caregiver" }
-      : experienceMode === "caregiver"
+      : experienceMode === "caregiver" || experienceMode === "both"
         ? { label: "Dashboard cuidador", to: "/caregiver/dashboard" }
         : { label: "Ser cuidador", to: "/become-caregiver" };
 
@@ -31,7 +32,7 @@ export function Header() {
       <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <Link to="/" className="flex items-center gap-2 font-heading text-xl font-bold text-primary hover-lift">
           <img
-            src={DonverLogo}
+            src={Logo}
             alt="Donver logo"
             className="h-10 w-auto"
             style={{ maxHeight: 40 }}

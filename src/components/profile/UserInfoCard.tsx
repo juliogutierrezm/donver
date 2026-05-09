@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { getUserExperienceMode } from "@/services/api";
+import { APP_ROUTES } from "@/lib/routes";
 import type { User } from "@/types";
 
 interface UserInfoCardProps {
@@ -11,11 +12,16 @@ interface UserInfoCardProps {
 
 export function UserInfoCard({ user, onLogout, onSetActiveRole }: UserInfoCardProps) {
   const experienceMode = getUserExperienceMode(user);
-  const activeRole = user.activeRole ?? user.roles[0] ?? "owner";
+  const hasOwnerRole = user.roles.includes("owner");
+  const hasCaregiverRole = user.roles.includes("caregiver");
+  const activeRole =
+    experienceMode === "both" && user.activeRole === "caregiver" ? "caregiver" : hasOwnerRole ? "owner" : "caregiver";
   const roleLabel =
     experienceMode === "caregiver_pending"
       ? "Registro de cuidador pendiente"
-      : activeRole === "caregiver"
+      : experienceMode === "both"
+        ? "Dueño y cuidador"
+        : activeRole === "caregiver"
         ? "Cuidador"
         : "Dueño";
 
@@ -36,11 +42,11 @@ export function UserInfoCard({ user, onLogout, onSetActiveRole }: UserInfoCardPr
         {roleLabel}
       </div>
 
-      {user.roles.length > 1 && onSetActiveRole && experienceMode !== "caregiver_pending" && (
+      {experienceMode === "both" && onSetActiveRole && (
         <div className="mb-6 space-y-2 text-left">
           <p className="text-sm font-medium text-muted-foreground">Vista activa</p>
           <div className="flex flex-wrap gap-2">
-            {user.roles.map((role) => (
+            {(["owner", "caregiver"] as const).map((role) => (
               <Button
                 key={role}
                 type="button"
@@ -70,15 +76,19 @@ export function UserInfoCard({ user, onLogout, onSetActiveRole }: UserInfoCardPr
       <div className="flex flex-col gap-2">
         {experienceMode === "caregiver_pending" ? (
           <Button asChild className="w-full">
-            <Link to="/become-caregiver">Continuar registro de cuidador</Link>
+            <Link to={APP_ROUTES.becomeCaregiver}>Continuar registro de cuidador</Link>
           </Button>
-        ) : user.roles.includes("caregiver") ? (
+        ) : experienceMode === "caregiver" ? (
           <Button asChild className="w-full">
-            <Link to="/caregiver/dashboard">Ir al dashboard</Link>
+            <Link to={APP_ROUTES.becomeOwner}>Activar perfil de dueño</Link>
+          </Button>
+        ) : hasCaregiverRole ? (
+          <Button asChild className="w-full">
+            <Link to={APP_ROUTES.caregiverDashboard}>Ir al dashboard</Link>
           </Button>
         ) : (
           <Button asChild className="w-full">
-            <Link to="/become-caregiver">Quiero ser cuidador</Link>
+            <Link to={APP_ROUTES.becomeCaregiver}>Quiero ser cuidador</Link>
           </Button>
         )}
         <Button variant="outline" className="w-full" onClick={onLogout}>

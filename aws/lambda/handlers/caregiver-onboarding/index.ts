@@ -1,6 +1,6 @@
 import type { APIGatewayProxyEventV2WithJWTAuthorizer } from 'aws-lambda';
 import { GetCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
-import { getAuthClaims, normalizeRoles } from '../../shared/auth';
+import { getAuthClaims, resolveProfileRoles } from '../../shared/auth';
 import { CORE_TABLE_NAME, coreKeys, ddb } from '../../shared/core-db';
 import { normalizeProfileWithStatus } from '../../shared/profile';
 import { badRequest, conflict, notFound, ok, serverError } from '../../shared/response';
@@ -36,12 +36,15 @@ export async function handler(event: APIGatewayProxyEventV2WithJWTAuthorizer) {
       return notFound('Profile not found');
     }
 
-    const currentRoles = normalizeRoles(existing.Item['roles'] ?? existing.Item['role']);
+    const currentRoles = resolveProfileRoles(existing.Item as Record<string, unknown>);
     if (currentRoles.includes('caregiver')) {
       return conflict('Caregiver profile already exists');
     }
 
-    const nextRoles = Array.from(new Set([...currentRoles, 'owner', 'caregiver']));
+    const isCaregiverFirst = existing.Item['signup_intent'] === 'caregiver';
+    const nextRoles = isCaregiverFirst
+      ? ['caregiver']
+      : Array.from(new Set([...currentRoles, 'owner', 'caregiver']));
     const now = new Date().toISOString();
     const result = await ddb.send(new UpdateCommand({
       TableName: CORE_TABLE_NAME,
